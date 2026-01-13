@@ -1,10 +1,7 @@
 package com.itms.security;
 
 import com.itms.common.UserRole;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,9 +23,6 @@ public class JwtTokenUtil {
     @Value("${jwt.expirationMs}")
     private long jwtExpirationMs;
 
-    @Value("${jwt.reset-expiration}")
-    private long resetExpirationMs;
-
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
@@ -43,7 +37,7 @@ public class JwtTokenUtil {
                 .claim("role", role)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(getSigningKey())
+                .signWith(getSigningKey() , SignatureAlgorithm.HS256)
                 .compact();
     }
 

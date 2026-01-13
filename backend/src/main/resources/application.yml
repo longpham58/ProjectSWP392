@@ -30,6 +30,5 @@ spring:
       hibernate:
         format_sql: true
 jwt:
-  secret: mySuperSecretKeyForITMS1234567890
+  secret: owPXWNGG5LYEu+8Xfyru7NtEU5uV7B6HbLux1/hTZgA=
   expirationMs: 86400000  # 24 hours in milliseconds
-  reset-expiration: 3600000     # 1 hour for password reset token
