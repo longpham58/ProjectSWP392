@@ -24,4 +24,7 @@ hs_err_pid*
 replay_pid*
 
 # Maven target directory
-target/
+backend/target/
+
+# DbConnect
+backend/src/main/java/com/itms/config/DBConnect.java
