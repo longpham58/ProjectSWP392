@@ -1,5 +1,7 @@
 package com.itms.dto.auth;
 
+import com.itms.common.UserRole;
+import com.itms.entity.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -13,20 +15,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginResponse {
     private String token;           // JWT token
-    private UserInfo user;          // basic user info
+    private String email;
+    private UserRole role;
     private boolean otpRequired;
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class UserInfo {
-        private Integer id;
-        private String username;
-        private String fullName;
-        private String email;
-        private String role;         // EMPLOYEE, TRAINER, HR, MANAGER
-        private Integer departmentId;
-    }
+
 
     public void getTokenAndSetCookie(HttpServletResponse response) {
         if (token != null && response != null) {

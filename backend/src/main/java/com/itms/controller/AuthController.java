@@ -1,13 +1,13 @@
 package com.itms.controller;
 
+import com.itms.dto.UserInfo;
 import com.itms.dto.auth.*;
 import com.itms.dto.common.ResponseDto;
 import com.itms.service.UserService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -90,6 +90,12 @@ public class AuthController {
         ResponseDto<Void> response = userService.resetPassword(request);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/me")
+    public ResponseDto<UserInfo> me(Authentication authentication) {
+        return userService.getMe(authentication);
+    }
+
 
 
 }

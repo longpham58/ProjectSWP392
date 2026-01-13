@@ -1,6 +1,7 @@
 package com.itms.service;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.itms.dto.UserInfo;
 import com.itms.dto.auth.*;
 import com.itms.dto.common.ResponseDto;
 import com.itms.entity.User;
@@ -9,6 +10,7 @@ import com.itms.security.JwtTokenUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -131,20 +133,37 @@ public class UserService {
 
         return ResponseDto.success(buildLoginResponse(user, token, false), "Login successful");
     }
-    private LoginResponse buildLoginResponse(User user, String token, boolean otpRequired) {
-        LoginResponse.UserInfo userInfo = LoginResponse.UserInfo.builder()
+
+    public ResponseDto<UserInfo> getMe(Authentication authentication) {
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User is not authenticated");
+        }
+
+        // Username extracted from JWT
+        String username = authentication.getName();
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserInfo userInfo = UserInfo.builder()
                 .id(user.getId())
                 .username(user.getUsername())
-                .fullName(user.getFullName())
                 .email(user.getEmail())
-                .role(user.getRole().name())
-                .departmentId(user.getDepartment() != null ? user.getDepartment().getId() : null)
+                .fullName(user.getFullName())
+                .role(user.getRole())
+                .department(user.getDepartment())
                 .build();
 
+        return ResponseDto.success(userInfo, "Current logged-in user");
+    }
+
+    private LoginResponse buildLoginResponse(User user, String token, boolean otpRequired) {
         return LoginResponse.builder()
                 .token(token)
                 .otpRequired(otpRequired)
-                .user(userInfo)
+                .email(user.getEmail())
+                .role(user.getRole())
                 .build();
     }
 }
