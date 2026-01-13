@@ -45,24 +45,23 @@ public class UserService {
         } else {
             // Generate JWT token directly
             token = jwtTokenProvider.generateToken(user.getUsername(), user.getRole());
-        }
-
-        // Remember Account → cookie with username
-        if (Boolean.TRUE.equals(request.getRememberAccount())) {
-            Cookie accountCookie = new Cookie("rememberAccount", user.getUsername());
-            accountCookie.setHttpOnly(true);
-            accountCookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
-            accountCookie.setPath("/");
-            response.addCookie(accountCookie);
-        }
-        // Remember Device → create device token cookie
-        if (Boolean.TRUE.equals(request.getRememberDevice())) {
-            String newDeviceToken = jwtTokenProvider.generateDeviceToken(user.getUsername());
-            Cookie deviceCookie = new Cookie("deviceToken", newDeviceToken);
-            deviceCookie.setHttpOnly(true);
-            deviceCookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
-            deviceCookie.setPath("/");
-            response.addCookie(deviceCookie);
+            // Remember Account → cookie with username
+            if (Boolean.TRUE.equals(request.getRememberAccount())) {
+                Cookie accountCookie = new Cookie("rememberAccount", user.getUsername());
+                accountCookie.setHttpOnly(true);
+                accountCookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
+                accountCookie.setPath("/");
+                response.addCookie(accountCookie);
+            }
+            // Remember Device → create device token cookie
+            if (Boolean.TRUE.equals(request.getRememberDevice())) {
+                String newDeviceToken = jwtTokenProvider.generateDeviceToken(user.getUsername());
+                Cookie deviceCookie = new Cookie("deviceToken", newDeviceToken);
+                deviceCookie.setHttpOnly(true);
+                deviceCookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
+                deviceCookie.setPath("/");
+                response.addCookie(deviceCookie);
+            }
         }
 
         return ResponseDto.success(buildLoginResponse(user, token, otpRequired),
