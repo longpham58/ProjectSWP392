@@ -23,6 +23,7 @@ public class Department {
     @Column(nullable = false, unique = true, length = 100)
     private String name;
 
+    @Builder.Default
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

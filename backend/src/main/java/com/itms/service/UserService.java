@@ -3,7 +3,6 @@ package com.itms.service;
 import com.itms.dto.auth.LoginRequest;
 import com.itms.dto.auth.LoginResponse;
 import com.itms.dto.common.ResponseDto;
-import com.itms.entity.User;
 import com.itms.repository.UserRepository;
 import com.itms.security.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;

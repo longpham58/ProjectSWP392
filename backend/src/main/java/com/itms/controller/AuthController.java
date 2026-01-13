@@ -5,7 +5,6 @@ import com.itms.dto.auth.LoginResponse;
 import com.itms.dto.common.ResponseDto;
 import com.itms.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

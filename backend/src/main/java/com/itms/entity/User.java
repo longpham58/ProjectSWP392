@@ -39,6 +39,7 @@ public class User {
     @JoinColumn(name = "department_id")
     private Department department;
 
+    @Builder.Default
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
