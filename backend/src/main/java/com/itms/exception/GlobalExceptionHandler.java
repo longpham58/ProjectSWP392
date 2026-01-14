@@ -34,6 +34,8 @@ public class GlobalExceptionHandler {
                 ));
     }
 
+
+
     // fallback 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleException(Exception ex) {
@@ -53,4 +55,15 @@ public class GlobalExceptionHandler {
                         "message", "Access Denied"
                 ));
     }
+
+    @ExceptionHandler(OtpException.class)
+    public ResponseEntity<?> handleOtp(OtpException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of(
+                        "error", "SERVER_ERROR",
+                        "message", "Lỗi hệ thống"
+                ));
+    }
+
 }
