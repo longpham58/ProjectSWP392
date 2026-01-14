@@ -27,7 +27,7 @@ body {
     position: absolute;
     inset: 0;
     /* Ảnh nền lớp học - thay tại đây nếu muốn ảnh khác */
-    background-image: url(https://daihoc.fpt.edu.vn/wp-content/uploads/2024/05/campus-da-nang-1-1024x663.jpeg);
+    background-image: url(https://i.pinimg.com/736x/24/18/94/241894fd707dba4d6fa9c92aa7b8d888.jpg);
     background-size: cover;
     background-position: center;
     filter: blur(8px) brightness(0.72);
@@ -210,6 +210,95 @@ body {
 .link-text:hover {
     color: #fff;
     text-decoration: underline;
+}
+
+/* Forgot Password Page Styles */
+.forgot-description {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    text-align: center;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.back-to-login {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.back-to-login .link-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+}
+
+.back-to-login .link-text i {
+    font-size: 14px;
+}
+
+.success-message {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid rgba(76, 175, 80, 0.4);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.success-message i {
+    color: #4CAF50;
+    font-size: 32px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.success-message p {
+    color: #fff;
+    font-size: 16px;
+    margin: 0;
+}
+
+/* Session Notification */
+.session-notification {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(173, 216, 230, 0.3);
+    border: 1px solid rgba(173, 216, 230, 0.5);
+    border-radius: 12px;
+    padding: 15px 18px;
+    margin-top: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.session-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    background: #4A90E2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.session-icon i {
+    color: #fff;
+    font-size: 18px;
+}
+
+.session-text {
+    color: #2E5C8A;
+    font-size: 14px;
+    line-height: 1.5;
+    flex: 1;
+}
+
+.session-text strong {
+    color: #1E4A6A;
+    font-weight: 600;
 }
 
 /* Checkbox Group */
