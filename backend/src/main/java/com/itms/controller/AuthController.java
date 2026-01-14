@@ -4,6 +4,7 @@ import com.itms.dto.UserInfo;
 import com.itms.dto.auth.*;
 import com.itms.dto.common.ResponseDto;
 import com.itms.service.UserService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -43,24 +44,7 @@ public class AuthController {
             @RequestBody VerifyOtpRequest request,
             HttpServletResponse response) {
 
-        ResponseDto<LoginResponse> loginResponse = userService.verifyOtp(request.getUsername(), request.getOtp());
-
-        if (loginResponse.getData() != null && loginResponse.getData().getToken() != null) {
-            loginResponse.getData().getTokenAndSetCookie(response);
-        }
-
-        return ResponseEntity.ok(loginResponse);
-    }
-
-    // --------------------------
-    // Google login
-    // --------------------------
-    @PostMapping("/google-login")
-    public ResponseEntity<ResponseDto<LoginResponse>> loginWithGoogle(
-            @RequestBody GoogleLoginRequest request,
-            HttpServletResponse response) {
-
-        ResponseDto<LoginResponse> loginResponse = userService.loginWithGoogle(request);
+        ResponseDto<LoginResponse> loginResponse = userService.verifyOtp(request.getUserId(), request.getOtp());
 
         if (loginResponse.getData() != null && loginResponse.getData().getToken() != null) {
             loginResponse.getData().getTokenAndSetCookie(response);
@@ -92,10 +76,23 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseDto<UserInfo> me(Authentication authentication) {
-        return userService.getMe(authentication);
+    public ResponseEntity<ResponseDto<UserInfo>> me(Authentication authentication) {
+        return ResponseEntity.ok(userService.getMe(authentication));
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<ResponseDto<Void>> logout(HttpServletResponse response) {
+
+        Cookie jwtCookie = new Cookie("JWT_TOKEN", null);
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(true);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(0);
+
+        response.addCookie(jwtCookie);
+
+        return ResponseEntity.ok(ResponseDto.success(null, "Logged out"));
+    }
 
 
 }

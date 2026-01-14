@@ -7,7 +7,6 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-
 import java.security.Key;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -15,76 +14,96 @@ import java.util.Date;
 
 @Component
 public class JwtTokenUtil {
-    // Secret key for signing JWTs
+
     @Value("${jwt.secret}")
     private String jwtSecret;
 
-    // Token validity in milliseconds (e.g., 24h)
     @Value("${jwt.expirationMs}")
     private long jwtExpirationMs;
 
+    // ======================
+    // SIGNING KEY
+    // ======================
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(String username, UserRole role) {
+    // ======================
+    // ACCESS TOKEN (JWT)
+    // ======================
+    public String generateToken(int userId, String username, UserRole role) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
 
         return Jwts.builder()
-                .setSubject(username)
-                .claim("role", role)
+                .setSubject(String.valueOf(userId))   // ✅ IMMUTABLE
+                .claim("username", username)          // optional
+                .claim("role", role.name())
                 .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey() , SignatureAlgorithm.HS256)
+                .setExpiration(new Date(now.getTime() + jwtExpirationMs))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String generateDeviceToken(String username) {
-        // Just like normal JWT, but maybe shorter expiration
+    // ======================
+    // DEVICE TOKEN (REMEMBER DEVICE)
+    // ======================
+    public String generateDeviceToken(int userId) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date())
-                .setExpiration(Date.from(Instant.now().plus(30, ChronoUnit.DAYS)))
-                .signWith( getSigningKey())
+                .setExpiration(
+                        Date.from(Instant.now().plus(30, ChronoUnit.DAYS))
+                )
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public boolean validateDeviceToken(String token, String username) {
+    public boolean validateDeviceToken(String token, int userId) {
         try {
-            String tokenUsername = Jwts.parserBuilder()
-                    .setSigningKey( getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody()
-                    .getSubject();
-
-            return username.equals(tokenUsername);
+            return extractUserId(token) == userId;
         } catch (JwtException e) {
             return false;
         }
     }
 
-    // Extract username from token
-    public String getUsernameFromToken(String token) {
-        return Jwts.parserBuilder()
+    // ======================
+    // EXTRACTION
+    // ======================
+    public int extractUserId(String token) {
+        String subject = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+
+        return Integer.parseInt(subject);
     }
 
-    public String extractRole(String token) {
+    public String extractUsername(String token) {
         return (String) Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody()
-                .get("role");
+                .get("username");
     }
 
+    public UserRole extractRole(String token) {
+        String role = (String) Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role");
+
+        return UserRole.valueOf(role);
+    }
+
+    // ======================
+    // VALIDATION
+    // ======================
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -96,6 +115,4 @@ public class JwtTokenUtil {
             return false;
         }
     }
-
-
 }

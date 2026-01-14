@@ -1,6 +1,5 @@
 package com.itms.service;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.itms.dto.UserInfo;
 import com.itms.dto.auth.*;
 import com.itms.dto.common.ResponseDto;
@@ -12,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -20,7 +20,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenUtil jwtTokenProvider;
-    private final GoogleService googleService;
     private final OtpService otpService;
 
     public ResponseDto<LoginResponse> login(LoginRequest request, HttpServletResponse response , String deviceToken) {
@@ -34,17 +33,17 @@ public class UserService {
         }
         boolean otpRequired = user.isOtpEnabled(); // assume your User entity has this flag
         // Check trusted device
-        if (deviceToken != null && jwtTokenProvider.validateDeviceToken(deviceToken, user.getUsername())) {
+        if (deviceToken != null && jwtTokenProvider.validateDeviceToken(deviceToken, user.getId())) {
             otpRequired = false;
         }
         String token = null;
 
         if (otpRequired) {
             // Generate OTP and send to user (email or SMS)
-            otpService.generateOtpForUser(user.getUsername(), user.getEmail(), "LOGIN_2FA");
+            otpService.generateOtpForUser( user.getId(), user.getEmail(), "LOGIN_2FA");
         } else {
             // Generate JWT token directly
-            token = jwtTokenProvider.generateToken(user.getUsername(), user.getRole());
+            token = jwtTokenProvider.generateToken(user.getId(),user.getUsername(), user.getRole());
             // Remember Account → cookie with username
             if (Boolean.TRUE.equals(request.getRememberAccount())) {
                 Cookie accountCookie = new Cookie("rememberAccount", user.getUsername());
@@ -55,7 +54,7 @@ public class UserService {
             }
             // Remember Device → create device token cookie
             if (Boolean.TRUE.equals(request.getRememberDevice())) {
-                String newDeviceToken = jwtTokenProvider.generateDeviceToken(user.getUsername());
+                String newDeviceToken = jwtTokenProvider.generateDeviceToken(user.getId());
                 Cookie deviceCookie = new Cookie("deviceToken", newDeviceToken);
                 deviceCookie.setHttpOnly(true);
                 deviceCookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
@@ -68,28 +67,25 @@ public class UserService {
                 otpRequired ? "OTP required" : "Login successful");
     }
 
-    public ResponseDto<LoginResponse> verifyOtp(String username, String otp) {
-        var user = userRepository.findByUsername(username)
+    public ResponseDto<LoginResponse> verifyOtp(Integer userId, String otp) {
+        var user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Username not found"));
 
         // Validate OTP
-        boolean isValidOtp = otpService.validateOtp(username, otp);
-        if (!isValidOtp) {
-            throw new RuntimeException("Invalid or expired OTP");
-        }
+        otpService.validateOtp(userId, otp, "LOGIN_2FA");
 
         // OTP correct → generate JWT
-        String token = jwtTokenProvider.generateToken(user.getUsername(), user.getRole());
+        String token = jwtTokenProvider.generateToken(user.getId(), user.getUsername(), user.getRole());
 
         return ResponseDto.success(buildLoginResponse(user, token, false)
                 , "Login successful");
     }
 
     public ResponseDto<Void> forgotPassword(ForgotPasswordRequest request) {
-        User user = userRepository.findByUsername(request.getEmail())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Email not registered"));
 
-        String otp = otpService.generateOtpForUser(user.getUsername(), user.getEmail(), "RESET_PASSWORD");
+        String otp = otpService.generateOtpForUser(user.getId(), user.getEmail(), "RESET_PASSWORD");
         System.out.println(otp);
         return ResponseDto.success(null, "Password reset OTP sent to email");
     }
@@ -102,35 +98,12 @@ public class UserService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        boolean validOtp = otpService.validateOtp(user.getUsername(), request.getOtp());
-        if (!validOtp) {
-            throw new RuntimeException("Invalid or expired OTP");
-        }
-
+        otpService.validateOtp(user.getId(), request.getOtp(), "RESET_PASSWORD");
         // Update password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
         return ResponseDto.success(null, "Password reset successfully");
-    }
-
-
-    // --------------------------
-    // Login with Google
-    // --------------------------
-    public ResponseDto<LoginResponse> loginWithGoogle(GoogleLoginRequest request) {
-        GoogleIdToken.Payload payload = googleService.verifyIdToken(request.getIdToken());
-        if (payload == null) {
-            throw new RuntimeException("Invalid Google token");
-        }
-
-        String email = payload.getEmail();
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not registered"));
-
-        String token = jwtTokenProvider.generateToken(user.getUsername(), user.getRole());
-
-        return ResponseDto.success(buildLoginResponse(user, token, false), "Login successful");
     }
 
     public ResponseDto<UserInfo> getMe(Authentication authentication) {
@@ -140,9 +113,10 @@ public class UserService {
         }
 
         // Username extracted from JWT
-        String username = authentication.getName();
+        int userId = Integer.parseInt(authentication.getName());
 
-        User user = userRepository.findByUsername(username)
+
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         UserInfo userInfo = UserInfo.builder()
@@ -155,6 +129,23 @@ public class UserService {
                 .build();
 
         return ResponseDto.success(userInfo, "Current logged-in user");
+    }
+
+    public ResponseDto<LoginResponse> handleGoogleLogin(OAuth2User oauthUser) {
+
+        String email = oauthUser.getAttribute("email");
+
+        User user = userRepository.findByEmail(email)
+                .orElse(null);
+        if (user == null) {
+            return null; // ⚠️ return null, KHÔNG throw
+        }
+        String token = jwtTokenProvider.generateToken(user.getId(), user.getUsername(), user.getRole());
+
+        return ResponseDto.success(
+                buildLoginResponse(user, token, false),
+                "Login successful"
+        );
     }
 
     private LoginResponse buildLoginResponse(User user, String token, boolean otpRequired) {

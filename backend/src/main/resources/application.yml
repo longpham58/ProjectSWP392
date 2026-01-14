@@ -1,4 +1,14 @@
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 747302052218-f29rlqtgl1ls6mbhri4e0rkhq69p19d6.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
   mail:
     host: smtp.gmail.com
     port: 587
@@ -32,3 +42,7 @@ spring:
 jwt:
   secret: owPXWNGG5LYEu+8Xfyru7NtEU5uV7B6HbLux1/hTZgA=
   expirationMs: 86400000  # 24 hours in milliseconds
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
