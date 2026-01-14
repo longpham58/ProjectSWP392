@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify OTP</title>
+</head>
+<body>
+
+<h2>Verify OTP</h2>
+
+<input id="otp" placeholder="Enter OTP">
+<button onclick="verifyOtp()">Verify</button>
+
+<script>
+const API = "http://localhost:8080/api/auth";
+const username = localStorage.getItem("otpUsername");
+
+async function verifyOtp() {
+    const otp = document.getElementById("otp").value;
+
+    const res = await fetch(`${API}/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username, otp })
+    });
+
+    const data = await res.json();
+    console.log(data);
+
+    if (data.success) {
+        alert("OTP verified!");
+        localStorage.removeItem("otpUsername");
+        // window.location.href = "/home.html";
+    } else {
+        alert(data.message);
+    }
+}
+</script>
+
+</body>
+</html>

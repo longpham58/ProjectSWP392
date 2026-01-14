@@ -81,7 +81,7 @@
                 <div class="social-login">
                     <p class="social-text">Or sign in with</p>
                     <div class="social-icons">
-                        <a href="#" class="social-icon google" title="Sign in with Google">
+                        <a href="http://localhost:8080/oauth2/authorization/google" class="social-icon google" title="Sign in with Google">
                             <svg viewBox="0 0 24 24" width="20" height="20">
                                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                                 <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -115,5 +115,38 @@
             }
         });
     </script>
+    <script>
+const API = "http://localhost:8080/api/auth";
+
+document.getElementById("loginForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const rememberAccount = document.querySelector('input[name="rememberAccount"]').checked;
+    const rememberDevice = document.querySelector('input[name="rememberDevice"]').checked;
+
+    const res = await fetch(`${API}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // JWT cookie
+        body: JSON.stringify({ username, password,rememberAccount, rememberDevice })
+    });
+
+    const data = await res.json();
+    console.log(data);
+
+    if (data.success && data.data?.token) {
+        alert("Login success!");
+        // window.location.href = "/home.html";
+    } else if (data.message?.includes("OTP")) {
+        // Redirect to OTP page
+        localStorage.setItem("otpUsername", username);
+        window.location.href = "verify-otp.html";
+    } else {
+        alert(data.message || "Login failed");
+    }
+});
+</script>
 </body>
 </html>
