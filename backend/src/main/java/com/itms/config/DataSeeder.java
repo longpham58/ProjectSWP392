@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.time.LocalDateTime;
+
 @Configuration
 @RequiredArgsConstructor
 public class DataSeeder {
@@ -24,39 +26,62 @@ public class DataSeeder {
     ) {
         return args -> {
 
-            if (userRepository.count() > 0) return; // tránh seed lại
+            if (userRepository.count() > 0) {
+                System.out.println("ℹ️ Seed skipped: data already exists");
+                return;
+            }
 
-            // ---- Departments ----
-            Department hr = new Department();
-            hr.setName("Human Resources");
-            departmentRepository.save(hr);
+            // ---------- Seed Departments ----------
+            Department hr = departmentRepository.findByName("Human Resources")
+                    .orElseGet(() -> departmentRepository.save(
+                            Department.builder()
+                                    .name("Human Resources")
+                                    .createdAt(LocalDateTime.now())
+                                    .build()
+                    ));
 
-            Department it = new Department();
-            it.setName("Information Technology");
-            departmentRepository.save(it);
+            Department it = departmentRepository.findByName("Information Technology")
+                    .orElseGet(() -> departmentRepository.save(
+                            Department.builder()
+                                    .name("Information Technology")
+                                    .createdAt(LocalDateTime.now())
+                                    .build()
+                    ));
 
-            // ---- Users ----
-            User hrUser = new User();
-            hrUser.setUsername("hr01");
-            hrUser.setEmail("hr01@itms.com");
-            hrUser.setFullName("Nguyen Thi HR");
-            hrUser.setRole(UserRole.HR);
-            hrUser.setDepartment(hr);
-            hrUser.setPassword(passwordEncoder.encode("123456")); // BCrypt
+            // ---------- Seed HR User ----------
+            if (!userRepository.existsByUsername("hr01")) {
+                User hrUser = User.builder()
+                        .username("hr01")
+                        .email("hr01@itms.com")
+                        .fullName("Nguyen Thi HR")
+                        .role(UserRole.HR)
+                        .department(hr)
+                        .password(passwordEncoder.encode("123456"))
+                        .otpEnabled(true)   // HR requires OTP
+                        .createdAt(LocalDateTime.now())
+                        .build();
 
-            userRepository.save(hrUser);
+                userRepository.save(hrUser);
+            }
 
-            User employee = new User();
-            employee.setUsername("tinvipthebest");
-            employee.setEmail("mantinited@gmail.com");
-            employee.setFullName("Kieu Trung Tin");
-            employee.setRole(UserRole.EMPLOYEE);
-            employee.setDepartment(it);
-            employee.setPassword(passwordEncoder.encode("123456")); // BCrypt
+            // ---------- Seed Employee ----------
+            if (!userRepository.existsByUsername("tinvipthebest")) {
+                User employee = User.builder()
+                        .username("tinvipthebest")
+                        .email("mantinited@gmail.com")
+                        .fullName("Kieu Trung Tin")
+                        .role(UserRole.EMPLOYEE)
+                        .department(it)
+                        .password(passwordEncoder.encode("123456"))
+                        .otpEnabled(false)
+                        .createdAt(LocalDateTime.now())
+                        .build();
 
-            userRepository.save(employee);
+                userRepository.save(employee);
+            }
 
-            System.out.println("✅ Seeded departments & users successfully");
+            System.out.println("✅ ITMS seed data completed successfully");
         };
     }
 }
+

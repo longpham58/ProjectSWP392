@@ -31,6 +31,9 @@ public class Department {
     private LocalDateTime updatedAt;
 
     // One-to-many relationship with User
-    @OneToMany(mappedBy = "department")
+    @OneToMany(
+            mappedBy = "department",
+            fetch = FetchType.LAZY
+    )
     private List<User> users;
 }

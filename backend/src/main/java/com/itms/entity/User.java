@@ -35,7 +35,7 @@ public class User {
     @Column(nullable = false, length = 20)
     private UserRole role;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id")
     private Department department;
 
@@ -46,5 +46,7 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "otp_enabled", nullable = false)
+    @Builder.Default
     private boolean otpEnabled = false;
 }

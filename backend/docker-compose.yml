@@ -6,6 +6,7 @@ services:
     container_name: itms-sqlserver
     environment:
       ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
       SA_PASSWORD: "Tin10112003"
     ports:
       - "1433:1433"
@@ -14,7 +15,10 @@ services:
     networks:
       - itms-network
     healthcheck:
-      test: [ "CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P Tin10112003 -Q 'SELECT 1' || exit 1" ]
+      test: [
+        "CMD-SHELL",
+        "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P Tin10112003 -C -Q \"SELECT 1\" || exit 1"
+      ]
       interval: 15s
       timeout: 10s
       retries: 25
@@ -28,7 +32,7 @@ services:
       sqlserver:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:sqlserver://sqlserver:1433;databaseName=ITMS
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://sqlserver:1433;databaseName=ITMS;encrypt=true;trustServerCertificate=true
       SPRING_DATASOURCE_USERNAME: sa
       SPRING_DATASOURCE_PASSWORD: Tin10112003
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.SQLServerDialect
