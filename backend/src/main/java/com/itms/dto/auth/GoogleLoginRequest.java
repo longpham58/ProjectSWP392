@@ -1,15 +1,12 @@
 package com.itms.dto.auth;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VerifyOtpRequest {
-    private String username;
-    private String otp;
+public class GoogleLoginRequest {
+    private String idToken; // the Google ID token from frontend
 }
