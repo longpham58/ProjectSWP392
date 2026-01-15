@@ -1,0 +1,35 @@
+spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: tinvipthebest@gmail.com       # your email
+    password: xcbn nilw gzxq qucd
+    # use app password if using Gmail 2FA
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls.enable: true
+          starttls.required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=ITMS;encrypt=true;trustServerCertificate=true
+    username: sa
+    password: Tin10112003
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    database-platform: org.hibernate.dialect.SQLServerDialect
+    properties:
+      hibernate:
+        format_sql: true
+jwt:
+  secret: mySuperSecretKeyForITMS1234567890
+  expirationMs: 86400000  # 24 hours in milliseconds
+  reset-expiration: 3600000     # 1 hour for password reset token
