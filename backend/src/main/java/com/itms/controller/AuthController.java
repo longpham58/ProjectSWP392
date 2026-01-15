@@ -44,7 +44,7 @@ public class AuthController {
             @RequestBody VerifyOtpRequest request,
             HttpServletResponse response) {
 
-        ResponseDto<LoginResponse> loginResponse = userService.verifyOtp(request.getUserId(), request.getOtp());
+        ResponseDto<LoginResponse> loginResponse = userService.verifyOtp(request.getUsername(), request.getOtp());
 
         if (loginResponse.getData() != null && loginResponse.getData().getToken() != null) {
             loginResponse.getData().getTokenAndSetCookie(response);

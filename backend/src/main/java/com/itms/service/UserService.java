@@ -67,13 +67,12 @@ public class UserService {
                 otpRequired ? "OTP required" : "Login successful");
     }
 
-    public ResponseDto<LoginResponse> verifyOtp(Integer userId, String otp) {
-        var user = userRepository.findById(userId)
+    public ResponseDto<LoginResponse> verifyOtp(String userName, String otp) {
+        var user = userRepository.findByUsername(userName)
                 .orElseThrow(() -> new RuntimeException("Username not found"));
 
         // Validate OTP
-        otpService.validateOtp(userId, otp, "LOGIN_2FA");
-
+        otpService.validateOtp(user.getId(), otp, "LOGIN_2FA");
         // OTP correct → generate JWT
         String token = jwtTokenProvider.generateToken(user.getId(), user.getUsername(), user.getRole());
 

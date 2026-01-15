@@ -2,7 +2,6 @@ package com.itms.dto;
 
 import com.itms.common.UserRole;
 import com.itms.entity.Department;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

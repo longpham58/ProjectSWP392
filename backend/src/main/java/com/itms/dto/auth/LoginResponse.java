@@ -1,7 +1,6 @@
 package com.itms.dto.auth;
 
 import com.itms.common.UserRole;
-import com.itms.entity.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
