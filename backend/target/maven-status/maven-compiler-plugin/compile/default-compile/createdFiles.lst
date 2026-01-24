@@ -12,7 +12,6 @@ com\itms\dto\auth\VerifyOtpRequest.class
 com\itms\dto\common\ResponseDto.class
 com\itms\common\EnrollmentStatus.class
 com\itms\dto\auth\ResetPasswordRequest.class
-com\itms\security\JwtAuthenticationFilter.class
 com\itms\service\OtpService$OtpEntry.class
 com\itms\exception\UserAlreadyExistsException.class
 com\itms\config\OAuth2SuccessHandler.class
@@ -22,7 +21,6 @@ com\itms\exception\GlobalExceptionHandler.class
 com\itms\dto\common\ResponseDto$PaginationInfo.class
 com\itms\common\UserRole.class
 com\itms\ItmsApplication.class
-com\itms\security\JwtTokenUtil.class
 com\itms\dto\auth\VerifyOtpRequest$VerifyOtpRequestBuilder.class
 com\itms\dto\common\ResponseDto$ResponseDtoBuilder.class
 com\itms\service\UserService.class

@@ -1,6 +1,6 @@
 package com.itms.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.itms.dto.auth.LoginResponse;
 import com.itms.dto.common.ResponseDto;
 import com.itms.service.UserService;
@@ -20,6 +20,7 @@ public class OAuth2SuccessHandler
         extends SimpleUrlAuthenticationSuccessHandler {
 
     private final UserService userService;
+    private static final String FRONTEND_URL = "http://localhost:5173";
 
     @Override
     public void onAuthenticationSuccess(
@@ -31,21 +32,14 @@ public class OAuth2SuccessHandler
         OAuth2User oauthUser = (OAuth2User) authentication.getPrincipal();
 
         ResponseDto<LoginResponse> loginResponse =
-                userService.handleGoogleLogin(oauthUser);
-        if (loginResponse == null) {
+                userService.handleGoogleLogin(oauthUser, request);
+        if (!loginResponse.isSuccess()) {
             response.sendRedirect(
-                    "http://localhost:5500/login.html?error=account_not_registered"
+                    FRONTEND_URL + "/login?error=" + loginResponse.getMessage()
             );
             return;
         }
-        loginResponse.getData().getTokenAndSetCookie(response);
-
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-
-        new ObjectMapper().writeValue(
-                response.getOutputStream(),
-                loginResponse
-        );
+        // ✅ Session already created
+        response.sendRedirect(FRONTEND_URL + "/");
     }
 }

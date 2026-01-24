@@ -3,12 +3,14 @@ package com.itms.controller;
 import com.itms.dto.UserInfo;
 import com.itms.dto.auth.*;
 import com.itms.dto.common.ResponseDto;
+import com.itms.service.OtpService;
 import com.itms.service.UserService;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+    private final OtpService otpService;
 
     // --------------------------
     // Login with username/password
@@ -24,14 +27,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ResponseDto<LoginResponse>> login(
             @RequestBody LoginRequest request,
-            HttpServletResponse response,@CookieValue(value = "deviceToken", required = false) String deviceToken) {
-
-        ResponseDto<LoginResponse> loginResponse = userService.login(request, response, deviceToken);
-
-        // Set JWT cookie if token is present
-        if (loginResponse.getData() != null && loginResponse.getData().getToken() != null) {
-            loginResponse.getData().getTokenAndSetCookie(response);
-        }
+            HttpServletRequest httpRequest
+    ) {
+        ResponseDto<LoginResponse> loginResponse =
+                userService.login(request, httpRequest);
 
         return ResponseEntity.ok(loginResponse);
     }
@@ -42,25 +41,34 @@ public class AuthController {
     @PostMapping("/verify-otp")
     public ResponseEntity<ResponseDto<LoginResponse>> verifyOtp(
             @RequestBody VerifyOtpRequest request,
-            HttpServletResponse response) {
+            HttpServletRequest httpRequest
+    ) {
 
-        ResponseDto<LoginResponse> loginResponse = userService.verifyOtp(request.getUserId(), request.getOtp());
+        return ResponseEntity.ok(
+                userService.verifyOtp(request, httpRequest)
+        );
+    }
 
-        if (loginResponse.getData() != null && loginResponse.getData().getToken() != null) {
-            loginResponse.getData().getTokenAndSetCookie(response);
-        }
+    @PostMapping("/resend-otp")
+    public ResponseEntity<ResponseDto<Void>> resendOtp(HttpSession session) {
 
-        return ResponseEntity.ok(loginResponse);
+        Integer userId = (Integer) session.getAttribute("OTP_USER_ID");
+
+        otpService.resendOtp(userId);
+
+        return ResponseEntity.ok(
+                ResponseDto.success(null, "OTP resent")
+        );
     }
 
     // --------------------------
     // Forgot password
     // --------------------------
     @PostMapping("/forgot-password")
-    public ResponseEntity<ResponseDto<Void>> forgotPassword(
+    public ResponseEntity<ResponseDto<String>> forgotPassword(
             @RequestBody ForgotPasswordRequest request) {
 
-        ResponseDto<Void> response = userService.forgotPassword(request);
+        ResponseDto<String> response = userService.forgotPassword(request);
         return ResponseEntity.ok(response);
     }
 
@@ -81,16 +89,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ResponseDto<Void>> logout(HttpServletResponse response) {
-
-        Cookie jwtCookie = new Cookie("JWT_TOKEN", null);
-        jwtCookie.setHttpOnly(true);
-        jwtCookie.setSecure(true);
-        jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(0);
-
-        response.addCookie(jwtCookie);
-
+    public ResponseEntity<ResponseDto<Void>> logout(HttpServletRequest request) {
+        request.getSession().invalidate();
+        SecurityContextHolder.clearContext();
         return ResponseEntity.ok(ResponseDto.success(null, "Logged out"));
     }
 

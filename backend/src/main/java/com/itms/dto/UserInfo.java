@@ -19,5 +19,5 @@ public class UserInfo {
     private String email;
     private String fullName;
     private UserRole role;
-    private Department department;
+    private DepartmentDto department;
 }

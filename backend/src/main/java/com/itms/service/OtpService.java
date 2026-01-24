@@ -1,6 +1,7 @@
 package com.itms.service;
 
 import com.itms.exception.OtpException;
+import com.itms.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,101 +18,130 @@ public class OtpService {
 
     private static final int OTP_LENGTH = 6;
     private static final int OTP_EXPIRATION_MINUTES = 5;
+    private static final int MAX_ATTEMPTS = 5;
 
     // userId -> OTP entry
-    private final Map<String, OtpEntry> otpCache = new ConcurrentHashMap<>();
+    private final Map<Integer, OtpEntry> otpCache = new ConcurrentHashMap<>();
+
 
 
     private final Random random = new Random();
     private final EmailService emailService;
+    private final UserRepository userRepository;
 
-    private String key(int userId, String purpose) {
-        return userId + ":" + purpose;
-    }
+
     /**
      * Generate OTP for a user
      */
-    public String generateOtpForUser(int userId, String email, String purpose) {
+    public void generateOtpForUser(int userId, String email) {
         int bound = (int) Math.pow(10, OTP_LENGTH);
         String format = "%0" + OTP_LENGTH + "d";
 
         String otp = String.format(format, random.nextInt(bound));
-
         OtpEntry entry = new OtpEntry(
                 otp,
-                LocalDateTime.now().plusMinutes(OTP_EXPIRATION_MINUTES)
+                LocalDateTime.now().plusMinutes(OTP_EXPIRATION_MINUTES),
+                MAX_ATTEMPTS
         );
 
-        otpCache.put(key(userId, purpose), entry);
-        sendOtpEmail(email, otp, purpose);
-
-        return otp;
+        otpCache.put(userId, entry);
+        sendOtpEmail(email, otp);
     }
 
     /**
      * Validate OTP for a user
      */
-    public void validateOtp(int userId, String otp, String purpose) {
-        String cacheKey = key(userId, purpose);
-        OtpEntry entry = otpCache.get(cacheKey);
+    public void validateOtp(int userId, String otp) {
+        OtpEntry entry = otpCache.get(userId);
 
         if (entry == null) {
             throw new OtpException("OTP not found");
         }
 
-        if (LocalDateTime.now().isAfter(entry.getExpiresAt())) {
-            otpCache.remove(cacheKey);
+        if (LocalDateTime.now().isAfter(entry.expiresAt)) {
+            otpCache.remove(userId);
             throw new OtpException("OTP expired");
         }
 
-        if (!entry.getOtp().equals(otp)) {
-            throw new OtpException("Invalid OTP");
+
+        if (entry.attemptsLeft <= 0) {
+            otpCache.remove(userId);
+            throw new OtpException("Too many failed attempts. OTP locked.");
+        }
+        if (!entry.otp.equals(otp)) {
+            entry.attemptsLeft--;
+
+            throw new OtpException(
+                    "Invalid OTP. Attempts left: " + entry.attemptsLeft
+            );
         }
 
         // ✅ OTP hợp lệ → consume
-        otpCache.remove(cacheKey);
+        otpCache.remove(userId);
     }
 
-    private void sendOtpEmail(String email, String otp, String purpose) {
-        String subject;
-        String body;
+    public void resendOtp(int userId) {
+        OtpEntry entry = otpCache.get(userId);
 
-        switch (purpose) {
-            case "LOGIN_2FA" -> {
-                subject = "Your ITMS 2FA Login OTP Code";
-                body = "Your login OTP is: " + otp + "\nExpires in 5 minutes.";
-            }
-            case "RESET_PASSWORD" -> {
-                subject = "Your ITMS Password Reset OTP Code";
-                body = "Your password reset OTP is: " + otp + "\nExpires in 5 minutes.";
-            }
-            default -> {
-                subject = "Your ITMS OTP Code";
-                body = "Your OTP is: " + otp + "\nExpires in 5 minutes.";
-            }
+        if (entry == null) {
+            throw new OtpException("OTP session expired");
         }
+
+        // 🔁 regenerate OTP
+        int bound = (int) Math.pow(10, OTP_LENGTH);
+        String format = "%0" + OTP_LENGTH + "d";
+        String newOtp = String.format(format, random.nextInt(bound));
+
+        // reset OTP
+        entry.otp = newOtp;
+        entry.expiresAt = LocalDateTime.now().plusMinutes(OTP_EXPIRATION_MINUTES);
+        entry.attemptsLeft = MAX_ATTEMPTS;
+        String email = userRepository.findById(userId)
+                .orElseThrow(() -> new OtpException("User not found"))
+                .getEmail();
+        sendOtpEmail(
+                email, // from UserService
+                newOtp
+        );
+    }
+
+
+
+    private void sendOtpEmail(String email, String otp) {
+
+        String subject = "Your ITMS Login Verification Code";
+
+        String body = """
+        Your one-time login verification code is:
+
+        %s
+
+        This code will expire in 5 minutes.
+        If you did not attempt to sign in, please ignore this email.
+        """.formatted(otp);
 
         emailService.sendEmail(email, subject, body);
     }
+
+
 
     /**
      * OTP entry holder
      */
     private static class OtpEntry {
-        private final String otp;
-        private final LocalDateTime expiresAt;
+        private String otp;
+        private LocalDateTime expiresAt;
+        private int attemptsLeft;
 
-        public OtpEntry(String otp, LocalDateTime expiresAt) {
+        private OtpEntry(
+                String otp,
+                LocalDateTime expiresAt,
+                int attemptsLeft
+        ) {
             this.otp = otp;
             this.expiresAt = expiresAt;
-        }
-
-        public String getOtp() {
-            return otp;
-        }
-
-        public LocalDateTime getExpiresAt() {
-            return expiresAt;
+            this.attemptsLeft = attemptsLeft;
         }
     }
+
 }

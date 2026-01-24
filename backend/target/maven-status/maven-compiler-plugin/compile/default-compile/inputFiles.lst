@@ -4,7 +4,8 @@ D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\common\EnrollmentStatus.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\controller\AuthController.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\repository\DepartmentRepository.java
-D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\security\JwtTokenUtil.java
+D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\security\CustomUserDetails.java
+D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\security\CustomUserDetailsService.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\config\SwaggerConfig.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\entity\Department.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\VerifyOtpRequest.java
@@ -23,10 +24,11 @@ D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\config\SecurityConfig.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\LoginRequest.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\service\UserService.java
-D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\security\JwtAuthenticationFilter.java
+D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\dto\DepartmentDto.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\repository\UserRepository.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\exception\OtpException.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\ResetPasswordRequest.java
+D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\service\JwtService.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\service\OtpService.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\service\EmailService.java
 D:\KieuTrungTin\ITMS-SWP392-KieuTrungTin\ProjectSWP392\backend\src\main\java\com\itms\common\CourseStatus.java

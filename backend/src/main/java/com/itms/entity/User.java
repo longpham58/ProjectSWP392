@@ -7,7 +7,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "[User]") // Use brackets because "User" is reserved in SQL Server
+@Table(name = "[User]") // SQL Server reserved keyword
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,13 +23,17 @@ public class User {
     private String username;
 
     @Column(nullable = false, length = 255)
-    private String password; // hashed
+    private String password;
 
     @Column(nullable = false, unique = true, length = 100)
     private String email;
 
     @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
+
+    // ✅ phone column added
+    @Column(length = 20)
+    private String phone;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -39,14 +43,16 @@ public class User {
     @JoinColumn(name = "department_id")
     private Department department;
 
-    @Builder.Default
+    @Column(name = "otp_enabled", nullable = false)
+    private boolean otpEnabled;
+
+    // ✅ DB default is 0 (false)
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive;
+
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-    @Column(name = "otp_enabled", nullable = false)
-    @Builder.Default
-    private boolean otpEnabled = false;
 }

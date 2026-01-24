@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ResetPasswordRequest {
-    private String email;      // User email
-    private String otp;        // OTP received in email
-    private String newPassword;
+    private String token;       // 🔐 JWT reset token from email link
+    private String newPassword; // 🔑 new password
 }

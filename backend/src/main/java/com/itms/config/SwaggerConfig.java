@@ -12,25 +12,11 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI itmsOpenAPI() {
-
-        // Define JWT security scheme
-        SecurityScheme securityScheme = new SecurityScheme()
-                .name("Authorization")
-                .type(SecurityScheme.Type.HTTP)
-                .scheme("bearer")
-                .bearerFormat("JWT");
-
-        // Apply security globally
-        SecurityRequirement securityRequirement =
-                new SecurityRequirement().addList("BearerAuth");
-
         return new OpenAPI()
                 .info(new Info()
                         .title("ITMS API")
                         .description("Internal Training Management System API")
                         .version("1.0.0")
-                )
-                .addSecurityItem(securityRequirement)
-                .schemaRequirement("BearerAuth", securityScheme);
+                );
     }
 }

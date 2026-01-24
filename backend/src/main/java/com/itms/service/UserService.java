@@ -1,123 +1,153 @@
 package com.itms.service;
 
+import com.itms.dto.DepartmentDto;
 import com.itms.dto.UserInfo;
 import com.itms.dto.auth.*;
 import com.itms.dto.common.ResponseDto;
 import com.itms.entity.User;
 import com.itms.repository.UserRepository;
-import com.itms.security.JwtTokenUtil;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
+import com.itms.security.CustomUserDetails;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenUtil jwtTokenProvider;
     private final OtpService otpService;
+    private final JwtService jwtService;
+    private final EmailService emailService;
 
-    public ResponseDto<LoginResponse> login(LoginRequest request, HttpServletResponse response , String deviceToken) {
-        // Find user by username
-        var user = userRepository.findByUsername(request.getUsername())
+    public ResponseDto<LoginResponse> login(
+            LoginRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("Username not found"));
 
-        // Check password
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
         }
-        boolean otpRequired = user.isOtpEnabled(); // assume your User entity has this flag
-        // Check trusted device
-        if (deviceToken != null && jwtTokenProvider.validateDeviceToken(deviceToken, user.getId())) {
-            otpRequired = false;
-        }
-        String token = null;
+
+        boolean otpRequired = user.isOtpEnabled();
 
         if (otpRequired) {
-            // Generate OTP and send to user (email or SMS)
-            otpService.generateOtpForUser( user.getId(), user.getEmail(), "LOGIN_2FA");
-        } else {
-            // Generate JWT token directly
-            token = jwtTokenProvider.generateToken(user.getId(),user.getUsername(), user.getRole());
-            // Remember Account → cookie with username
-            if (Boolean.TRUE.equals(request.getRememberAccount())) {
-                Cookie accountCookie = new Cookie("rememberAccount", user.getUsername());
-                accountCookie.setHttpOnly(true);
-                accountCookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
-                accountCookie.setPath("/");
-                response.addCookie(accountCookie);
-            }
-            // Remember Device → create device token cookie
-            if (Boolean.TRUE.equals(request.getRememberDevice())) {
-                String newDeviceToken = jwtTokenProvider.generateDeviceToken(user.getId());
-                Cookie deviceCookie = new Cookie("deviceToken", newDeviceToken);
-                deviceCookie.setHttpOnly(true);
-                deviceCookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
-                deviceCookie.setPath("/");
-                response.addCookie(deviceCookie);
-            }
+            HttpSession session = httpRequest.getSession(true);
+            otpService.generateOtpForUser(user.getId(), user.getEmail());
+            session.setAttribute("OTP_USER_ID", user.getId());
+            return ResponseDto.success(buildLoginResponse(user, true), "OTP required");
         }
 
-        return ResponseDto.success(buildLoginResponse(user, token, otpRequired),
-                otpRequired ? "OTP required" : "Login successful");
+        authenticateUser(user, httpRequest, request.isRememberMe());
+
+        return ResponseDto.success(buildLoginResponse(user, false), "Login successful");
+    }
+    public ResponseDto<LoginResponse> verifyOtp(
+            VerifyOtpRequest request,
+            HttpServletRequest HttpRequest
+    ) {
+        // 1️⃣ Get userId from session (set during login)
+        HttpSession session = HttpRequest.getSession(false);
+        Integer userId = (Integer) session.getAttribute("OTP_USER_ID");
+        // 2️⃣ Verify OTP for THAT user
+        otpService.validateOtp(userId, request.getOtp());
+
+        // 3️⃣ Load user
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 4️⃣ Authenticate → Spring Security creates session
+        authenticateUser(user, HttpRequest, false);
+
+        // 5️⃣ Cleanup
+        session.removeAttribute("OTP_USER_ID");
+
+        return ResponseDto.success(
+                buildLoginResponse(user, false),
+                "Login successful"
+        );
     }
 
-    public ResponseDto<LoginResponse> verifyOtp(Integer userId, String otp) {
-        var user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Username not found"));
+    public ResponseDto<String> forgotPassword(ForgotPasswordRequest request) {
+        userRepository.findByEmail(request.getEmail())
+                .ifPresent(this::sendPasswordResetEmail);
 
-        // Validate OTP
-        otpService.validateOtp(userId, otp, "LOGIN_2FA");
-
-        // OTP correct → generate JWT
-        String token = jwtTokenProvider.generateToken(user.getId(), user.getUsername(), user.getRole());
-
-        return ResponseDto.success(buildLoginResponse(user, token, false)
-                , "Login successful");
-    }
-
-    public ResponseDto<Void> forgotPassword(ForgotPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Email not registered"));
-
-        String otp = otpService.generateOtpForUser(user.getId(), user.getEmail(), "RESET_PASSWORD");
-        System.out.println(otp);
-        return ResponseDto.success(null, "Password reset OTP sent to email");
+        return ResponseDto.success(
+                null,
+                "If an account exists, a reset link has been sent."
+        );
     }
 
     // --------------------------
-    // Reset passwordsendOtp
+    // Reset password
     // --------------------------
     public ResponseDto<Void> resetPassword(ResetPasswordRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail())
+        Claims claims = jwtService.validateAndGetClaims(request.getToken());
+
+        if (!"RESET_PASSWORD".equals(claims.get("type"))) {
+            throw new RuntimeException("Invalid reset token");
+        }
+
+        int userId = Integer.parseInt(claims.getSubject());
+
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        otpService.validateOtp(user.getId(), request.getOtp(), "RESET_PASSWORD");
-        // Update password
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
 
-        return ResponseDto.success(null, "Password reset successfully");
+        return ResponseDto.success(null, "Password reset successful");
     }
 
     public ResponseDto<UserInfo> getMe(Authentication authentication) {
 
+
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new RuntimeException("User is not authenticated");
         }
+        Object principal = authentication.getPrincipal();
 
-        // Username extracted from JWT
-        int userId = Integer.parseInt(authentication.getName());
+        User user;
 
+        if (principal instanceof CustomUserDetails userDetails) {
+            // 🔐 Normal username/password login
+            user = userRepository.findById(userDetails.getId())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        } else if (principal instanceof OAuth2User oauthUser) {
+            // 🔑 Google OAuth2 login
+            String email = oauthUser.getAttribute("email");
+
+            user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+        } else {
+            throw new RuntimeException("Unsupported authentication principal");
+        }
+
+        DepartmentDto departmentDto = null;
+        if (user.getDepartment() != null) {
+            departmentDto = DepartmentDto.builder()
+                    .id(user.getDepartment().getId())
+                    .name(user.getDepartment().getName())
+                    .build();
+        }
+
 
         UserInfo userInfo = UserInfo.builder()
                 .id(user.getId())
@@ -125,35 +155,87 @@ public class UserService {
                 .email(user.getEmail())
                 .fullName(user.getFullName())
                 .role(user.getRole())
-                .department(user.getDepartment())
+                .department(departmentDto)
                 .build();
 
         return ResponseDto.success(userInfo, "Current logged-in user");
     }
 
-    public ResponseDto<LoginResponse> handleGoogleLogin(OAuth2User oauthUser) {
+    public ResponseDto<LoginResponse> handleGoogleLogin(OAuth2User oauthUser, HttpServletRequest request) {
 
         String email = oauthUser.getAttribute("email");
+
+        if (email == null || email.isBlank()) {
+            return ResponseDto.fail("oauth_email_not_found");
+        }
 
         User user = userRepository.findByEmail(email)
                 .orElse(null);
         if (user == null) {
-            return null; // ⚠️ return null, KHÔNG throw
+            return ResponseDto.fail("account_not_registered");
         }
-        String token = jwtTokenProvider.generateToken(user.getId(), user.getUsername(), user.getRole());
+        authenticateUser(user, request, false); // ✅ session-based auth
 
         return ResponseDto.success(
-                buildLoginResponse(user, token, false),
+                buildLoginResponse(user, false),
                 "Login successful"
         );
     }
 
-    private LoginResponse buildLoginResponse(User user, String token, boolean otpRequired) {
+    private LoginResponse buildLoginResponse(User user, boolean otpRequired) {
         return LoginResponse.builder()
-                .token(token)
                 .otpRequired(otpRequired)
                 .email(user.getEmail())
                 .role(user.getRole())
                 .build();
     }
+    private void authenticateUser(User user, HttpServletRequest request,  boolean rememberMe) {
+
+        CustomUserDetails userDetails = new CustomUserDetails(user);
+
+        Authentication  authentication =
+                new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(authentication);
+
+        SecurityContextHolder.setContext(context);
+
+        HttpSession session = request.getSession(true);
+
+        int timeout = rememberMe ? 30 * 24 * 60 * 60 : 30 * 60;
+        session.setMaxInactiveInterval(timeout);
+
+        session.setAttribute(
+                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                context
+        );
+    }
+
+    public void sendPasswordResetEmail(User user) {
+
+        String token = jwtService.generatePasswordResetToken(user);
+
+        String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8);
+
+        String link = "http://localhost:5173/reset-password?token=" + encodedToken;
+
+        String subject = "Reset your ITMS password";
+
+        String body = """
+        Click the link below to reset your password:
+
+        %s
+
+        This link will expire in 15 minutes.
+        """.formatted(link);
+
+        emailService.sendEmail(user.getEmail(), subject, body);
+    }
+
+
 }

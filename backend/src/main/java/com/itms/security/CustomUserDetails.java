@@ -1,4 +1,4 @@
-package com.itms.config;
+package com.itms.security;
 
 import com.itms.entity.User;
 import lombok.Getter;
@@ -13,9 +13,15 @@ import java.util.List;
 public class CustomUserDetails implements UserDetails {
 
     private final User user;
+    private final Integer id;
 
     public CustomUserDetails(User user) {
+        this.id = user.getId();
         this.user = user;
+    }
+
+    public Integer getId() {
+        return id;
     }
 
     @Override
