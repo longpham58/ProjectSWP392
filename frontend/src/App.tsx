@@ -9,6 +9,7 @@ import ResetPasswordPage from "./pages/ResetPassword";
 import OtpGuard from "./guards/OtpGuard";
 import ResetPasswordGuard from "./guards/ResetPasswordGuard";
 import RoleProtectedRoute from "./guards/RoleProtectedRoute";
+import HomeRedirect from "./guards/HomeRedirect";
 
 import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -18,19 +19,34 @@ import EmployeePage from "./pages/employee/EmployeePage";
 import { useAuthStore } from "./stores/auth.store";
 
 function App() {
-  const { fetchMe } = useAuthStore();
+  const { fetchMe, user} = useAuthStore();
+
+
 
   // 🔁 Restore session on refresh
   useEffect(() => {
     fetchMe();
+    
   }, []);
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        {/* 🌐 Public routes */}
-        <Route path="/login" element={<LoginPage />} />
+        <Route
+  path="/"
+  element={
+    <RoleProtectedRoute allowedRoles={["ADMIN", "EMPLOYEE"]}>
+      <HomeRedirect />
+    </RoleProtectedRoute>
+  }
+/>
+       <Route
+  path="/login"
+  element={
+    user ? <Navigate to="/" replace /> : <LoginPage />
+  }
+/>
+        
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
        <Route
         path="/otp"
