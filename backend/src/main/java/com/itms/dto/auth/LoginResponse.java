@@ -1,7 +1,6 @@
 package com.itms.dto.auth;
 
-import com.itms.entity.Role;
-import com.itms.entity.UserRole;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
