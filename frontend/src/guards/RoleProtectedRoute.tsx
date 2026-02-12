@@ -12,14 +12,17 @@ export default function RoleProtectedRoute({
   allowedRoles,
 }: Props) {
   const { user, loading, initialized } = useAuthStore();
-
-  if (!initialized || loading) return null;
-
-  if (!user) {
-    return <Navigate to="/login" />;
+  
+  
+  if (loading || !initialized) {
+    return <div>Loading...</div>;
   }
 
-  if (!allowedRoles.includes(user.role)) {
+  if (!user) {
+    return <Navigate to="/" />;
+  }
+
+  if (!user.roles.some(role => allowedRoles.includes(role))) {
     return <Navigate to="/unauthorized" />;
   }
 

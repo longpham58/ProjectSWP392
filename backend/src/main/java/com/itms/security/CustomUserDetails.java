@@ -1,6 +1,7 @@
 package com.itms.security;
 
 import com.itms.entity.User;
+import com.itms.entity.UserRole;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,7 +27,14 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        return user.getUserRole().stream()
+                .filter(UserRole::getIsActive)                 // only active roles
+                .map(userRole ->
+                        new SimpleGrantedAuthority(
+                                "ROLE_" + userRole.getRole().getRoleCode()
+                        )
+                )
+                .toList();
     }
 
     @Override

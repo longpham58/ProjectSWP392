@@ -8,10 +8,10 @@ import java.util.List;
 
 @Entity
 @Table(
-        name = "Department",
+        name = "Role",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = "name"),
-                @UniqueConstraint(columnNames = "code")
+                @UniqueConstraint(columnNames = "role_name"),
+                @UniqueConstraint(columnNames = "role_code")
         }
 )
 @Getter
@@ -19,20 +19,17 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Department {
+public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // =========================
-    // Basic Fields
-    // =========================
-    @Column(nullable = false, length = 100)
-    private String name;
+    @Column(name = "role_name", nullable = false, length = 50)
+    private String roleName;
 
-    @Column(nullable = false, length = 20)
-    private String code;
+    @Column(name = "role_code", nullable = false, length = 20)
+    private String roleCode; // e.g. ADMIN, HR, TRAINER, EMPLOYEE
 
     @Column(length = 500)
     private String description;
@@ -40,36 +37,18 @@ public class Department {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    // =========================
-    // Relationships (FK)
-    // =========================
-
-    // manager_id → User.id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "manager_id")
-    private User manager;
-
-    // created_by → User.id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
-    private User createdBy;
-
-    // updated_by → User.id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by")
-    private User updatedBy;
-
-    // =========================
-    // Timestamps
-    // =========================
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
+    private List<UserRole> userRole;
+
+
     // =========================
-    // JPA Lifecycle Hooks
+    // JPA lifecycle hooks
     // =========================
     @PrePersist
     protected void onCreate() {

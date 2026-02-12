@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import OtpPage from "./pages/OtpPage";
 import ForgotPasswordPage from "./pages/ForgotPassword";
 import ResetPasswordPage from "./pages/ResetPassword";
+import HomePage from "./pages/HomePage";
 
 import OtpGuard from "./guards/OtpGuard";
 import ResetPasswordGuard from "./guards/ResetPasswordGuard";
@@ -32,20 +33,19 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-  path="/"
-  element={
-    <RoleProtectedRoute allowedRoles={["ADMIN", "EMPLOYEE"]}>
-      <HomeRedirect />
-    </RoleProtectedRoute>
-  }
-/>
-       <Route
-  path="/login"
-  element={
-    user ? <Navigate to="/" replace /> : <LoginPage />
-  }
-/>
+        {/* ✅ PUBLIC HOME PAGE */}
+    <Route path="/" element={ user ? <Navigate to="/home-redirect" replace /> : <HomePage />} />
+
+     {/* 🔁 ROLE-BASED REDIRECT */}
+    <Route path="/home-redirect" element={<HomeRedirect />} />
+
+         {/* LOGIN */}
+    <Route
+      path="/login"
+      element={
+        user ? <Navigate to="/home-redirect" replace /> : <LoginPage />
+      }
+    />
         
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
        <Route

@@ -9,6 +9,7 @@ interface AuthState {
   error: string | null;
   initialized: boolean;
   setError: (error: string | null) => void;
+  
 
   login: (
     username: string,

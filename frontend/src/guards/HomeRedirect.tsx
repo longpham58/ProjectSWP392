@@ -9,9 +9,9 @@ function HomeRedirect() {
   useEffect(() => {
     if (!user) return;
 
-    if (user.role === "ADMIN") {
+    if (user.roles.includes("ADMIN")) {
       navigate("/admin", { replace: true });
-    } else if (user.role === "EMPLOYEE") {
+    } else if (user.roles.includes("EMPLOYEE")) {
       navigate("/employee", { replace: true });
     }
   }, [user]);

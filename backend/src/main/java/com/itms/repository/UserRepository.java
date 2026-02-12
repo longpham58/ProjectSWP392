@@ -18,4 +18,12 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     boolean existsByUsername(String username);
 
+    boolean existsByEmail(String email);
+    @Query("""
+    SELECT u FROM User u
+    LEFT JOIN FETCH u.userRole ur
+    LEFT JOIN FETCH ur.role
+    WHERE LOWER(u.username) = LOWER(:username)
+""")
+    Optional<User> findByUsernameWithRole(@Param("username") String username);
 }

@@ -19,11 +19,14 @@ export interface UserInfo {
   username: string;
   email: string;
   fullName: string;
-  role: string;
+  roles: string[];
   department?: {
     id: number;
     name: string;
   } | null;
+  otpEnabled: boolean;
+  lastLogin?: string;
+  active: boolean;
 }
 
 export interface ApiResponse<T> {

@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "../assets/styles/LoginPage.css";
 
 export default function LoginPage() {
-  const { login, loading, error, setError, user } = useAuthStore();
+  const { login, loading, error, setError} = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
@@ -40,14 +40,15 @@ const getHomeByRole = (role?: string) => {
     try {
     await login(username, password, rememberMe);
 
-    const { otpRequired } = useAuthStore.getState();
+    const { otpRequired, user } = useAuthStore.getState();
 
      if (otpRequired) {
       navigate("/otp");
+      return;
     }
-
-
-      const target = getHomeByRole(user?.role);
+      const role = user?.roles?.[0];
+      console.log("Login successful, user:", user);
+      const target = getHomeByRole(role);
       navigate(target, { replace: true });
   } catch {
     // ❌ Do nothing

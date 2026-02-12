@@ -1,12 +1,14 @@
 package com.itms.dto;
 
-import com.itms.common.UserRole;
-import com.itms.entity.Department;
-import jakarta.persistence.*;
+import com.itms.entity.Role;
+import com.itms.entity.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -18,6 +20,11 @@ public class UserInfo {
     private String username;
     private String email;
     private String fullName;
-    private UserRole role;
+    private String phone;
+    private String avatarUrl;
+    private List<String> roles;
     private DepartmentDto department;
+    private boolean isActive;
+    private boolean otpEnabled;
+    private LocalDateTime lastLogin;
 }

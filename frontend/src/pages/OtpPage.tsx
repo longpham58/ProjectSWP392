@@ -30,7 +30,8 @@ export default function OtpPage() {
   try {
     await verifyOtp(otp);
      const { user } = useAuthStore.getState();
-    navigate(getHomeByRole(user?.role), { replace: true });
+     const role = user?.roles?.[0];
+    navigate(getHomeByRole(role), { replace: true });
   } catch {}
 };
 

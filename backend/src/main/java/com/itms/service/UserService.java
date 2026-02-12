@@ -5,6 +5,7 @@ import com.itms.dto.UserInfo;
 import com.itms.dto.auth.*;
 import com.itms.dto.common.ResponseDto;
 import com.itms.entity.User;
+import com.itms.entity.UserRole;
 import com.itms.repository.UserRepository;
 import com.itms.security.CustomUserDetails;
 import io.jsonwebtoken.Claims;
@@ -22,6 +23,8 @@ import org.springframework.stereotype.Service;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -40,10 +43,10 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Username not found"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new RuntimeException("Invalid password");
         }
 
-        boolean otpRequired = user.isOtpEnabled();
+        boolean otpRequired = user.getOtpEnabled();
 
         if (otpRequired) {
             HttpSession session = httpRequest.getSession(true);
@@ -148,13 +151,22 @@ public class UserService {
                     .build();
         }
 
+        List<String> roles = user.getUserRole().stream()
+                .filter(UserRole::getIsActive)
+                .map(ur -> ur.getRole().getRoleCode())
+                .toList();
 
         UserInfo userInfo = UserInfo.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .fullName(user.getFullName())
-                .role(user.getRole())
+                .phone(user.getPhone())
+                .avatarUrl(user.getAvatarUrl())
+                .roles(roles)
+                .isActive(user.getIsActive())
+                .otpEnabled(user.getOtpEnabled())
+                .lastLogin(user.getLastLogin())
                 .department(departmentDto)
                 .build();
 
@@ -183,14 +195,21 @@ public class UserService {
     }
 
     private LoginResponse buildLoginResponse(User user, boolean otpRequired) {
+
+        List<String> roles = user.getUserRole().stream()
+                .filter(UserRole::getIsActive)
+                .map(ur -> ur.getRole().getRoleCode())
+                .toList();
         return LoginResponse.builder()
                 .otpRequired(otpRequired)
                 .email(user.getEmail())
-                .role(user.getRole())
+                .roles(roles)
                 .build();
     }
     private void authenticateUser(User user, HttpServletRequest request,  boolean rememberMe) {
 
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
         CustomUserDetails userDetails = new CustomUserDetails(user);
 
         Authentication  authentication =
