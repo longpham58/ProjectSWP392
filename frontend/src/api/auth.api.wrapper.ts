@@ -7,7 +7,7 @@ import mockAuthApi from './auth.api.mock';
 export interface LoginRequest {
   username: string;
   password: string;
-  rememberMe?: boolean;
+  rememberMe: boolean;
 }
 
 export interface VerifyOtpRequest {
@@ -20,10 +20,9 @@ export interface UserInfo {
   email: string;
   fullName: string;
   roles: string[];
-  department?: {
-    id: number;
-    name: string;
-  } | null;
+  // Mock data uses string, backend may use object
+  department?: string | { id: number; name: string } | null;
+  phone?: string;
   otpEnabled?: boolean;
   lastLogin?: string;
   active?: boolean;
@@ -120,7 +119,7 @@ export const authApi = {
     return realAuthApi.verifyOtp(payload);
   },
 
-  resetPassword: async (payload: { token?: string; newPassword: string }) => {
+  resetPassword: async (payload: { token: string; newPassword: string }) => {
     if (USE_MOCK_DATA) {
       const email = localStorage.getItem('mock_reset_email') || '';
       const response = await mockAuthApi.resetPassword(email, payload.newPassword);

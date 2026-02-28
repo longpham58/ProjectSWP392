@@ -272,13 +272,17 @@ export default function TrainerHome() {
                   <div className="detail-item">
                     <span className="detail-label">Ngày bắt đầu:</span>
                     <span className="detail-value">
-                      {new Date(selectedCourse.startDate).toLocaleDateString('vi-VN')}
+                      {selectedCourse.startDate
+                        ? new Date(selectedCourse.startDate).toLocaleDateString('vi-VN')
+                        : '-'}
                     </span>
                   </div>
                   <div className="detail-item">
                     <span className="detail-label">Ngày kết thúc:</span>
                     <span className="detail-value">
-                      {new Date(selectedCourse.endDate).toLocaleDateString('vi-VN')}
+                      {selectedCourse.endDate
+                        ? new Date(selectedCourse.endDate).toLocaleDateString('vi-VN')
+                        : '-'}
                     </span>
                   </div>
                 </div>
