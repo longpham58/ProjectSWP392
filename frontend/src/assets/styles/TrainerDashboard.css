@@ -2,6 +2,10 @@
   display: flex;
   height: 100vh;
   background: #f5f7fa;
+<<<<<<< HEAD
+=======
+  overflow: hidden;
+>>>>>>> 93cbe726cd117a21ad89e01ec71b9ab31f42126a
 }
 
 .trainer-sidebar {
@@ -62,6 +66,10 @@
   flex: 1;
   overflow-y: auto;
   padding: 30px;
+<<<<<<< HEAD
+=======
+  
+>>>>>>> 93cbe726cd117a21ad89e01ec71b9ab31f42126a
 }
 
 /* Schedule Styles */
