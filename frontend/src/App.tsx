@@ -18,6 +18,13 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import EmployeeLayout from "./layouts/EmployeeLayout";
 import EmployeePage from "./pages/employee/EmployeePage";
 import { useAuthStore } from "./stores/auth.store";
+import UsersPage from "./pages/admin/UsersPage";
+import AuditLogsPage from "./pages/admin/AuditLogsPage";
+import AnalyticsPage from "./pages/admin/AnalyticsPage";
+import NotificationsPage from "./pages/admin/NotificationsPage";
+import AdminSystemFeedbackPage from "./pages/admin/FeedbackPage";
+import AdminCoursesPage from "./pages/admin/CoursesPage";
+import AdminCourseDetailPage from "./pages/admin/CourseDetailPage";
 
 function App() {
   const { fetchMe, user} = useAuthStore();
@@ -74,7 +81,17 @@ function App() {
     </RoleProtectedRoute>
   }
 >
-  <Route index element={<AdminDashboard />} />
+  {/* Default redirect */}
+  <Route index element={<Navigate to="dashboard" replace />} />
+
+  <Route path="dashboard" element={<AdminDashboard />} />
+  <Route path="users" element={<UsersPage />} />
+  <Route path="analytics" element={<AnalyticsPage />} />
+  <Route path="notifications" element={<NotificationsPage />} />
+  <Route path="audit-logs" element={<AuditLogsPage />} />
+  <Route path="feedback" element={<AdminSystemFeedbackPage />} />
+  <Route path="courses" element={<AdminCoursesPage />} />
+   <Route path="courses/:id" element={<AdminCourseDetailPage />} />
 </Route>
 
 <Route
@@ -87,6 +104,7 @@ function App() {
 >
   <Route index element={<EmployeePage />} />
 </Route>
+
 
       </Routes>
     </BrowserRouter>

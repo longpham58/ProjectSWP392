@@ -30,6 +30,8 @@ const getHomeByRole = (role?: string) => {
       return "/admin";
     case "EMPLOYEE":
       return "/employee";
+    case "TRAINER":
+      return "/trainer";
     default:
       return "/";
   }
@@ -47,7 +49,7 @@ const getHomeByRole = (role?: string) => {
       return;
     }
       const role = user?.roles?.[0];
-      console.log("Login successful, user:", user);
+      console.log("Login successful, user:", user, "navigating to home for role:", role);
       const target = getHomeByRole(role);
       navigate(target, { replace: true });
   } catch {
