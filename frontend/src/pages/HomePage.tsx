@@ -47,8 +47,7 @@ function HomePage() {
             <div className="flex gap-4 justify-center">
               <Link to="/login">
                 <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-2xl transition-all duration-300 font-semibold text-lg">
-                  Get Started
-                  <i className="fas fa-arrow-right ml-2"></i>
+                  Get Started →
                 </button>
               </Link>
               <button className="px-8 py-4 bg-white text-gray-700 rounded-xl hover:shadow-lg transition-all duration-300 font-semibold text-lg border-2 border-gray-200">
@@ -133,8 +132,7 @@ function HomePage() {
           </p>
           <Link to="/login">
             <button className="px-10 py-4 bg-white text-blue-600 rounded-xl hover:shadow-2xl transition-all duration-300 font-bold text-lg">
-              Sign In Now
-              <i className="fas fa-arrow-right ml-2"></i>
+              Sign In Now →
             </button>
           </Link>
         </div>
@@ -229,12 +227,10 @@ function CourseCard({ course }: { course: any }) {
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{course.description}</p>
         <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center gap-1">
-            <i className="fas fa-clock text-blue-600"></i>
-            <span>{course.duration_hours}h</span>
+            <span>⏱️ {course.duration_hours}h</span>
           </div>
           <div className="flex items-center gap-1">
-            <i className="fas fa-user text-purple-600"></i>
-            <span>{course.trainer}</span>
+            <span>👤 {course.trainer}</span>
           </div>
         </div>
       </div>

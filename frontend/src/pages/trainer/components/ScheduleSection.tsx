@@ -5,6 +5,7 @@ const ScheduleSection: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedClasses, setSelectedClasses] = useState<string[]>(['ITM5001-M01']);
   const [schedule] = useState<ScheduleClass[]>(mockSchedule);
+  const [viewingClass, setViewingClass] = useState<ScheduleClass | null>(null);
 
   const daysOfWeek = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
   const slots = [1, 2, 3, 4, 5, 6]; // 6 slots
@@ -116,7 +117,8 @@ const ScheduleSection: React.FC = () => {
                     {getClassesForDay(dayIndex).map((classItem, index) => (
                       <div
                         key={index}
-                        className="absolute left-1 right-1 bg-cyan-400 rounded-lg p-3 shadow-md hover:shadow-lg transition cursor-pointer"
+                        onClick={() => setViewingClass(classItem)}
+                        className="absolute left-1 right-1 bg-cyan-400 rounded-lg p-3 shadow-md hover:shadow-lg hover:bg-cyan-500 transition cursor-pointer"
                         style={{
                           top: `${getSlotPosition(classItem.slot)}px`,
                           height: '76px' // Fixed height for one slot
@@ -144,6 +146,112 @@ const ScheduleSection: React.FC = () => {
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-cyan-400 rounded"></div>
             <span className="text-sm text-gray-700">Lớp học đã lên lịch</span>
+          </div>
+        </div>
+      </div>
+
+      {/* View Class Detail Modal */}
+      {viewingClass && (
+        <ClassDetailModal
+          classItem={viewingClass}
+          onClose={() => setViewingClass(null)}
+        />
+      )}
+    </div>
+  );
+};
+
+// Class Detail Modal Component
+const ClassDetailModal: React.FC<{
+  classItem: ScheduleClass;
+  onClose: () => void;
+}> = ({ classItem, onClose }) => {
+  const daysOfWeek = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-6 rounded-t-2xl">
+          <div className="flex items-start justify-between">
+            <div className="text-white">
+              <h2 className="text-2xl font-bold">{classItem.courseCode}</h2>
+              <p className="text-cyan-100 mt-1">{classItem.courseName}</p>
+            </div>
+            <button 
+              onClick={onClose}
+              className="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition"
+            >
+              <span className="text-xl">×</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Lớp học</div>
+              <div className="font-semibold text-gray-900">{classItem.className}</div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Phòng học</div>
+              <div className="font-semibold text-gray-900">{classItem.room}</div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Thứ</div>
+              <div className="font-semibold text-gray-900">{daysOfWeek[classItem.dayOfWeek]}</div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Slot</div>
+              <div className="font-semibold text-gray-900">
+                Slot {classItem.slot}
+              </div>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 col-span-2">
+              <div className="text-sm text-blue-600 mb-1">Thời gian</div>
+              <div className="font-semibold text-blue-900 text-lg">
+                {classItem.startTime} - {classItem.endTime}
+              </div>
+              <div className="text-xs text-blue-600 mt-1">
+                {TIME_SLOTS[classItem.slot as keyof typeof TIME_SLOTS].label}
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Info */}
+          <div className="border-t pt-4">
+            <h3 className="font-semibold text-gray-900 mb-3">Thông tin khóa học</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Mã khóa học:</span>
+                <span className="font-medium text-gray-900">{classItem.courseCode}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Tên khóa học:</span>
+                <span className="font-medium text-gray-900">{classItem.courseName}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-4">
+            <button
+              onClick={onClose}
+              className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition font-medium"
+            >
+              Đóng
+            </button>
+            <button
+              onClick={() => alert('Chức năng chỉnh sửa lịch học')}
+              className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition font-medium"
+            >
+              Chỉnh sửa
+            </button>
           </div>
         </div>
       </div>
