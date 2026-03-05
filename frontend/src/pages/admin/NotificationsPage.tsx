@@ -12,6 +12,7 @@ type AdminNotification = {
   expiresAt?: string;
   recipients: number;
   readCount: number;
+  status: "SENT" | "DRAFT";
 };
 
 const dummyNotifications: AdminNotification[] = [
@@ -26,6 +27,7 @@ const dummyNotifications: AdminNotification[] = [
     expiresAt: "2026-02-27",
     recipients: 350,
     readCount: 280,
+    status: "SENT", 
   },
   {
     id: 2,
@@ -37,13 +39,14 @@ const dummyNotifications: AdminNotification[] = [
     sentDate: "2026-02-20",
     recipients: 300,
     readCount: 250,
+    status: "DRAFT",
   },
 ];
 
 export default function AdminNotificationsPage() {
   const [notifications, setNotifications] =
     useState<AdminNotification[]>(dummyNotifications);
-
+const [activeTab, setActiveTab] = useState<"Inbox" | "Sent" | "Draft">("Inbox");
   const [showForm, setShowForm] = useState(false);
 
   const getPriorityColor = (priority: string) => {
@@ -65,6 +68,28 @@ export default function AdminNotificationsPage() {
     if (!expiresAt) return false;
     return new Date(expiresAt) < new Date();
   };
+
+  const filteredNotifications = notifications.filter((notif) => {
+  if (activeTab === "Sent") return notif.status === "SENT";
+  if (activeTab === "Draft") return notif.status === "DRAFT";
+  return true; // Inbox = show all
+});
+const addNotification = (status: "SENT" | "DRAFT") => {
+  const newNotif: AdminNotification = {
+    id: Date.now(),
+    title: "New Notification",
+    message: "Example message",
+    type: "ANNOUNCEMENT",
+    priority: "NORMAL",
+    target: "ALL",
+    sentDate: new Date().toISOString().split("T")[0],
+    recipients: 0,
+    readCount: 0,
+    status,
+  };
+
+  setNotifications((prev) => [newNotif, ...prev]);
+};
 
   return (
     <div className="p-6 space-y-6">
@@ -123,17 +148,28 @@ export default function AdminNotificationsPage() {
             className="w-full border rounded-lg px-3 py-2"
           />
 
-          <button className="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition">
-            Send Notification
-          </button>
+          <div className="flex gap-3">
+  <button className="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition">
+    Send Notification
+  </button>
+
+  <button className="bg-gray-400 text-white px-4 py-2 rounded-xl hover:bg-gray-500 transition">
+    Save Draft
+  </button>
+</div>
         </div>
       )}
       {/* Tabs */}
-<div className="flex gap-6 border-b pb-2">
-  {["Inbox", "Sent", "Draft"].map((tab, index) => (
+<div className="flex gap-6 border-b">
+  {["Inbox", "Sent", "Draft"].map((tab) => (
     <button
-      key={index}
-      className="text-blue-600 font-medium border-b-2 border-blue-600 pb-1"
+      key={tab}
+      onClick={() => setActiveTab(tab as any)}
+      className={`pb-2 px-2 font-medium transition ${
+        activeTab === tab
+          ? "text-blue-600 border-b-2 border-blue-600"
+          : "text-gray-500 hover:text-blue-600"
+      }`}
     >
       {tab}
     </button>
@@ -150,7 +186,7 @@ export default function AdminNotificationsPage() {
 </div>
 
       <div className="space-y-4 mt-6">
-  {notifications.map((notif) => (
+  {filteredNotifications.map((notif) => (
     <div
       key={notif.id}
       className="bg-white rounded-2xl shadow border-l-4 border-blue-500 p-6 hover:shadow-md transition"
