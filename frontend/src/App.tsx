@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastProvider } from "./components/common/Toast";
+import { useAuthStore } from "./stores/auth.store";
 
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
@@ -24,23 +25,18 @@ import EmployeeNotificationsPage from "./pages/employee/NotificationsPage";
 import ProfilePage from "./pages/employee/ProfilePage";
 import CourseDetailPage from "./pages/employee/CourseDetailPage";
 import QuizPage from "./pages/employee/QuizPage";
+import FinalExamPage from "./pages/employee/FinalExamPage";
+import FinalExamResultPage from "./pages/employee/FinalExamResultPage";
 
 import TrainerDashboard from "./pages/trainer/TrainerDashboard";
 
-import type { MockUser } from "./data/mockUsers";
-
 function App() {
-  const [user, setUser] = useState<MockUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, initialized, fetchMe } = useAuthStore();
 
-  // Restore session from localStorage
+  // Restore session on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem("mockUser");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
-  }, []);
+    fetchMe();
+  }, [fetchMe]);
 
   // Protected Route Component
   const ProtectedRoute = ({ 
@@ -50,7 +46,7 @@ function App() {
     children: React.ReactNode; 
     allowedRoles: string[] 
   }) => {
-    if (loading) {
+    if (!initialized) {
       return <div className="flex items-center justify-center h-screen">Loading...</div>;
     }
 
@@ -58,7 +54,7 @@ function App() {
       return <Navigate to="/login" replace />;
     }
 
-    const hasRole = user.roles.some(role => allowedRoles.includes(role));
+    const hasRole = user.roles?.some(role => allowedRoles.includes(role));
     if (!hasRole) {
       return <Navigate to="/" replace />;
     }
@@ -66,7 +62,7 @@ function App() {
     return <>{children}</>;
   };
 
-  if (loading) {
+  if (!initialized) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-xl">Loading...</div>
@@ -81,11 +77,11 @@ function App() {
           {/* Public Routes */}
           <Route 
             path="/" 
-            element={user ? <Navigate to={getHomeByRole(user.roles[0])} replace /> : <HomePage />} 
+            element={user ? <Navigate to={getHomeByRole(user.roles?.[0] || '')} replace /> : <HomePage />} 
           />
           <Route
             path="/login"
-            element={user ? <Navigate to={getHomeByRole(user.roles[0])} replace /> : <LoginPage />}
+            element={user ? <Navigate to={getHomeByRole(user.roles?.[0] || '')} replace /> : <LoginPage />}
           />
 
           {/* Admin Routes */}
@@ -122,6 +118,8 @@ function App() {
             <Route path="my-courses" element={<MyCoursesPage />} />
             <Route path="course/:courseId" element={<CourseDetailPage />} />
             <Route path="quiz/:quizId" element={<QuizPage />} />
+            <Route path="final-exam/:courseId" element={<FinalExamPage />} />
+            <Route path="final-exam-result/:courseId" element={<FinalExamResultPage />} />
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="notifications" element={<EmployeeNotificationsPage />} />
             <Route path="profile" element={<ProfilePage />} />
