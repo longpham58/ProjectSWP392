@@ -211,14 +211,16 @@ export default function NotificationsPage() {
         <>
           <div className="space-y-4 mb-6">
             {paginatedNotifications.map(notification => (
-              <div key={notification.id} className="relative group">
-                <NotificationCard
-                  notification={notification}
-                  onMarkAsRead={handleMarkAsRead}
-                />
+              <div key={notification.id} className="flex gap-2 items-start">
+                <div className="flex-1">
+                  <NotificationCard
+                    notification={notification}
+                    onMarkAsRead={handleMarkAsRead}
+                  />
+                </div>
                 <button
                   onClick={() => handleDeleteNotification(notification.id)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg text-sm"
+                  className="flex-shrink-0 bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg text-sm transition-colors mt-1"
                   title="Xóa thông báo"
                 >
                   🗑️

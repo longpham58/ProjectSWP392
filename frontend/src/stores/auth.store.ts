@@ -133,6 +133,14 @@ resetPassword: async (token: string, newPassword: string) => {
 
   fetchMe: async () => {
     try {
+      // Check if user already exists in store (from login)
+      const currentState = useAuthStore.getState();
+      if (currentState.user) {
+        set({ initialized: true });
+        return;
+      }
+      
+      // Try to fetch from API (will fail in mock mode, that's ok)
       const res = await authApi.me();
       set({ user: res.data.data, initialized: true });
     } catch {
@@ -141,10 +149,17 @@ resetPassword: async (token: string, newPassword: string) => {
   },
 
   logout: async () => {
-    await authApi.logout();
+    try {
+      await authApi.logout();
+    } catch {
+      // Ignore API errors in mock mode
+    }
+    
+    // Clear all auth state
     set({
       user: null,
       otpRequired: false,
+      error: null,
     });
   },
 }));
