@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { mockNotifications } from '../../mocks/course.mock';
+import { mockNotifications, type Notification } from '../../data/mockNotifications';
 import NotificationCard from '../../components/employee/NotificationCard';
 import { NoNotifications } from '../../components/common/EmptyState';
 import { useToast } from '../../components/common/Toast';
-import type { Notification } from '../../types/course.types';
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
@@ -71,10 +70,9 @@ export default function NotificationsPage() {
   const readCount = notifications.filter(n => n.read).length;
 
   // Count by type
-  const courseCount = notifications.filter(n => n.type === 'course').length;
-  const deadlineCount = notifications.filter(n => n.type === 'deadline').length;
-  const achievementCount = notifications.filter(n => n.type === 'achievement').length;
-  const systemCount = notifications.filter(n => n.type === 'system').length;
+  const infoCount = notifications.filter(n => n.type === 'info').length;
+  const warningCount = notifications.filter(n => n.type === 'warning').length;
+  const successCount = notifications.filter(n => n.type === 'success').length;
 
   return (
     <div className="p-6">
@@ -168,55 +166,42 @@ export default function NotificationsPage() {
           </button>
           <button
             onClick={() => {
-              setTypeFilter('course');
+              setTypeFilter('info');
               setCurrentPage(1);
             }}
             className={`px-3 py-1 rounded-full text-sm transition-colors ${
-              typeFilter === 'course'
+              typeFilter === 'info'
                 ? 'bg-blue-600 text-white'
                 : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
             }`}
           >
-            📚 Khóa học ({courseCount})
+            ℹ️ Thông tin ({infoCount})
           </button>
           <button
             onClick={() => {
-              setTypeFilter('deadline');
+              setTypeFilter('warning');
               setCurrentPage(1);
             }}
             className={`px-3 py-1 rounded-full text-sm transition-colors ${
-              typeFilter === 'deadline'
-                ? 'bg-red-600 text-white'
-                : 'bg-red-100 text-red-700 hover:bg-red-200'
+              typeFilter === 'warning'
+                ? 'bg-yellow-600 text-white'
+                : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
             }`}
           >
-            ⏰ Deadline ({deadlineCount})
+            ⚠️ Cảnh báo ({warningCount})
           </button>
           <button
             onClick={() => {
-              setTypeFilter('achievement');
+              setTypeFilter('success');
               setCurrentPage(1);
             }}
             className={`px-3 py-1 rounded-full text-sm transition-colors ${
-              typeFilter === 'achievement'
-                ? 'bg-purple-600 text-white'
-                : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
-            }`}
-          >
-            🏆 Thành tích ({achievementCount})
-          </button>
-          <button
-            onClick={() => {
-              setTypeFilter('system');
-              setCurrentPage(1);
-            }}
-            className={`px-3 py-1 rounded-full text-sm transition-colors ${
-              typeFilter === 'system'
+              typeFilter === 'success'
                 ? 'bg-green-600 text-white'
                 : 'bg-green-100 text-green-700 hover:bg-green-200'
             }`}
           >
-            ⚙️ Hệ thống ({systemCount})
+            ✓ Thành công ({successCount})
           </button>
         </div>
       </div>

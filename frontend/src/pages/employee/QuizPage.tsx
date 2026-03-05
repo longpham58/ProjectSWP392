@@ -250,7 +250,7 @@ export default function QuizPage() {
         <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
           <h3 className="font-semibold mb-4">Danh sách câu hỏi</h3>
           <div className="grid grid-cols-5 gap-2">
-            {quiz.questions.map((_, idx) => (
+            {quiz.questions.map((_q, idx) => (
               <button
                 key={idx}
                 onClick={() => setCurrentQuestion(idx)}

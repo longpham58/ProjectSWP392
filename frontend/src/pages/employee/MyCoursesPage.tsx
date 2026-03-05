@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { mockCourses } from '../../mocks/course.mock';
+import { mockCourses } from '../../data/mockCourses';
 import CourseCard from '../../components/employee/CourseCard';
 import { CourseCardSkeleton } from '../../components/common/LoadingSpinner';
 import { NoCoursesFound } from '../../components/common/EmptyState';
@@ -9,7 +9,7 @@ type ViewMode = 'grid' | 'list';
 
 export default function MyCoursesPage() {
   const [courses] = useState(mockCourses);
-  const [filter, setFilter] = useState<'all' | 'upcoming' | 'ongoing' | 'completed'>('all');
+  const [filter, setFilter] = useState<'all' | 'ACTIVE' | 'DRAFT' | 'ARCHIVED'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -24,7 +24,7 @@ export default function MyCoursesPage() {
   // Filter courses
   let filteredCourses = courses.filter(course => {
     const matchesFilter = filter === 'all' || course.status === filter;
-    const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (course.title || course.name).toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
@@ -33,22 +33,22 @@ export default function MyCoursesPage() {
   filteredCourses = [...filteredCourses].sort((a, b) => {
     switch (sortBy) {
       case 'newest':
-        return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+        return new Date(b.startDate || b.created_at).getTime() - new Date(a.startDate || a.created_at).getTime();
       case 'oldest':
-        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+        return new Date(a.startDate || a.created_at).getTime() - new Date(b.startDate || b.created_at).getTime();
       case 'progress':
         return (b.progress || 0) - (a.progress || 0);
       case 'name':
-        return a.title.localeCompare(b.title);
+        return (a.title || a.name).localeCompare(b.title || b.name);
       default:
         return 0;
     }
   });
 
   // Statistics
-  const ongoingCourses = courses.filter(c => c.status === 'ongoing');
-  const upcomingCourses = courses.filter(c => c.status === 'upcoming');
-  const completedCourses = courses.filter(c => c.status === 'completed');
+  const activeCourses = courses.filter(c => c.status === 'ACTIVE');
+  const draftCourses = courses.filter(c => c.status === 'DRAFT');
+  const archivedCourses = courses.filter(c => c.status === 'ARCHIVED');
 
   return (
     <div className="p-6">
@@ -64,16 +64,16 @@ export default function MyCoursesPage() {
           <div className="text-3xl font-bold text-blue-700">{courses.length}</div>
         </div>
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="text-green-600 text-sm font-medium mb-1">Đang học</div>
-          <div className="text-3xl font-bold text-green-700">{ongoingCourses.length}</div>
+          <div className="text-green-600 text-sm font-medium mb-1">Đang hoạt động</div>
+          <div className="text-3xl font-bold text-green-700">{activeCourses.length}</div>
         </div>
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="text-blue-600 text-sm font-medium mb-1">Sắp diễn ra</div>
-          <div className="text-3xl font-bold text-blue-700">{upcomingCourses.length}</div>
+          <div className="text-blue-600 text-sm font-medium mb-1">Nháp</div>
+          <div className="text-3xl font-bold text-blue-700">{draftCourses.length}</div>
         </div>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <div className="text-gray-600 text-sm font-medium mb-1">Đã hoàn thành</div>
-          <div className="text-3xl font-bold text-gray-700">{completedCourses.length}</div>
+          <div className="text-gray-600 text-sm font-medium mb-1">Đã lưu trữ</div>
+          <div className="text-3xl font-bold text-gray-700">{archivedCourses.length}</div>
         </div>
       </div>
 
@@ -103,34 +103,34 @@ export default function MyCoursesPage() {
               Tất cả
             </button>
             <button
-              onClick={() => setFilter('ongoing')}
+              onClick={() => setFilter('ACTIVE')}
               className={`px-4 py-2 rounded-lg transition-colors ${
-                filter === 'ongoing' 
+                filter === 'ACTIVE' 
                   ? 'bg-blue-600 text-white' 
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              Đang học
+              Đang hoạt động
             </button>
             <button
-              onClick={() => setFilter('upcoming')}
+              onClick={() => setFilter('DRAFT')}
               className={`px-4 py-2 rounded-lg transition-colors ${
-                filter === 'upcoming' 
+                filter === 'DRAFT' 
                   ? 'bg-blue-600 text-white' 
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              Sắp diễn ra
+              Nháp
             </button>
             <button
-              onClick={() => setFilter('completed')}
+              onClick={() => setFilter('ARCHIVED')}
               className={`px-4 py-2 rounded-lg transition-colors ${
-                filter === 'completed' 
+                filter === 'ARCHIVED' 
                   ? 'bg-blue-600 text-white' 
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
-              Đã hoàn thành
+              Đã lưu trữ
             </button>
           </div>
 

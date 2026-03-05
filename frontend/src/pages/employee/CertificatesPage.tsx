@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { mockCertificates, mockCourses } from '../../mocks/course.mock';
+import { mockCourses } from '../../data/mockCourses';
+import { mockCertificates, type Certificate } from '../../data/mockCertificates';
 import { NoCertificates } from '../../components/common/EmptyState';
 import { useToast } from '../../components/common/Toast';
-import type { Certificate } from '../../types/course.types';
 
 export default function CertificatesPage() {
   const [certificates] = useState(mockCertificates);
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
   const { showToast } = useToast();
 
-  const completedCourses = mockCourses.filter(c => c.status === 'completed');
+  // Get courses that have certificates
+  const completedCourses = mockCourses.filter(course => 
+    certificates.some(cert => cert.courseId === course.id)
+  );
 
   const handleDownloadCertificate = (cert: Certificate) => {
     showToast(`Chứng chỉ "${cert.courseName}" đã được gửi đến email: employee@itms.com`, 'success');
