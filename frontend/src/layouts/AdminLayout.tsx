@@ -7,11 +7,14 @@ export default function AdminLayout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
+  const handleLogout = () => {
+  // Remove mock authentication data
+  localStorage.removeItem("mockUser");
+  localStorage.removeItem("rememberMe");
 
+  // Redirect to login
+  window.location.href = "/login"; // force reload
+};
   const getNavClass: NavLinkProps["className"] = ({ isActive }) =>
     isActive ? "nav-btn active" : "nav-btn";
 
