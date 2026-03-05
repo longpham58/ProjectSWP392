@@ -4,31 +4,54 @@
     box-sizing: border-box;
 }
 
+html,
 body {
     margin: 0;
     padding: 0;
+    width: 100%;
     min-height: 100vh;
+    height: 100%;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     overflow: hidden;
 }
 
-/* Container chính - 2 cột */
-.container {
-    display: flex;
-    width: 100%;
-    height: 100vh;
-    position: relative;
+/* Trang login: bỏ margin/padding #root để ảnh nền tràn viền */
+#root:has(.login-page-root) {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
 }
 
-/* Background image với blur */
+/* Container chính - 2 cột, tràn full viewport */
+.container {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    min-height: 100vh;
+}
+
+/* Ảnh nền tràn viền - bám viewport, không lề trắng */
 .container::before {
     content: "";
-    position: absolute;
-    inset: 0;
-    /* Ảnh nền lớp học - thay tại đây nếu muốn ảnh khác */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    min-width: 100%;
+    min-height: 100%;
     background-image: url(https://i.pinimg.com/736x/24/18/94/241894fd707dba4d6fa9c92aa7b8d888.jpg);
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
     filter: blur(8px) brightness(0.72);
     z-index: 0;
 }
@@ -534,38 +557,4 @@ body {
   font-size: 16px;
   border-radius: 12px;
   text-decoration: none;
-}
-
-/* Demo Credentials Section */
-.demo-credentials {
-  margin-top: 40px;
-  padding: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.demo-credentials h3 {
-  color: #fff;
-  font-size: 18px;
-  margin-bottom: 15px;
-  font-weight: 600;
-  text-align: center;
-}
-
-.credential-item {
-  color: #fff;
-  padding: 8px 0;
-  font-size: 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.credential-item:last-child {
-  border-bottom: none;
-}
-
-.credential-item strong {
-  color: #fbbf24;
-  margin-right: 8px;
 }

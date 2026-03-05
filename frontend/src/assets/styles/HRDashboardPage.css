@@ -1,0 +1,279 @@
+.hr-dashboard-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.hr-dashboard {
+  display: flex;
+  flex: 1;
+}
+
+.hr-sidebar {
+  width: 240px;
+  background-color: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  padding: 16px 0;
+  overflow-y: auto;
+}
+
+.hr-sidebar-brand {
+  padding: 0 16px 24px;
+}
+
+.hr-sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hr-sidebar-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.hr-sidebar-btn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+.hr-sidebar-btn.active {
+  background-color: #f3f4f6;
+  color: #1f2937;
+  border-left-color: #3b82f6;
+}
+
+.hr-content,
+.hr-main {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.hr-sidebar-footer {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.hr-logout-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.hr-logout-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+/* Header (HR layout) */
+.hr-header {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 24px;
+  flex-shrink: 0;
+}
+
+.hr-header-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.hr-header-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Brand */
+.hr-brand {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.hr-brand--sidebar {
+  font-size: 18px;
+}
+
+.hr-brand--header {
+  font-size: 16px;
+}
+
+.hr-brand-text {
+  letter-spacing: -0.02em;
+}
+
+/* Footer (HR layout) */
+.hr-footer {
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  padding: 12px 24px;
+  flex-shrink: 0;
+}
+
+.hr-footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.hr-footer-text {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* Dashboard content (overview) */
+.hr-dashboard-content {
+  max-width: 1200px;
+}
+
+.hr-topbar {
+  margin-bottom: 24px;
+}
+
+.hr-topbar-left {
+  flex: 1;
+}
+
+.hr-page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 8px 0;
+}
+
+.hr-page-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.hr-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.hr-stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.hr-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.hr-i-blue {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.hr-i-green {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.hr-i-amber {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.hr-i-red {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.hr-stat-meta {
+  min-width: 0;
+}
+
+.hr-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+}
+
+.hr-stat-label {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.hr-recent-section {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.hr-section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 16px 0;
+  padding: 20px 24px 0;
+}
+
+.hr-table-wrap {
+  overflow-x: auto;
+}
+
+.hr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.hr-table th,
+.hr-table td {
+  padding: 12px 24px;
+  text-align: left;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.hr-table th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.hr-table tbody tr:hover {
+  background: #f9fafb;
+}
