@@ -1,6 +1,7 @@
 import { useAuthStore } from '../../stores/auth.store';
 import { mockCourses } from '../../data/mockCourses';
 import { mockNotifications } from '../../data/mockNotifications';
+import { mockCertificates } from '../../data/mockCertificates';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
@@ -14,6 +15,7 @@ export default function EmployeePage() {
   const ongoingCourses = myCourses.slice(0, 2); // Mock ongoing courses
   const completedCourses = mockCourses.filter(c => c.status === 'ARCHIVED');
   const unreadNotifications = mockNotifications.filter(n => !n.read);
+  const certificates = mockCertificates;
 
   // Mock upcoming deadlines
   const upcomingDeadlines = [
@@ -70,17 +72,17 @@ export default function EmployeePage() {
         <div className="bg-purple-50 border border-purple-200 rounded-lg p-5 hover:shadow-lg transition-shadow cursor-pointer"
              onClick={() => navigate('/employee/certificates')}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-3xl">✅</span>
-            <span className="text-2xl font-bold text-purple-700">{completedCourses.length}</span>
+            <span className="text-3xl">🏆</span>
+            <span className="text-2xl font-bold text-purple-700">{certificates.length}</span>
           </div>
-          <div className="text-sm text-gray-600">Đã hoàn thành</div>
+          <div className="text-sm text-gray-600">Chứng chỉ</div>
         </div>
       </div>
 
       {/* Quick Actions */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 mb-8 text-white">
         <h2 className="text-xl font-semibold mb-4">🚀 Hành động nhanh</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
             onClick={() => navigate('/employee/my-courses')}
             className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm rounded-lg p-4 transition-all hover:scale-105"
@@ -100,24 +102,12 @@ export default function EmployeePage() {
           </button>
 
           <button
-            onClick={() => {
-              const firstOngoing = ongoingCourses[0];
-              if (firstOngoing) navigate(`/employee/course/${firstOngoing.id}`);
-            }}
-            className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm rounded-lg p-4 transition-all hover:scale-105"
-          >
-            <div className="text-3xl mb-2">📝</div>
-            <div className="font-medium">Làm Quiz</div>
-            <div className="text-xs opacity-90 mt-1">Kiểm tra kiến thức</div>
-          </button>
-
-          <button
             onClick={() => navigate('/employee/certificates')}
             className="bg-white bg-opacity-20 hover:bg-opacity-30 backdrop-blur-sm rounded-lg p-4 transition-all hover:scale-105"
           >
             <div className="text-3xl mb-2">🏆</div>
             <div className="font-medium">Chứng chỉ</div>
-            <div className="text-xs opacity-90 mt-1">{completedCourses.length} chứng chỉ</div>
+            <div className="text-xs opacity-90 mt-1">{certificates.length} chứng chỉ</div>
           </button>
         </div>
       </div>

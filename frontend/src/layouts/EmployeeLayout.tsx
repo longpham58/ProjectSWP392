@@ -28,7 +28,7 @@ export default function EmployeeLayout() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-40">
+      <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -64,13 +64,6 @@ export default function EmployeeLayout() {
                     onClick={() => setShowUserMenu(false)}
                   >
                     👤 Hồ sơ của tôi
-                  </NavLink>
-                  <NavLink
-                    to="/employee/settings"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                    onClick={() => setShowUserMenu(false)}
-                  >
-                    ⚙️ Cài đặt
                   </NavLink>
                   <hr className="my-1" />
                   <button

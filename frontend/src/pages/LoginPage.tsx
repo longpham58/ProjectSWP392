@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { findUserByCredentials } from "../data/mockUsers";
+import { useAuthStore } from "../stores/auth.store";
 import "../assets/styles/LoginPage.css";
 
 export default function LoginPage() {
@@ -9,6 +11,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const getHomeByRole = (role?: string) => {
     switch (role) {
@@ -23,7 +26,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
@@ -33,17 +36,17 @@ export default function LoginPage() {
       const user = findUserByCredentials(username, password);
 
       if (user) {
-        // Store user in localStorage for mock authentication
-        localStorage.setItem("mockUser", JSON.stringify(user));
-        if (rememberMe) {
-          localStorage.setItem("rememberMe", "true");
-        }
+        // Update auth store
+        useAuthStore.setState({ 
+          user: user as any, 
+          initialized: true 
+        });
 
         const role = user.roles[0];
         const target = getHomeByRole(role);
         
-        // Force reload to update App state
-        window.location.href = target;
+        // Navigate using React Router
+        navigate(target, { replace: true });
       } else {
         setError("Invalid username or password");
         setLoading(false);
