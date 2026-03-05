@@ -3,7 +3,7 @@ import { mockSchedule, ScheduleClass, TIME_SLOTS } from '../../../data/mockTrain
 
 const ScheduleSection: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedClasses, setSelectedClasses] = useState<string[]>(['ITM5001-M01']);
+  const [selectedClasses, setSelectedClasses] = useState<string[]>(['ALL']); // Default: show all
   const [schedule] = useState<ScheduleClass[]>(mockSchedule);
   const [viewingClass, setViewingClass] = useState<ScheduleClass | null>(null);
 
@@ -11,6 +11,9 @@ const ScheduleSection: React.FC = () => {
   const slots = [1, 2, 3, 4, 5, 6]; // 6 slots
 
   const getClassesForDay = (dayIndex: number) => {
+    if (selectedClasses.includes('ALL')) {
+      return schedule.filter(s => s.dayOfWeek === dayIndex);
+    }
     return schedule.filter(
       s => s.dayOfWeek === dayIndex && selectedClasses.includes(s.courseCode)
     );
@@ -60,13 +63,33 @@ const ScheduleSection: React.FC = () => {
               value={selectedClasses}
               onChange={(e) => {
                 const selected = Array.from(e.target.selectedOptions, option => option.value);
-                setSelectedClasses(selected);
+                // If "ALL" is selected, only keep "ALL"
+                if (selected.includes('ALL') && !selectedClasses.includes('ALL')) {
+                  setSelectedClasses(['ALL']);
+                } 
+                // If other options are selected while "ALL" is active, remove "ALL"
+                else if (selected.length > 1 && selectedClasses.includes('ALL')) {
+                  setSelectedClasses(selected.filter(s => s !== 'ALL'));
+                }
+                // If nothing selected, default to "ALL"
+                else if (selected.length === 0) {
+                  setSelectedClasses(['ALL']);
+                }
+                else {
+                  setSelectedClasses(selected);
+                }
               }}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
+              <option value="ALL">Tất cả khóa học</option>
               <option value="ITM5001-M01">ITM5001-M01</option>
               <option value="ITM5002-M02">ITM5002-M02</option>
             </select>
+            <p className="text-xs text-gray-500 mt-1">
+              {selectedClasses.includes('ALL') 
+                ? 'Đang hiển thị tất cả khóa học' 
+                : `Đang hiển thị ${selectedClasses.length} khóa học`}
+            </p>
           </div>
         </div>
       </div>
