@@ -16,11 +16,14 @@ export interface Course {
   id: number;
   code: string;
   name: string;
+  title?: string; // Alias for name
   description: string;
   objectives: string;
   prerequisites: string;
   duration_hours: number;
+  duration?: string; // Human readable duration
   trainer: string;
+  instructor?: string; // Alias for trainer
   category: string;
   level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
   thumbnail_url: string;
@@ -28,6 +31,11 @@ export interface Course {
   max_attempts: number;
   status: "DRAFT" | "ACTIVE" | "INACTIVE" | "ARCHIVED";
   created_at: string;
+  startDate?: string;
+  endDate?: string;
+  enrolled?: boolean;
+  progress?: number;
+  score?: number;
   materials: Material[];
   feedbacks: Feedback[];
 }
@@ -37,13 +45,16 @@ export const mockCourses: Course[] = [
     id: 1,
     code: "ITM-001",
     name: "Introduction to Information Security",
+    title: "Introduction to Information Security",
     description:
       "Learn the fundamentals of information security, including threats, vulnerabilities, and protection mechanisms.",
     objectives:
       "Understand cybersecurity basics, identify threats, apply best practices.",
     prerequisites: "Basic computer knowledge",
     duration_hours: 12,
+    duration: "12 giờ",
     trainer: "John Smith",
+    instructor: "John Smith",
     category: "IT",
     level: "BEGINNER",
     thumbnail_url: "https://via.placeholder.com/600x300",
@@ -51,8 +62,11 @@ export const mockCourses: Course[] = [
     max_attempts: 3,
     status: "ACTIVE",
     created_at: "2026-01-10",
+    startDate: "2026-03-01",
+    endDate: "2026-04-26",
+    enrolled: true,
+    progress: 65,
 
-    // ✅ FIXED
     materials: [
       {
         id: 1,
@@ -94,13 +108,16 @@ export const mockCourses: Course[] = [
     id: 2,
     code: "HR-101",
     name: "Workplace Ethics & Compliance",
+    title: "Workplace Ethics & Compliance",
     description:
       "Understand company ethics, compliance rules, and professional workplace behavior.",
     objectives:
       "Learn corporate policies, prevent misconduct, promote integrity.",
     prerequisites: "None",
     duration_hours: 8,
+    duration: "8 giờ",
     trainer: "Sarah Johnson",
+    instructor: "Sarah Johnson",
     category: "HR",
     level: "INTERMEDIATE",
     thumbnail_url: "https://via.placeholder.com/600x300",
@@ -108,8 +125,11 @@ export const mockCourses: Course[] = [
     max_attempts: 2,
     status: "ACTIVE",
     created_at: "2026-01-15",
+    startDate: "2026-02-15",
+    endDate: "2026-03-30",
+    enrolled: true,
+    progress: 30,
 
-    // ✅ FIXED
     materials: [
       {
         id: 4,
@@ -139,13 +159,16 @@ export const mockCourses: Course[] = [
     id: 3,
     code: "MGT-201",
     name: "Leadership Development",
+    title: "Leadership Development",
     description:
       "Develop leadership skills, decision-making ability, and team management strategies.",
     objectives:
       "Improve communication, strategic thinking, and leadership mindset.",
     prerequisites: "Basic management experience",
     duration_hours: 15,
+    duration: "15 giờ",
     trainer: "David Lee",
+    instructor: "David Lee",
     category: "Management",
     level: "ADVANCED",
     thumbnail_url: "https://via.placeholder.com/600x300",
@@ -153,10 +176,12 @@ export const mockCourses: Course[] = [
     max_attempts: 3,
     status: "DRAFT",
     created_at: "2026-01-20",
+    startDate: "2026-04-01",
+    endDate: "2026-06-15",
+    enrolled: false,
+    progress: 0,
 
-    // ✅ FIXED
     materials: [],
-
     feedbacks: [],
   },
 ];

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockCourses } from '../../mocks/course.mock';
+import { mockCourses } from '../../data/mockCourses';
 import { mockCourseModules, mockQuizAttempts, mockFinalExam } from '../../mocks/quiz.mock';
 
 export default function CourseDetailPage() {
@@ -188,7 +188,7 @@ export default function CourseDetailPage() {
 
         {selectedTab === 'modules' && (
           <div className="space-y-6">
-            {modules.map((module, index) => (
+            {modules.map(module => (
               <div key={module.id} className="bg-white rounded-lg shadow">
                 <div className="p-6 border-b bg-gray-50">
                   <div className="flex items-center justify-between">
@@ -208,7 +208,7 @@ export default function CourseDetailPage() {
 
                 <div className="p-6">
                   <div className="space-y-4">
-                    {module.quizzes.map(quiz => {
+                    {module.quizzes.map((quiz: any) => {
                       const status = getQuizStatus(quiz.id);
                       const attempts = mockQuizAttempts.filter(a => a.quizId === quiz.id);
                       const canRetake = attempts.length < quiz.maxAttempts && !attempts.some(a => a.passed);
@@ -362,7 +362,7 @@ export default function CourseDetailPage() {
                   <div key={module.id} className="border rounded-lg p-4">
                     <div className="font-medium mb-2">{module.title}</div>
                     <div className="space-y-2">
-                      {module.quizzes.map(quiz => {
+                      {module.quizzes.map((quiz: any) => {
                         const attempts = mockQuizAttempts.filter(a => a.quizId === quiz.id);
                         const bestScore = attempts.length > 0 
                           ? Math.max(...attempts.map(a => a.score))

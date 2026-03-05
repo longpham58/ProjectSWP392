@@ -1,4 +1,4 @@
-import type { Notification } from '../../types/course.types';
+import type { Notification } from '../../data/mockNotifications';
 
 interface NotificationCardProps {
   notification: Notification;
