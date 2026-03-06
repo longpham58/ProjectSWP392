@@ -19,7 +19,17 @@ export default function FinalExamResultPage() {
             : 'bg-gradient-to-r from-red-500 to-pink-600'
         } text-white`}>
           <div className="text-center">
-            <div className="text-6xl mb-4">{passed ? '🎉' : '😔'}</div>
+            <div className="mb-4">
+              {passed ? (
+                <svg className="w-24 h-24 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ) : (
+                <svg className="w-24 h-24 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+            </div>
             <h1 className="text-3xl font-bold mb-2">
               {passed ? 'Chúc mừng! Bạn đã đạt!' : 'Chưa đạt yêu cầu'}
             </h1>
@@ -66,10 +76,24 @@ export default function FinalExamResultPage() {
                 }`}>
                   <div className="flex items-start justify-between mb-2">
                     <div className="font-medium">Câu {idx + 1}: {question.question}</div>
-                    <div className={`px-3 py-1 rounded-full text-sm ${
+                    <div className={`px-3 py-1 rounded-full text-sm flex items-center gap-1 ${
                       isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
-                      {isCorrect ? '✓ Đúng' : '✗ Sai'}
+                      {isCorrect ? (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Đúng
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Sai
+                        </>
+                      )}
                     </div>
                   </div>
                   
@@ -86,8 +110,16 @@ export default function FinalExamResultPage() {
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          {optIdx === question.correctAnswer && <span className="text-green-600">✓</span>}
-                          {optIdx === userAnswer && !isCorrect && <span className="text-red-600">✗</span>}
+                          {optIdx === question.correctAnswer && (
+                            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          {optIdx === userAnswer && !isCorrect && (
+                            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          )}
                           <span>{option}</span>
                           {optIdx === question.correctAnswer && (
                             <span className="ml-auto text-xs text-green-600 font-medium">Đáp án đúng</span>
@@ -116,9 +148,12 @@ export default function FinalExamResultPage() {
           {passed && (
             <button
               onClick={() => navigate('/employee/certificates')}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 font-medium"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 font-medium flex items-center justify-center gap-2"
             >
-              Xem chứng chỉ 🏆
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+              Xem chứng chỉ
             </button>
           )}
         </div>

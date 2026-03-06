@@ -137,28 +137,36 @@ export default function CourseDetailPage() {
                 <p className="text-gray-700 mb-4">{course.description}</p>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <span className="text-green-600 text-xl">✓</span>
+                    <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                     <div>
                       <div className="font-medium">Học theo module</div>
                       <div className="text-sm text-gray-600">{modules.length} modules với tài liệu và video</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <span className="text-green-600 text-xl">✓</span>
+                    <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                     <div>
                       <div className="font-medium">3 bài test đánh giá</div>
                       <div className="text-sm text-gray-600">Mỗi bài có 3 lần làm tối đa</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <span className="text-green-600 text-xl">✓</span>
+                    <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                     <div>
                       <div className="font-medium">Chứng chỉ hoàn thành</div>
                       <div className="text-sm text-gray-600">Đạt 2/3 bài test để nhận chứng chỉ</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <span className="text-green-600 text-xl">✓</span>
+                    <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                     <div>
                       <div className="font-medium">Bài thi cuối khóa</div>
                       <div className="text-sm text-gray-600">Mở khóa sau khi nhận chứng chỉ</div>
@@ -197,7 +205,12 @@ export default function CourseDetailPage() {
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="text-sm text-blue-800">
-                  <div className="font-medium mb-2">📌 Lưu ý quan trọng</div>
+                  <div className="font-medium mb-2 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Lưu ý quan trọng
+                  </div>
                   <ul className="space-y-1 text-xs">
                     <li>• Mỗi bài test có 3 lần làm tối đa</li>
                     <li>• Cần đạt 2/3 bài test để nhận chứng chỉ</li>
@@ -210,7 +223,12 @@ export default function CourseDetailPage() {
               {certificateEarned && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="text-sm text-green-800">
-                    <div className="font-medium mb-2">🎉 Chúc mừng!</div>
+                    <div className="font-medium mb-2 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      Chúc mừng!
+                    </div>
                     <p className="text-xs">Bạn đã đạt chứng chỉ khóa học. Bây giờ có thể thi final exam!</p>
                   </div>
                 </div>
@@ -230,8 +248,11 @@ export default function CourseDetailPage() {
                       <p className="text-sm text-gray-600 mt-1">{module.description}</p>
                     </div>
                     {module.completed && (
-                      <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
-                        ✓ Hoàn thành
+                      <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Hoàn thành
                       </span>
                     )}
                   </div>
@@ -242,15 +263,22 @@ export default function CourseDetailPage() {
                   {module.documents.length > 0 && (
                     <div className="mb-6">
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
-                        📄 Tài liệu học tập
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Tài liệu học tập
                       </h4>
                       <div className="space-y-2">
                         {module.documents.map(doc => (
                           <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
                             <div className="flex items-center gap-3">
-                              <span className="text-2xl">
-                                {doc.type === 'PDF' ? '📕' : doc.type === 'DOCX' ? '📘' : '📙'}
-                              </span>
+                              <svg className={`w-8 h-8 ${
+                                doc.type === 'PDF' ? 'text-red-600' : 
+                                doc.type === 'DOCX' ? 'text-blue-600' : 
+                                'text-orange-600'
+                              }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                              </svg>
                               <div>
                                 <div className="font-medium text-sm">{doc.title}</div>
                                 <div className="text-xs text-gray-500">{doc.type} • {doc.size}</div>
@@ -258,9 +286,12 @@ export default function CourseDetailPage() {
                             </div>
                             <button
                               onClick={() => handleDownload(doc.url, doc.title)}
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center gap-2"
                             >
-                              ⬇️ Tải xuống
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              Tải xuống
                             </button>
                           </div>
                         ))}
@@ -272,17 +303,27 @@ export default function CourseDetailPage() {
                   {module.videos.length > 0 && (
                     <div className="mb-6">
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
-                        🎥 Video bài giảng
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                        Video bài giảng
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {module.videos.map(video => (
                           <div key={video.id} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
                             <div className="bg-gray-200 aspect-video flex items-center justify-center">
-                              <span className="text-4xl">▶️</span>
+                              <svg className="w-16 h-16 text-gray-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                              </svg>
                             </div>
                             <div className="p-3">
                               <div className="font-medium text-sm mb-1">{video.title}</div>
-                              <div className="text-xs text-gray-500">⏱️ {video.duration}</div>
+                              <div className="text-xs text-gray-500 flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {video.duration}
+                              </div>
                             </div>
                           </div>
                         ))}
@@ -294,7 +335,10 @@ export default function CourseDetailPage() {
                   {module.quizzes.length > 0 && (
                     <div>
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
-                        📝 Quiz kiểm tra
+                        <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        Quiz kiểm tra
                       </h4>
                       <div className="space-y-3">
                         {module.quizzes.map(quiz => (
@@ -337,15 +381,26 @@ export default function CourseDetailPage() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <span className="text-2xl">{idx === 0 ? '📗' : idx === 1 ? '📘' : '📙'}</span>
+                            <svg className={`w-8 h-8 ${
+                              idx === 0 ? 'text-green-600' : 
+                              idx === 1 ? 'text-blue-600' : 
+                              'text-orange-600'
+                            }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
                             <h3 className="font-bold text-lg">{test.title}</h3>
                           </div>
                           <p className="text-sm text-gray-600 mb-3">{test.description}</p>
                           <div className="flex gap-4 text-xs text-gray-500">
-                            <span>⏱️ {test.duration} phút</span>
-                            <span>📊 Điểm đạt: {test.passingScore}%</span>
-                            <span>🔄 Tối đa {test.maxAttempts} lần</span>
-                            <span>📝 {test.questions.length} câu hỏi</span>
+                            <span className="flex items-center gap-1">
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {test.duration} phút
+                            </span>
+                            <span>Điểm đạt: {test.passingScore}%</span>
+                            <span>Tối đa {test.maxAttempts} lần</span>
+                            <span>{test.questions.length} câu hỏi</span>
                           </div>
                         </div>
                         <span className={`px-4 py-2 rounded-full text-sm font-medium ${status.color}`}>
@@ -392,13 +447,19 @@ export default function CourseDetailPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xl font-bold flex items-center gap-2">
-                      🏆 {mockFinalExam.title}
+                      <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                      </svg>
+                      {mockFinalExam.title}
                     </h3>
                     <p className="text-sm text-gray-600 mt-1">{mockFinalExam.description}</p>
                   </div>
                   {!finalExamUnlocked && (
-                    <span className="bg-gray-200 text-gray-600 px-4 py-2 rounded-full text-sm font-medium">
-                      🔒 Đã khóa
+                    <span className="bg-gray-200 text-gray-600 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      Đã khóa
                     </span>
                   )}
                 </div>
@@ -408,25 +469,38 @@ export default function CourseDetailPage() {
                 {finalExamUnlocked ? (
                   <div>
                     <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="text-green-800 font-medium">
-                        ✓ Bạn đã đủ điều kiện tham gia bài thi cuối khóa!
+                      <div className="text-green-800 font-medium flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        Bạn đã đủ điều kiện tham gia bài thi cuối khóa!
                       </div>
                     </div>
                     <div className="flex gap-6 text-sm text-gray-600 mb-6">
-                      <span>⏱️ {mockFinalExam.duration} phút</span>
-                      <span>📊 Điểm đạt: {mockFinalExam.passingScore}%</span>
-                      <span>📝 {mockFinalExam.questions.length} câu hỏi</span>
+                      <span className="flex items-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {mockFinalExam.duration} phút
+                      </span>
+                      <span>Điểm đạt: {mockFinalExam.passingScore}%</span>
+                      <span>{mockFinalExam.questions.length} câu hỏi</span>
                     </div>
                     <button
                       onClick={handleStartFinalExam}
-                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium text-lg"
+                      className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium text-lg flex items-center justify-center gap-2"
                     >
-                      Bắt đầu Bài thi cuối khóa 🚀
+                      Bắt đầu Bài thi cuối khóa
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
                     </button>
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <div className="text-5xl mb-4">🔒</div>
+                    <svg className="w-20 h-20 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
                     <div className="text-gray-700 font-medium mb-2">
                       Hoàn thành 2/3 bài test để mở khóa bài thi cuối
                     </div>
@@ -434,8 +508,11 @@ export default function CourseDetailPage() {
                       Tiến độ hiện tại: {passedTests}/{tests.length} bài test đã đạt
                     </div>
                     {!certificateEarned && (
-                      <div className="mt-4 text-sm text-orange-600">
-                        💡 Bạn cần đạt thêm {2 - passedTests} bài test nữa
+                      <div className="mt-4 text-sm text-orange-600 flex items-center justify-center gap-1">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                        </svg>
+                        Bạn cần đạt thêm {2 - passedTests} bài test nữa
                       </div>
                     )}
                   </div>
@@ -475,8 +552,22 @@ export default function CourseDetailPage() {
               </div>
               <div className="border rounded-lg p-4">
                 <div className="text-gray-600 text-sm mb-1">Trạng thái</div>
-                <div className="text-lg font-bold text-orange-600">
-                  {certificateEarned ? '🏆 Đã có chứng chỉ' : '📚 Đang học'}
+                <div className="text-lg font-bold text-orange-600 flex items-center gap-2">
+                  {certificateEarned ? (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                      </svg>
+                      Đã có chứng chỉ
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      Đang học
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -507,7 +598,14 @@ export default function CourseDetailPage() {
                             {bestScore > 0 ? `${bestScore}%` : '--'}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {passed ? '✓ Đã đạt' : bestScore > 0 ? 'Chưa đạt' : 'Chưa làm'}
+                            {passed ? (
+                              <span className="flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Đã đạt
+                              </span>
+                            ) : bestScore > 0 ? 'Chưa đạt' : 'Chưa làm'}
                           </div>
                         </div>
                       </div>

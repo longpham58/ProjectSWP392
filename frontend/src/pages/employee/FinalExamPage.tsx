@@ -77,7 +77,12 @@ export default function FinalExamPage() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">🏆 {mockFinalExam.title}</h1>
+              <h1 className="text-2xl font-bold flex items-center gap-2">
+                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+                {mockFinalExam.title}
+              </h1>
               <p className="text-sm opacity-90">{mockFinalExam.description}</p>
             </div>
             <div className="text-right">
@@ -112,10 +117,17 @@ export default function FinalExamPage() {
             </div>
             <div className={`px-3 py-1 rounded-full text-sm ${
               answers[currentQuestion] !== -1 
-                ? 'bg-green-100 text-green-700' 
+                ? 'bg-green-100 text-green-700 flex items-center gap-1' 
                 : 'bg-gray-100 text-gray-600'
             }`}>
-              {answers[currentQuestion] !== -1 ? '✓ Đã trả lời' : 'Chưa trả lời'}
+              {answers[currentQuestion] !== -1 ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Đã trả lời
+                </>
+              ) : 'Chưa trả lời'}
             </div>
           </div>
 
@@ -216,8 +228,11 @@ export default function FinalExamPage() {
               Bạn đã trả lời {answeredCount}/{mockFinalExam.questions.length} câu hỏi.
             </p>
             {answeredCount < mockFinalExam.questions.length && (
-              <p className="text-orange-600 mb-4">
-                ⚠️ Còn {mockFinalExam.questions.length - answeredCount} câu chưa trả lời!
+              <p className="text-orange-600 mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                Còn {mockFinalExam.questions.length - answeredCount} câu chưa trả lời!
               </p>
             )}
             <p className="text-gray-600 mb-6">
