@@ -27,6 +27,7 @@ import CourseDetailPage from "./pages/employee/CourseDetailPage";
 import QuizPage from "./pages/employee/QuizPage";
 import FinalExamPage from "./pages/employee/FinalExamPage";
 import FinalExamResultPage from "./pages/employee/FinalExamResultPage";
+import NotificationDetailPage from "./pages/employee/NotificationDetailPage";
 
 import TrainerDashboard from "./pages/trainer/TrainerDashboard";
 
@@ -122,6 +123,7 @@ function App() {
             <Route path="final-exam-result/:courseId" element={<FinalExamResultPage />} />
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="notifications" element={<EmployeeNotificationsPage />} />
+            <Route path="notification/:notificationId" element={<NotificationDetailPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<div className="p-6"><h1 className="text-2xl font-bold mb-4">Cài đặt</h1><p className="text-gray-600">Tính năng đang được phát triển...</p></div>} />
           </Route>
