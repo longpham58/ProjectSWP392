@@ -5,6 +5,11 @@ import { useAuthStore } from "./stores/auth.store";
 
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
+import ForgotPasswordPage from "./pages/ForgotPassword";  
+import ResetPasswordPage from "./pages/ResetPassword";
+import OtpPage from "./pages/OtpPage";
+import OtpGuard from "./guards/OtpGuard";
+import ResetPasswordGuard from "./guards/ResetPasswordGuard";
 
 import AdminLayout from "./layouts/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -84,7 +89,23 @@ function App() {
             path="/login"
             element={user ? <Navigate to={getHomeByRole(user.roles?.[0] || '')} replace /> : <LoginPage />}
           />
-
+ <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+       <Route
+        path="/otp"
+        element={
+          <OtpGuard>
+            <OtpPage />
+          </OtpGuard>
+        }
+      />
+   <Route
+        path="/reset-password"
+        element={
+          <ResetPasswordGuard>
+            <ResetPasswordPage />
+          </ResetPasswordGuard>
+        }
+      />
           {/* Admin Routes */}
           <Route
             path="/admin"
