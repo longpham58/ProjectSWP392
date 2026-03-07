@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     const message =
       err.response?.data?.message ||
       "Server error during login";
-
+    console.error("Login error:", err);
     set({ error: message});
     throw err; // important
   }
