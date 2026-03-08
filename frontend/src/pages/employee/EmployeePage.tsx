@@ -5,21 +5,28 @@ import { mockCertificates } from '../../data/mockCertificates';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useCourseStore } from '../../stores/course.store';
+import { useNotificationStore } from '../../stores/notification.store';
+import { useCertificateStore } from '../../stores/certificate.store';
 
 export default function EmployeePage() {
   const { user } = useAuthStore();
+  const { notifications, fetchNotifications } = useNotificationStore();
+  const { certificates, fetchCertificates } = useCertificateStore();
+
+
   const navigate = useNavigate();
   const { courses, fetchMyCourses } = useCourseStore();
   const [learningStreak] = useState(7);
    useEffect(() => {
     fetchMyCourses();
+    fetchNotifications();
+    fetchCertificates(user?.id || 0);
   }, []);
   // Mock data - in real app, this would come from API
   const myCourses = courses;
   const ongoingCourses = courses.filter(c => c.status === "ACTIVE");
   const completedCourses = courses.filter(c => c.status === "ARCHIVED");
-  const unreadNotifications = mockNotifications.filter(n => !n.read);
-  const certificates = mockCertificates;
+  const unreadNotifications = notifications.filter(n => !n.read);
 
   // Mock upcoming deadlines
   const upcomingDeadlines = [
