@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { useCourseStore } from '../../stores/course.store';
 import { useNotificationStore } from '../../stores/notification.store';
 import { useCertificateStore } from '../../stores/certificate.store';
+import { useStreakStore } from '../../stores/streak.store';
 
 export default function EmployeePage() {
   const { user } = useAuthStore();
@@ -16,17 +17,23 @@ export default function EmployeePage() {
 
   const navigate = useNavigate();
   const { courses, fetchMyCourses } = useCourseStore();
-  const [learningStreak] = useState(7);
+  const { streak, fetchStreak, loading } = useStreakStore();
+
    useEffect(() => {
     fetchMyCourses();
     fetchNotifications();
     fetchCertificates(user?.id || 0);
+    fetchStreak(user?.id || 0);
   }, []);
   // Mock data - in real app, this would come from API
   const myCourses = courses;
   const ongoingCourses = courses.filter(c => c.status === "ACTIVE");
   const completedCourses = courses.filter(c => c.status === "ARCHIVED");
   const unreadNotifications = notifications.filter(n => !n.read);
+  const learningStreak = streak?.currentStreak ?? 0;
+  const milestone = 10;
+const progress = Math.min((learningStreak / milestone) * 100, 100);
+const daysRemaining = Math.max(milestone - learningStreak, 0);
 
   // Mock upcoming deadlines
   const upcomingDeadlines = [
@@ -42,7 +49,22 @@ export default function EmployeePage() {
     { id: 3, type: 'certificate', title: 'Nhận chứng chỉ', course: 'Python Cơ bản', time: '2 ngày trước', icon: '🏆', color: 'purple' },
     { id: 4, type: 'lesson', title: 'Hoàn thành bài học', course: 'React & TypeScript', time: '3 ngày trước', icon: '📖', color: 'teal' },
   ];
+const todayProgress = {
+  lessonsCompleted: 1,
+  lessonsTarget: 5,
+  studyHours: 2.5,
+  studyTarget: 4,
+  quizzesCompleted: 1,
+  quizzesTarget: 2
+};
+const lessonProgress =
+  (todayProgress.lessonsCompleted / todayProgress.lessonsTarget) * 100;
 
+const timeProgress =
+  (todayProgress.studyHours / todayProgress.studyTarget) * 100;
+
+const quizProgress =
+  (todayProgress.quizzesCompleted / todayProgress.quizzesTarget) * 100;
   return (
     <div className="p-6">
       {/* Welcome Section */}
@@ -126,50 +148,107 @@ export default function EmployeePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Learning Streak */}
         <div className="bg-gradient-to-br from-orange-400 to-red-500 rounded-lg p-6 text-white">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">🔥 Chuỗi học tập</h3>
-            <span className="text-3xl font-bold">{learningStreak}</span>
-          </div>
-          <p className="text-sm opacity-90 mb-3">Bạn đã học liên tục {learningStreak} ngày!</p>
-          <div className="bg-white bg-opacity-20 rounded-full h-2 mb-2">
-            <div className="bg-white h-2 rounded-full" style={{ width: '70%' }}></div>
-          </div>
-          <p className="text-xs opacity-75">Học thêm 3 ngày để đạt mốc 10 ngày 🎯</p>
-        </div>
+
+    <div className="flex items-center justify-between mb-4">
+      <h3 className="text-lg font-semibold">🔥 Chuỗi học tập</h3>
+      <span className="text-3xl font-bold">{learningStreak}</span>
+    </div>
+
+    {/* MESSAGE */}
+    {learningStreak === 0 ? (
+      <p className="text-sm opacity-90 mb-3">
+        Hãy bắt đầu học hôm nay để tạo chuỗi học tập! 🚀
+      </p>
+    ) : (
+      <p className="text-sm opacity-90 mb-3">
+        Bạn đã học liên tục {learningStreak} ngày!
+      </p>
+    )}
+
+    {/* PROGRESS BAR */}
+    <div className="bg-white bg-opacity-20 rounded-full h-2 mb-2">
+      <div
+        className="bg-white h-2 rounded-full transition-all duration-500"
+        style={{ width: `${progress}%` }}
+      ></div>
+    </div>
+
+    {/* MILESTONE TEXT */}
+    {learningStreak === 0 ? (
+      <p className="text-xs opacity-75">
+        Hoàn thành ngày học đầu tiên để bắt đầu chuỗi 🔥
+      </p>
+    ) : learningStreak >= milestone ? (
+      <p className="text-xs opacity-75">
+        🎉 Tuyệt vời! Bạn đã đạt mốc {milestone} ngày học liên tiếp!
+      </p>
+    ) : (
+      <p className="text-xs opacity-75">
+        Học thêm {daysRemaining} ngày để đạt mốc {milestone} ngày 🎯
+      </p>
+    )}
+
+  </div>
 
         {/* Today's Progress */}
         <div className="bg-white border rounded-lg p-6">
-          <h3 className="text-lg font-semibold mb-4">📊 Tiến độ hôm nay</h3>
-          <div className="space-y-3">
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600">Bài học hoàn thành</span>
-                <span className="font-medium">3/5</span>
-              </div>
-              <div className="bg-gray-200 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '60%' }}></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600">Thời gian học</span>
-                <span className="font-medium">2.5h/4h</span>
-              </div>
-              <div className="bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: '62.5%' }}></div>
-              </div>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600">Quiz hoàn thành</span>
-                <span className="font-medium">1/2</span>
-              </div>
-              <div className="bg-gray-200 rounded-full h-2">
-                <div className="bg-purple-500 h-2 rounded-full" style={{ width: '50%' }}></div>
-              </div>
-            </div>
-          </div>
-        </div>
+  <h3 className="text-lg font-semibold mb-4">📊 Tiến độ hôm nay</h3>
+
+  <div className="space-y-3">
+
+    {/* Lessons */}
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span className="text-gray-600">Bài học hoàn thành</span>
+        <span className="font-medium">
+          {todayProgress.lessonsCompleted}/{todayProgress.lessonsTarget}
+        </span>
+      </div>
+
+      <div className="bg-gray-200 rounded-full h-2">
+        <div
+          className="bg-green-500 h-2 rounded-full transition-all"
+          style={{ width: `${lessonProgress}%` }}
+        ></div>
+      </div>
+    </div>
+
+    {/* Study Time */}
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span className="text-gray-600">Thời gian học</span>
+        <span className="font-medium">
+          {todayProgress.studyHours}h/{todayProgress.studyTarget}h
+        </span>
+      </div>
+
+      <div className="bg-gray-200 rounded-full h-2">
+        <div
+          className="bg-blue-500 h-2 rounded-full transition-all"
+          style={{ width: `${timeProgress}%` }}
+        ></div>
+      </div>
+    </div>
+
+    {/* Quiz */}
+    <div>
+      <div className="flex justify-between text-sm mb-1">
+        <span className="text-gray-600">Quiz hoàn thành</span>
+        <span className="font-medium">
+          {todayProgress.quizzesCompleted}/{todayProgress.quizzesTarget}
+        </span>
+      </div>
+
+      <div className="bg-gray-200 rounded-full h-2">
+        <div
+          className="bg-purple-500 h-2 rounded-full transition-all"
+          style={{ width: `${quizProgress}%` }}
+        ></div>
+      </div>
+    </div>
+
+  </div>
+</div>
 
         {/* Achievements */}
         <div className="bg-white border rounded-lg p-6">
