@@ -42,32 +42,25 @@ const { login, loading, error, setError} = useAuthStore();
   }
 }, [oauthError]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
+    try {
+    await login(username, password, rememberMe);
 
-    // Simulate API delay
-    setTimeout(() => {
-      const user = findUserByCredentials(username, password);
+    const { otpRequired, user } = useAuthStore.getState();
 
-      if (user) {
-        // Update auth store
-        useAuthStore.setState({ 
-          user: user as any, 
-          initialized: true 
-        });
-
-        const role = user.roles[0];
-        const target = getHomeByRole(role);
-        
-        // Navigate using React Router
-        navigate(target, { replace: true });
-      } else {
-        setError("Invalid username or password");
-        setLoading(false);
-      }
-    }, 500);
+     if (otpRequired) {
+      navigate("/otp");
+      return;
+    }
+      const role = user?.roles?.[0];
+      console.log("Login successful, user:", user, "navigating to home for role:", role);
+      const target = getHomeByRole(role);
+      navigate(target, { replace: true });
+  } catch {
+    // ❌ Do nothing
+    // Error is already stored in Zustand (error state)
+  }
   };
 
   return (
