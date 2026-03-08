@@ -3,17 +3,21 @@ package com.itms.entity;
 import com.itms.common.CourseStatus;
 import com.itms.common.Level;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "courses")
 public class Course {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     private String code;
 

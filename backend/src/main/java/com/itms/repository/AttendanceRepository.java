@@ -3,6 +3,7 @@ package com.itms.repository;
 import com.itms.entity.Attendance;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -30,5 +31,53 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         ) AS activity
         ORDER BY activity_date DESC
     """, nativeQuery = true)
-    List<LocalDate> findLearningDates(Integer userId);
+    List<LocalDate> findLearningDates(@Param("userId") Integer userId);
+
+    /**
+     * Count sessions attended today for the given employee.
+     */
+    @Query(value = """
+        SELECT COUNT(*)
+        FROM Attendance a
+        JOIN Enrollment e ON a.enrollment_id = e.id
+        JOIN Session s ON e.session_id = s.id
+        WHERE e.user_id = :userId
+        AND a.attended = 1
+        AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
+    """, nativeQuery = true)
+    Integer countSessionsAttendedToday(@Param("userId") Integer userId);
+
+    /**
+     * Total study minutes from sessions attended today.
+     */
+    @Query(value = """
+        SELECT COALESCE(SUM(a.duration_minutes), 0)
+        FROM Attendance a
+        JOIN Enrollment e ON a.enrollment_id = e.id
+        JOIN Session s ON e.session_id = s.id
+        WHERE e.user_id = :userId
+        AND a.attended = 1
+        AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
+    """, nativeQuery = true)
+    Integer sumStudyMinutesToday(@Param("userId") Integer userId);
+
+    /**
+     * Recent session attendance activities for the employee, most recent first.
+     */
+    @Query(value = """
+        SELECT TOP 10
+            a.id           AS id,
+            'SESSION'      AS type,
+            s.session_name AS title,
+            c.name         AS course,
+            s.date         AS time
+        FROM Attendance a
+        JOIN Enrollment e ON a.enrollment_id = e.id
+        JOIN Session s ON e.session_id = s.id
+        JOIN Course c ON s.course_id = c.id
+        WHERE e.user_id = :userId
+        AND a.attended = 1
+        ORDER BY s.date DESC
+    """, nativeQuery = true)
+    List<Object[]> findRecentSessionActivities(@Param("userId") Integer userId);
 }
