@@ -18,6 +18,6 @@ export interface ApiResponse<T> {
 ===================== */
 
 export const streakApi = {
-  getUserStreak: (userId: number) =>
-    axios.get<ApiResponse<LearningStreak>>(`/streak/${userId}`),
+  getUserStreak: () =>
+    axios.get<ApiResponse<LearningStreak>>(`/streak/my`),
 };

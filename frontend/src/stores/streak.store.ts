@@ -19,7 +19,7 @@ export const useStreakStore = create<StreakState>((set) => ({
     set({ loading: true, error: null });
 
     try {
-      const res = await streakApi.getUserStreak(userId);
+      const res = await streakApi.getUserStreak();
 
       set({
         streak: res.data.data,

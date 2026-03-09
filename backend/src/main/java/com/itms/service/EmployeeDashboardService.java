@@ -30,7 +30,19 @@ public class EmployeeDashboardService {
 
     public List<DeadlineDto> getDeadlines(Integer userId) {
 
-        List<DeadlineDto> deadlines = quizRepository.findPendingQuizDeadlines(userId);
+        List<Object[]> rows = quizRepository.findPendingQuizDeadlines(userId);
+        List<DeadlineDto> deadlines = new ArrayList<>();
+
+        for (Object[] row : rows) {
+            DeadlineDto d = new DeadlineDto();
+            d.setId(row[0] != null ? ((Number) row[0]).intValue() : null);
+            d.setTitle((String) row[1]);
+            d.setCourse((String) row[2]);
+            d.setDueDate(row[3] != null ? (java.time.LocalDateTime) row[3] : null);
+            d.setDaysLeft(row[4] != null ? ((Number) row[4]).intValue() : null);
+            d.setType((String) row[5]);
+            deadlines.add(d);
+        }
 
         deadlines.forEach(d -> {
 
