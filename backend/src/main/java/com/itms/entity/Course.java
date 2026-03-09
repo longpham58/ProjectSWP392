@@ -6,52 +6,67 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "courses")
+@Table(name = "Course")
 public class Course {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "code")
     private String code;
 
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "description")
     private String description;
 
+    @Column(name = "objectives")
     private String objectives;
 
+    @Column(name = "prerequisites")
     private String prerequisites;
 
-    private Integer durationHours;
+    @Column(name = "duration_hours")
+    private Double durationHours;
 
-    private String trainer;
+    // FK to User table
+    @ManyToOne
+    @JoinColumn(name = "trainer_id")
+    private User trainer;
 
+    @Column(name = "category")
     private String category;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "level")
     private Level level;
 
+    @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
-    private Integer passingScore;
+    @Column(name = "passing_score")
+    private Double passingScore;
 
+    @Column(name = "max_attempts")
     private Integer maxAttempts;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "status")
     private CourseStatus status;
 
-    private LocalDate createdAt;
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-    private LocalDate startDate;
-
-    private LocalDate endDate;
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Material> materials;
