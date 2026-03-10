@@ -1,23 +1,65 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockQuizzes, mockQuizAttempts } from '../../mocks/quiz.mock';
+import { useQuizStore } from '../../stores/quiz.store';
+import { useAuthStore } from '../../stores/auth.store';
+import { QuizDto, QuizQuestionDto, QuizAttemptDto } from '../../api/quiz.api';
 
 export default function QuizPage() {
-  const { quizId } = useParams();
+  const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const { 
+    currentQuiz, 
+    attempts, 
+    loading, 
+    error,
+    fetchQuizById, 
+    fetchQuizAttempts,
+    resetQuiz 
+  } = useQuizStore();
   
-  const quiz = mockQuizzes.find(q => q.id === Number(quizId));
-  const attempts = mockQuizAttempts.filter(a => a.quizId === Number(quizId));
+  const numericQuizId = Number(quizId) || 0;
+  const userId = user?.id || 1;
   
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<number[]>(new Array(quiz?.questions.length || 0).fill(-1));
-  const [timeLeft, setTimeLeft] = useState((quiz?.duration || 15) * 60); // Convert to seconds
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [score, setScore] = useState(0);
+  const [localQuiz, setLocalQuiz] = useState<QuizDto | null>(null);
+  const [localAttempts, setLocalAttempts] = useState<QuizAttemptDto[]>([]);
+
+  // Fetch quiz data on mount
+  useEffect(() => {
+    if (numericQuizId && userId) {
+      fetchQuizById(numericQuizId, userId);
+      fetchQuizAttempts(userId, numericQuizId);
+    }
+    
+    return () => {
+      resetQuiz();
+    };
+  }, [numericQuizId, userId, fetchQuizById, fetchQuizAttempts, resetQuiz]);
+
+  // Update local state when quiz data changes
+  useEffect(() => {
+    if (currentQuiz) {
+      setLocalQuiz(currentQuiz);
+      setAnswers(new Array(currentQuiz.questions?.length || 0).fill(-1));
+      setTimeLeft((currentQuiz.durationMinutes || 15) * 60);
+    }
+  }, [currentQuiz]);
+
+  // Update local attempts when attempts change
+  useEffect(() => {
+    if (attempts.length > 0) {
+      setLocalAttempts(attempts);
+    }
+  }, [attempts]);
 
   // Timer
   useEffect(() => {
-    if (isSubmitted || timeLeft <= 0) return;
+    if (isSubmitted || timeLeft <= 0 || !localQuiz) return;
 
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -30,12 +72,58 @@ export default function QuizPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, isSubmitted]);
+  }, [timeLeft, isSubmitted, localQuiz]);
 
-  if (!quiz) {
-    return <div className="p-6">Không tìm thấy quiz</div>;
+  // Loading state
+  if (loading && !localQuiz) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải quiz...</p>
+        </div>
+      </div>
+    );
   }
 
+  // Error state
+  if (error && !localQuiz) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">❌</div>
+          <h2 className="text-xl font-semibold mb-2">Lỗi khi tải quiz</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={() => navigate('/employee/my-courses')}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Quay lại khóa học
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // No quiz found
+  if (!localQuiz) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">📝</div>
+          <h2 className="text-xl font-semibold mb-2">Không tìm thấy quiz</h2>
+          <button 
+            onClick={() => navigate('/employee/my-courses')}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Quay lại khóa học
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const questions = localQuiz.questions || [];
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -51,22 +139,23 @@ export default function QuizPage() {
   const handleSubmit = () => {
     // Calculate score
     let correct = 0;
-    quiz.questions.forEach((q, idx) => {
-      if (answers[idx] === q.correctAnswer) {
+    questions.forEach((q: QuizQuestionDto, idx: number) => {
+      if (answers[idx] === q.correctAnswerIndex) {
         correct++;
       }
     });
-    const finalScore = Math.round((correct / quiz.questions.length) * 100);
+    const finalScore = questions.length > 0 ? Math.round((correct / questions.length) * 100) : 0;
     setScore(finalScore);
     setIsSubmitted(true);
   };
 
   const handleRetry = () => {
-    navigate(`/employee/course/${quiz.courseId}`);
+    navigate(`/employee/course/${localQuiz.courseId}`);
   };
 
   if (isSubmitted) {
-    const passed = score >= quiz.passingScore;
+    const passingScore = localQuiz.passingScore || 70;
+    const passed = score >= passingScore;
     
     return (
       <div className="min-h-screen bg-gray-50 p-6">
@@ -88,35 +177,35 @@ export default function QuizPage() {
 
             <div className="mb-6">
               <div className="text-gray-600 mb-2">
-                Điểm qua: {quiz.passingScore}%
+                Điểm qua: {passingScore}%
               </div>
               <div className="text-gray-600">
-                Số câu đúng: {answers.filter((a, idx) => a === quiz.questions[idx].correctAnswer).length}/{quiz.questions.length}
+                Số câu đúng: {answers.filter((a, idx) => a === questions[idx]?.correctAnswerIndex).length}/{questions.length}
               </div>
             </div>
 
             {/* Review Answers */}
             <div className="text-left mb-6 max-h-96 overflow-y-auto">
               <h3 className="font-semibold mb-4">Xem lại đáp án:</h3>
-              {quiz.questions.map((q, idx) => {
-                const isCorrect = answers[idx] === q.correctAnswer;
+              {questions.map((q: QuizQuestionDto, idx: number) => {
+                const isCorrect = answers[idx] === q.correctAnswerIndex;
                 return (
                   <div key={q.id} className={`mb-4 p-4 rounded ${isCorrect ? 'bg-green-50' : 'bg-red-50'}`}>
                     <div className="font-medium mb-2">
-                      Câu {idx + 1}: {q.question}
+                      Câu {idx + 1}: {q.questionText}
                     </div>
                     <div className="text-sm space-y-1">
-                      {q.options.map((opt, optIdx) => (
+                      {q.options?.map((opt: string, optIdx: number) => (
                         <div 
                           key={optIdx}
                           className={`p-2 rounded ${
-                            optIdx === q.correctAnswer ? 'bg-green-200 font-medium' :
+                            optIdx === q.correctAnswerIndex ? 'bg-green-200 font-medium' :
                             optIdx === answers[idx] && !isCorrect ? 'bg-red-200' :
                             'bg-white'
                           }`}
                         >
-                          {optIdx === q.correctAnswer && '✓ '}
-                          {optIdx === answers[idx] && optIdx !== q.correctAnswer && '✗ '}
+                          {optIdx === q.correctAnswerIndex && '✓ '}
+                          {optIdx === answers[idx] && optIdx !== q.correctAnswerIndex && '✗ '}
                           {opt}
                         </div>
                       ))}
@@ -133,12 +222,12 @@ export default function QuizPage() {
               >
                 Quay lại khóa học
               </button>
-              {!passed && attempts.length < quiz.maxAttempts && (
+              {!passed && localAttempts.length < (localQuiz.maxAttempts || 3) && (
                 <button
                   onClick={() => window.location.reload()}
                   className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
                 >
-                  Làm lại ({attempts.length + 1}/{quiz.maxAttempts})
+                  Làm lại ({localAttempts.length + 1}/{localQuiz.maxAttempts || 3})
                 </button>
               )}
             </div>
@@ -148,7 +237,7 @@ export default function QuizPage() {
     );
   }
 
-  const progress = ((currentQuestion + 1) / quiz.questions.length) * 100;
+  const progress = questions.length > 0 ? ((currentQuestion + 1) / questions.length) * 100 : 0;
   const answeredCount = answers.filter(a => a !== -1).length;
 
   return (
@@ -157,7 +246,7 @@ export default function QuizPage() {
       <div className="bg-white border-b shadow-sm sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center mb-3">
-            <h1 className="text-xl font-bold">{quiz.title}</h1>
+            <h1 className="text-xl font-bold">{localQuiz.title}</h1>
             <div className={`text-2xl font-bold ${timeLeft < 60 ? 'text-red-600' : 'text-blue-600'}`}>
               ⏱️ {formatTime(timeLeft)}
             </div>
@@ -172,7 +261,7 @@ export default function QuizPage() {
               />
             </div>
             <span className="text-sm text-gray-600">
-              {currentQuestion + 1}/{quiz.questions.length}
+              {currentQuestion + 1}/{questions.length}
             </span>
           </div>
         </div>
@@ -183,11 +272,11 @@ export default function QuizPage() {
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="mb-6">
             <div className="text-sm text-gray-500 mb-2">Câu hỏi {currentQuestion + 1}</div>
-            <h2 className="text-xl font-semibold">{quiz.questions[currentQuestion].question}</h2>
+            <h2 className="text-xl font-semibold">{questions[currentQuestion]?.questionText}</h2>
           </div>
 
           <div className="space-y-3">
-            {quiz.questions[currentQuestion].options.map((option, idx) => (
+            {questions[currentQuestion]?.options?.map((option: string, idx: number) => (
               <button
                 key={idx}
                 onClick={() => handleAnswerSelect(idx)}
@@ -224,10 +313,10 @@ export default function QuizPage() {
             </button>
 
             <div className="text-sm text-gray-600">
-              Đã trả lời: {answeredCount}/{quiz.questions.length}
+              Đã trả lời: {answeredCount}/{questions.length}
             </div>
 
-            {currentQuestion < quiz.questions.length - 1 ? (
+            {currentQuestion < questions.length - 1 ? (
               <button
                 onClick={() => setCurrentQuestion(prev => prev + 1)}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -237,7 +326,7 @@ export default function QuizPage() {
             ) : (
               <button
                 onClick={handleSubmit}
-                disabled={answeredCount < quiz.questions.length}
+                disabled={answeredCount < questions.length}
                 className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Nộp bài
@@ -250,7 +339,7 @@ export default function QuizPage() {
         <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
           <h3 className="font-semibold mb-4">Danh sách câu hỏi</h3>
           <div className="grid grid-cols-5 gap-2">
-            {quiz.questions.map((_q, idx) => (
+            {questions.map((_q: QuizQuestionDto, idx: number) => (
               <button
                 key={idx}
                 onClick={() => setCurrentQuestion(idx)}
