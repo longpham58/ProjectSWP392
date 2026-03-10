@@ -1,4 +1,4 @@
-import type { CourseModule, Test, TestAttempt, FinalExam, Quiz, Document, Video } from '../types/quiz.types';
+import type { CourseModule, Test, TestAttempt, FinalExam, Quiz, Document, Video, UserModuleProgress } from '../types/quiz.types';
 
 // Mock Documents
 const mockDocuments: Document[] = [
@@ -208,9 +208,7 @@ export const mockTests: Test[] = [
 ];
 
 export const mockTestAttempts: TestAttempt[] = [
-  { id: 1, testId: 1, attemptNumber: 1, score: 80, passed: true, answers: [1, 1, 2, 0, 1], completedAt: '2026-02-15T10:30:00' },
-  { id: 2, testId: 2, attemptNumber: 1, score: 60, passed: false, answers: [1, 0, 1, 1, 2], completedAt: '2026-02-20T14:00:00', nextAttemptAvailable: '2026-02-20T22:00:00' }
-];
+  ];
 
 // Mock Course Modules
 export const mockCourseModules: CourseModule[] = [
@@ -226,6 +224,148 @@ export const mockCourseModules: CourseModule[] = [
   { id: 7, courseId: 3, title: 'Module 1: Kỹ năng lãnh đạo cơ bản', description: 'Các kỹ năng cần thiết', order: 1, documents: [mockDocuments[6]], videos: [mockVideos[6], mockVideos[7]], quizzes: [], completed: false },
   { id: 8, courseId: 3, title: 'Module 2: Quản lý nhóm', description: 'Kỹ năng quản lý nhóm', order: 2, documents: [mockDocuments[7]], videos: [mockVideos[7]], quizzes: [], completed: false },
   { id: 9, courseId: 3, title: 'Module 3: Ra quyết định chiến lược', description: 'Kỹ năng ra quyết định', order: 3, documents: [mockDocuments[8]], videos: [mockVideos[8]], quizzes: [], completed: false }
+];
+
+// Mock User Module Progress
+export const mockUserModuleProgress: UserModuleProgress[] = [
+  // Course 1 - Information Security (userId: 1)
+  {
+    id: 1,
+    userId: 1,
+    moduleId: 1,
+    moduleTitle: 'Module 1: Giới thiệu An ninh thông tin',
+    courseId: 1,
+    courseName: 'An ninh thông tin',
+    enrollmentId: 1,
+    isCompleted: true,
+    completedAt: '2026-02-10T14:30:00',
+    progressPercentage: 100,
+    timeSpentMinutes: 45,
+    lastAccessedAt: '2026-02-10T14:30:00',
+    createdAt: '2026-02-01T09:00:00'
+  },
+  {
+    id: 2,
+    userId: 1,
+    moduleId: 2,
+    moduleTitle: 'Module 2: Mối đe dọa và Lỗ hổng',
+    courseId: 1,
+    courseName: 'An ninh thông tin',
+    enrollmentId: 1,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 65,
+    timeSpentMinutes: 30,
+    lastAccessedAt: '2026-03-05T10:15:00',
+    createdAt: '2026-02-05T09:00:00'
+  },
+  {
+    id: 3,
+    userId: 1,
+    moduleId: 3,
+    moduleTitle: 'Module 3: Bảo mật mạng',
+    courseId: 1,
+    courseName: 'An ninh thông tin',
+    enrollmentId: 1,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 0,
+    timeSpentMinutes: 0,
+    lastAccessedAt: null,
+    createdAt: '2026-02-10T09:00:00'
+  },
+  // Course 2 - Workplace Ethics (userId: 1)
+  {
+    id: 4,
+    userId: 1,
+    moduleId: 4,
+    moduleTitle: 'Module 1: Đạo đức công ty',
+    courseId: 2,
+    courseName: 'Đạo đức nghề nghiệp',
+    enrollmentId: 2,
+    isCompleted: true,
+    completedAt: '2026-02-20T16:00:00',
+    progressPercentage: 100,
+    timeSpentMinutes: 35,
+    lastAccessedAt: '2026-02-20T16:00:00',
+    createdAt: '2026-02-15T09:00:00'
+  },
+  {
+    id: 5,
+    userId: 1,
+    moduleId: 5,
+    moduleTitle: 'Module 2: Tuân thủ pháp luật',
+    courseId: 2,
+    courseName: 'Đạo đức nghề nghiệp',
+    enrollmentId: 2,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 40,
+    timeSpentMinutes: 20,
+    lastAccessedAt: '2026-03-01T11:30:00',
+    createdAt: '2026-02-18T09:00:00'
+  },
+  {
+    id: 6,
+    userId: 1,
+    moduleId: 6,
+    moduleTitle: 'Module 3: Hành vi chuyên nghiệp',
+    courseId: 2,
+    courseName: 'Đạo đức nghề nghiệp',
+    enrollmentId: 2,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 0,
+    timeSpentMinutes: 0,
+    lastAccessedAt: null,
+    createdAt: '2026-02-22T09:00:00'
+  },
+  // Course 3 - Leadership (userId: 1)
+  {
+    id: 7,
+    userId: 1,
+    moduleId: 7,
+    moduleTitle: 'Module 1: Kỹ năng lãnh đạo cơ bản',
+    courseId: 3,
+    courseName: 'Kỹ năng lãnh đạo',
+    enrollmentId: 3,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 80,
+    timeSpentMinutes: 50,
+    lastAccessedAt: '2026-03-08T09:00:00',
+    createdAt: '2026-03-01T09:00:00'
+  },
+  {
+    id: 8,
+    userId: 1,
+    moduleId: 8,
+    moduleTitle: 'Module 2: Quản lý nhóm',
+    courseId: 3,
+    courseName: 'Kỹ năng lãnh đạo',
+    enrollmentId: 3,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 20,
+    timeSpentMinutes: 15,
+    lastAccessedAt: '2026-03-07T14:00:00',
+    createdAt: '2026-03-05T09:00:00'
+  },
+  {
+    id: 9,
+    userId: 1,
+    moduleId: 9,
+    moduleTitle: 'Module 3: Ra quyết định chiến lược',
+    courseId: 3,
+    courseName: 'Kỹ năng lãnh đạo',
+    enrollmentId: 3,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 0,
+    timeSpentMinutes: 0,
+    lastAccessedAt: null,
+    createdAt: '2026-03-08T09:00:00'
+  }
 ];
 
 export const mockFinalExam: FinalExam = {
