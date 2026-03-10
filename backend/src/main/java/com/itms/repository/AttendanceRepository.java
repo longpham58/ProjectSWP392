@@ -11,6 +11,14 @@ import java.util.List;
 
 @Repository
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
+    
+    @Query("""
+        SELECT a FROM Attendance a
+        JOIN FETCH a.enrollment e
+        JOIN FETCH e.session s
+        WHERE e.user.id = :userId AND s.course.id = :courseId
+    """)
+    List<Attendance> findByUserIdAndCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
 
     @Query(value = """
         SELECT DISTINCT activity_date

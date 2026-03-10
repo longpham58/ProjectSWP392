@@ -9,10 +9,10 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
+public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer> {
 
     List<Enrollment> findByUserId(int userId);
-
+    List<Enrollment> findByUserIdAndCourseId(Integer userId, Integer courseId);
     /**
      * Count sessions scheduled for the employee today (from approved enrollments).
      */

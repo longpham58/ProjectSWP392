@@ -1,21 +1,14 @@
 package com.itms.service;
 
 import com.itms.dto.SessionAttendanceDto;
-import com.itms.entity.Attendance;
 import com.itms.entity.CourseModule;
-import com.itms.entity.Enrollment;
-import com.itms.entity.Session;
 import com.itms.repository.AttendanceRepository;
 import com.itms.repository.CourseModuleRepository;
-import com.itms.repository.EnrollmentRepository;
 import com.itms.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,76 +16,39 @@ public class AttendanceService {
 
     private final SessionRepository sessionRepository;
     private final AttendanceRepository attendanceRepository;
-    private final EnrollmentRepository enrollmentRepository;
     private final CourseModuleRepository courseModuleRepository;
 
     /**
      * Get all sessions with attendance status for a user in a course
+     * Uses a single query with JOINs for better performance
      */
     public List<SessionAttendanceDto> getSessionAttendanceForUser(Integer userId, Integer courseId) {
-        // Get all sessions for the course
-        List<Session> sessions = sessionRepository.findByCourseIdOrderByDateAsc(courseId);
+        // Get sessions with attendance using efficient single query
+        List<SessionAttendanceDto> results = sessionRepository.getSessionAttendanceForUser(userId, courseId);
         
-        // Get enrollments for this user in this course
-        List<Enrollment> enrollments = enrollmentRepository.findByUserIdAndCourseId(userId, courseId);
-        
-        // Get attendances for this user in this course
-        List<Attendance> attendances = attendanceRepository.findByUserIdAndCourseId(userId, courseId);
-        
-        // Create a map of sessionId -> attendance
-        Map<Long, Attendance> attendanceMap = attendances.stream()
-                .collect(Collectors.toMap(
-                        a -> a.getEnrollment().getSession().getId(),
-                        a -> a,
-                        (a1, a2) -> a1
-                ));
-        
-        // Get total sessions count
-        int totalSessions = sessions.size();
-        
-        // Get attended sessions count
-        int attendedSessions = (int) attendances.stream()
-                .filter(a -> Boolean.TRUE.equals(a.getAttended()))
+        // Calculate progress info
+        int totalSessions = results.size();
+        int attendedSessions = (int) results.stream()
+                .filter(s -> Boolean.TRUE.equals(s.getAttended()))
                 .count();
         
-        // Build the response
-        List<SessionAttendanceDto> result = new ArrayList<>();
-        
-        for (Session session : sessions) {
-            SessionAttendanceDto dto = new SessionAttendanceDto();
-            dto.setSessionId(session.getId());
-            dto.setSessionName(session.getSessionName());
-            dto.setSessionNumber(session.getSessionNumber());
-            dto.setDate(session.getDate());
-            dto.setTimeStart(session.getTimeStart());
-            dto.setTimeEnd(session.getTimeEnd());
-            dto.setLocation(session.getLocation());
-            dto.setStatus(session.getStatus());
-            
-            // Set attendance info
-            Attendance attendance = attendanceMap.get(session.getId());
-            if (attendance != null) {
-                dto.setAttended(attendance.getAttended());
-                dto.setMarkedComplete("COMPLETED".equals(attendance.getCompletionStatus()));
-                dto.setMarkedBy(attendance.getMarkedBy() != null ? 
-                        attendance.getMarkedBy().getFullName() : null);
-                dto.setCompletionStatus(attendance.getCompletionStatus());
-            } else {
-                dto.setAttended(false);
-                dto.setMarkedComplete(false);
-                dto.setMarkedBy(null);
-                dto.setCompletionStatus("NOT_MARKED");
-            }
-            
-            // Set progress info
+        // Set progress info for each session
+        for (SessionAttendanceDto dto : results) {
             dto.setTotalSessions(totalSessions);
             dto.setAttendedSessions(attendedSessions);
             dto.setRemainingSessions(totalSessions - attendedSessions);
             
-            result.add(dto);
+            // Set default values if null
+            if (dto.getAttended() == null) {
+                dto.setAttended(false);
+            }
+            if (dto.getCompletionStatus() == null) {
+                dto.setCompletionStatus("NOT_MARKED");
+                dto.setMarkedComplete(false);
+            }
         }
         
-        return result;
+        return results;
     }
 
     /**

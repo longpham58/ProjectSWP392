@@ -35,6 +35,36 @@ public class SessionAttendanceDto {
     // Materials in this session (optional - if session has linked modules)
     private List<ModuleMaterialDto> materials;
     
+    // Constructor for JPQL query projection
+    public SessionAttendanceDto(
+            Long sessionId,
+            String sessionName,
+            Integer sessionNumber,
+            LocalDate date,
+            LocalTime timeStart,
+            LocalTime timeEnd,
+            String location,
+            SessionStatus status,
+            Boolean attended,
+            String completionStatus,
+            String markedBy
+    ) {
+        this.sessionId = sessionId;
+        this.sessionName = sessionName;
+        this.sessionNumber = sessionNumber;
+        this.date = date;
+        this.timeStart = timeStart;
+        this.timeEnd = timeEnd;
+        this.location = location;
+        this.status = status;
+        this.attended = attended;
+        this.completionStatus = completionStatus;
+        this.markedBy = markedBy;
+        this.markedComplete = "COMPLETED".equals(completionStatus);
+    }
+    
+    public SessionAttendanceDto() {}
+    
     @Getter
     @Setter
     public static class ModuleMaterialDto {
