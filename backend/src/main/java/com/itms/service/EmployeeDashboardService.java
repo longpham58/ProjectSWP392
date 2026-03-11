@@ -124,7 +124,46 @@ public class EmployeeDashboardService {
         // Sort combined list by time descending, return top 10
         activities.sort(Comparator.comparing(RecentActivityDto::getTime,
                 Comparator.nullsLast(Comparator.reverseOrder())));
-        return activities.size() > 10 ? activities.subList(0, 10) : activities;
+        
+        List<RecentActivityDto> topActivities = activities.size() > 10 
+                ? activities.subList(0, 10) 
+                : activities;
+        
+        // Set icon and color for each activity
+        for (RecentActivityDto activity : topActivities) {
+            setActivityIconAndColor(activity);
+        }
+        
+        return topActivities;
+    }
+    
+    private void setActivityIconAndColor(RecentActivityDto activity) {
+        String type = activity.getType();
+        switch (type != null ? type.toUpperCase() : "LESSON") {
+            case "QUIZ":
+            case "QUIZ_COMPLETE":
+                activity.setIcon("✅");
+                activity.setColor("green");
+                break;
+            case "COURSE":
+            case "ENROLLMENT":
+            case "JOIN_COURSE":
+                activity.setIcon("📚");
+                activity.setColor("blue");
+                break;
+            case "CERTIFICATE":
+            case "CERT_COMPLETE":
+                activity.setIcon("🏆");
+                activity.setColor("purple");
+                break;
+            case "LESSON":
+            case "SESSION":
+            case "ATTENDANCE":
+            default:
+                activity.setIcon("📖");
+                activity.setColor("teal");
+                break;
+        }
     }
 
     public TodayProgressDto getTodayProgress(Integer userId) {

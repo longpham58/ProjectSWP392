@@ -1,25 +1,97 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockCourses } from '../../data/mockCourses';
-import { mockCourseModules, mockTests, mockTestAttempts, mockFinalExam } from '../../mocks/quiz.mock';
+import { mockTestAttempts, mockFinalExam, mockTests } from '../../mocks/quiz.mock';
+import { useCourseStore } from '../../stores/course.store';
+import { useQuizStore } from '../../stores/quiz.store';
+import { useModuleProgressStore } from '../../stores/moduleProgress.store';
+import { useAuthStore } from '../../stores/auth.store';
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
-  
-  const course = mockCourses.find(c => c.id === Number(courseId));
-  const modules = mockCourseModules.filter(m => m.courseId === Number(courseId));
-  const tests = mockTests.filter(t => t.courseId === Number(courseId));
+  const { user } = useAuthStore();
   const [selectedTab, setSelectedTab] = useState<'overview' | 'modules' | 'tests' | 'progress'>('overview');
+  
+  const { currentCourse: course, modules, loading, fetchCourseDetail } = useCourseStore();
+  const { quizzes, attempts, fetchQuizzes, fetchQuizAttemptsInCourse } = useQuizStore();
+  const { moduleProgress, fetchModuleProgress, completeModule } = useModuleProgressStore();
+
+  useEffect(() => {
+    if (courseId && user?.id) {
+      fetchCourseDetail(Number(courseId));
+      fetchQuizzes(Number(courseId), user.id);
+      fetchQuizAttemptsInCourse(user.id, Number(courseId));
+      fetchModuleProgress(user.id, Number(courseId));
+    }
+  }, [courseId, user?.id, fetchCourseDetail, fetchQuizzes, fetchQuizAttemptsInCourse, fetchModuleProgress]);
+
+  // Filter tests: course-level quizzes (PRE_TEST/POST_TEST) - have courseId but no moduleId
+  // These are fetched from quizStore
+  const tests = quizzes.filter((q: any) => q.courseId && !q.moduleId);
+  
+  // Module quizzes: PRACTICE type - come from modules data (each module has quizzes array)
+  // No need to filter from quiz store - they're in modules[i].quizzes
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   if (!course) {
     return <div className="p-6">Không tìm thấy khóa học</div>;
   }
 
-  // Calculate test completion
-  const passedTests = mockTestAttempts.filter(a => a.passed && tests.some(t => t.id === a.testId)).length;
-  const certificateEarned = passedTests >= 2; // Pass 2/3 tests
+  // Calculate course progress from module progress if not provided
+  const courseProgress = course.progress ?? (
+    moduleProgress.length > 0 
+      ? Math.round(moduleProgress.reduce((sum, p) => sum + (p.progressPercentage || 0), 0) / moduleProgress.length)
+      : 0
+  );
+
+  // Count completed modules
+  const completedModulesCount = moduleProgress.filter((p: any) => p.isCompleted).length;
+  const totalModules = modules.length;
+
+  // Test unlock logic: unlock after completing 1 module
+  const modulesRequiredForTest = 1;
+  const testsUnlocked = completedModulesCount >= modulesRequiredForTest;
+
+  // Get dynamic test info - calculate from ALL tests
+  const testPassingScore = tests.length > 0 
+    ? Math.max(...tests.map((t: any) => t.passingScore || 70)) 
+    : 70;
+  const testMaxAttempts = tests.length > 0 
+    ? Math.max(...tests.map((t: any) => t.maxAttempts || 3)) 
+    : 3;
+  const requiredPassCount = tests.length >= 3 ? 2 : Math.max(1, Math.ceil(tests.length / 2));
+
+  // Calculate passed tests from actual attempts in store
+  const passedTests = attempts.filter((a: any) => a.passed || (a.score && a.score >= testPassingScore)).length;
+  const certificateEarned = passedTests >= requiredPassCount;
+
+  // Final exam unlocks after passing required number of tests
   const finalExamUnlocked = certificateEarned;
+
+  // Filter materials into documents and videos (backend returns materials as single list with type)
+  const getModuleDocuments = (module: any) => {
+    console.log('Filtering documents for module:', module.id, 'with materials:', module.materials);
+    // Check both materials array and direct documents array for compatibility
+    return module.materials?.filter((m: any) => m.type === 'PDF' || m.type === 'DOCX' || m.type === 'PPTX') || module.documents || [];
+  };
+  const getModuleVideos = (module: any) => {
+    console.log('Filtering videos for module:', module.id, 'with materials:', module.materials);
+    // Check both materials array and direct videos array for compatibility
+    return module.materials?.filter((m: any) => m.type === 'VIDEO') || module.videos || [];
+  };
+
+  // Check if module is completed from moduleProgress store
+  const isModuleCompleted = (moduleId: number) => {
+    const progress = moduleProgress.find((p: any) => p.moduleId === moduleId);
+    return progress?.isCompleted || false;
+  };
 
   const handleDownload = (url: string, title: string) => {
     alert(`Đang tải xuống: ${title}`);
@@ -37,16 +109,22 @@ export default function CourseDetailPage() {
   };
 
   const getTestStatus = (testId: number) => {
-    const attempts = mockTestAttempts.filter(a => a.testId === testId);
-    if (attempts.length === 0) return { status: 'not-started', text: 'Chưa làm', color: 'bg-gray-200 text-gray-700' };
+    // Check if tests are unlocked first
+    if (!testsUnlocked) {
+      return { status: 'locked', text: '🔒 Chưa mở khóa', color: 'bg-gray-200 text-gray-700' };
+    }
     
-    const lastAttempt = attempts[attempts.length - 1];
-    if (lastAttempt.passed) return { status: 'passed', text: 'Đã đạt', color: 'bg-green-100 text-green-700' };
+    const attemptsForTest = attempts.filter((a: any) => a.quizId === testId || a.testId === testId);
+    if (attemptsForTest.length === 0) return { status: 'not-started', text: 'Chưa làm', color: 'bg-gray-200 text-gray-700' };
+    
+    const lastAttempt = attemptsForTest[attemptsForTest.length - 1];
+    const passed = lastAttempt.passed || (lastAttempt.score && lastAttempt.score >= testPassingScore);
+    if (passed) return { status: 'passed', text: 'Đã đạt', color: 'bg-green-100 text-green-700' };
     
     const test = tests.find(t => t.id === testId);
-    if (attempts.length >= (test?.maxAttempts || 3)) return { status: 'failed', text: 'Hết lượt', color: 'bg-red-100 text-red-700' };
+    if (attemptsForTest.length >= (test?.maxAttempts || 3)) return { status: 'failed', text: 'Hết lượt', color: 'bg-red-100 text-red-700' };
     
-    return { status: 'in-progress', text: `Lần ${attempts.length}/3`, color: 'bg-yellow-100 text-yellow-700' };
+    return { status: 'in-progress', text: `Lần ${attemptsForTest.length}/${test?.maxAttempts || 3}`, color: 'bg-yellow-100 text-yellow-700' };
   };
 
   return (
@@ -73,7 +151,7 @@ export default function CourseDetailPage() {
             </div>
             <div>
               <span className="opacity-75">Tiến độ:</span>
-              <span className="ml-2 font-medium">{course.progress}%</span>
+              <span className="ml-2 font-medium">{courseProgress}%</span>
             </div>
           </div>
         </div>
@@ -146,15 +224,15 @@ export default function CourseDetailPage() {
                   <div className="flex items-start gap-3">
                     <span className="text-green-600 text-xl">✓</span>
                     <div>
-                      <div className="font-medium">3 bài test đánh giá</div>
-                      <div className="text-sm text-gray-600">Mỗi bài có 3 lần làm tối đa</div>
+                      <div className="font-medium">{tests.length} bài test đánh giá</div>
+                      <div className="text-sm text-gray-600">Mỗi bài có {testMaxAttempts} lần làm tối đa</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
                     <span className="text-green-600 text-xl">✓</span>
                     <div>
                       <div className="font-medium">Chứng chỉ hoàn thành</div>
-                      <div className="text-sm text-gray-600">Đạt 2/3 bài test để nhận chứng chỉ</div>
+                      <div className="text-sm text-gray-600">Đạt {requiredPassCount}/{tests.length} bài test để nhận chứng chỉ</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -186,11 +264,11 @@ export default function CourseDetailPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Điểm đạt:</span>
-                    <span className="font-medium">70%</span>
+                    <span className="font-medium">{testPassingScore}%</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Số lần làm:</span>
-                    <span className="font-medium">3 lần/bài</span>
+                    <span className="font-medium">{testMaxAttempts} lần/bài</span>
                   </div>
                 </div>
               </div>
@@ -199,8 +277,8 @@ export default function CourseDetailPage() {
                 <div className="text-sm text-blue-800">
                   <div className="font-medium mb-2">📌 Lưu ý quan trọng</div>
                   <ul className="space-y-1 text-xs">
-                    <li>• Mỗi bài test có 3 lần làm tối đa</li>
-                    <li>• Cần đạt 2/3 bài test để nhận chứng chỉ</li>
+                    <li>• Mỗi bài test có {testMaxAttempts} lần làm tối đa</li>
+                    <li>• Cần đạt {requiredPassCount}/{tests.length} bài test để nhận chứng chỉ</li>
                     <li>• Final exam mở sau khi có chứng chỉ</li>
                     <li>• Tài liệu có thể tải về để học offline</li>
                   </ul>
@@ -221,7 +299,7 @@ export default function CourseDetailPage() {
 
         {selectedTab === 'modules' && (
           <div className="space-y-6">
-            {modules.map(module => (
+            {modules.map((module: any) => (
               <div key={module.id} className="bg-white rounded-lg shadow">
                 <div className="p-6 border-b bg-gray-50">
                   <div className="flex items-center justify-between">
@@ -229,7 +307,7 @@ export default function CourseDetailPage() {
                       <h3 className="text-lg font-bold">{module.title}</h3>
                       <p className="text-sm text-gray-600 mt-1">{module.description}</p>
                     </div>
-                    {module.completed && (
+                    {isModuleCompleted(module.id) && (
                       <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">
                         ✓ Hoàn thành
                       </span>
@@ -238,14 +316,14 @@ export default function CourseDetailPage() {
                 </div>
 
                 <div className="p-6">
-                  {/* Documents */}
-                  {module.documents.length > 0 && (
+                  {/* Documents - filter from materials */}
+                  {getModuleDocuments(module).length > 0 && (
                     <div className="mb-6">
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
                         📄 Tài liệu học tập
                       </h4>
                       <div className="space-y-2">
-                        {module.documents.map(doc => (
+                        {getModuleDocuments(module).map((doc: any) => (
                           <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
                             <div className="flex items-center gap-3">
                               <span className="text-2xl">
@@ -268,14 +346,14 @@ export default function CourseDetailPage() {
                     </div>
                   )}
 
-                  {/* Videos */}
-                  {module.videos.length > 0 && (
+                  {/* Videos - filter from materials */}
+                  {getModuleVideos(module).length > 0 && (
                     <div className="mb-6">
                       <h4 className="font-semibold mb-3 flex items-center gap-2">
                         🎥 Video bài giảng
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {module.videos.map(video => (
+                        {getModuleVideos(module).map((video: any) => (
                           <div key={video.id} className="border rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
                             <div className="bg-gray-200 aspect-video flex items-center justify-center">
                               <span className="text-4xl">▶️</span>
@@ -297,14 +375,17 @@ export default function CourseDetailPage() {
                         📝 Quiz kiểm tra
                       </h4>
                       <div className="space-y-3">
-                        {module.quizzes.map(quiz => (
+                        {module.quizzes.map((quiz: any) => (
                           <div key={quiz.id} className="border rounded-lg p-4 bg-blue-50">
                             <div className="flex items-center justify-between">
                               <div>
                                 <div className="font-medium">{quiz.title}</div>
                                 <div className="text-sm text-gray-600">{quiz.description}</div>
                               </div>
-                              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                              <button 
+                                onClick={() => navigate(`/employee/quiz/${quiz.id}`)}
+                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
+                              >
                                 Làm quiz
                               </button>
                             </div>
@@ -324,7 +405,12 @@ export default function CourseDetailPage() {
             {/* 3 Main Tests */}
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-bold mb-4">Bài kiểm tra đánh giá</h2>
-              <p className="text-gray-600 mb-6">Hoàn thành 2/3 bài test để nhận chứng chỉ khóa học</p>
+              <p className="text-gray-600 mb-6">
+                {testsUnlocked 
+                  ? `Hoàn thành ${requiredPassCount}/${tests.length} bài test để nhận chứng chỉ khóa học`
+                  : `Hoàn thành ${modulesRequiredForTest} module để mở khóa bài test`
+                }
+              </p>
               
               <div className="space-y-4">
                 {tests.map((test, idx) => {
@@ -345,7 +431,7 @@ export default function CourseDetailPage() {
                             <span>⏱️ {test.duration} phút</span>
                             <span>📊 Điểm đạt: {test.passingScore}%</span>
                             <span>🔄 Tối đa {test.maxAttempts} lần</span>
-                            <span>📝 {test.questions.length} câu hỏi</span>
+                            <span>📝 {test.questions?.length || 0} câu hỏi</span>
                           </div>
                         </div>
                         <span className={`px-4 py-2 rounded-full text-sm font-medium ${status.color}`}>
@@ -369,15 +455,16 @@ export default function CourseDetailPage() {
 
                       <button
                         onClick={() => handleStartTest(test.id)}
-                        disabled={!canRetake && attempts.length > 0 && !attempts.some(a => a.passed)}
+                        disabled={!testsUnlocked || (!canRetake && attempts.length > 0 && !attempts.some((a: any) => a.passed))}
                         className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                          canRetake || attempts.length === 0
+                          testsUnlocked && (canRetake || attempts.length === 0)
                             ? 'bg-blue-600 text-white hover:bg-blue-700'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                       >
-                        {attempts.length === 0 ? 'Bắt đầu làm bài' : 
-                         attempts.some(a => a.passed) ? 'Xem lại kết quả' :
+                        {!testsUnlocked ? '🔒 Chưa mở khóa' :
+                         attempts.length === 0 ? 'Bắt đầu làm bài' : 
+                         attempts.some((a: any) => a.passed) ? 'Xem lại kết quả' :
                          canRetake ? 'Làm lại' : 'Đã hết lượt'}
                       </button>
                     </div>
@@ -452,12 +539,12 @@ export default function CourseDetailPage() {
             <div className="mb-8">
               <div className="flex justify-between text-sm mb-2">
                 <span>Tiến độ tổng thể</span>
-                <span className="font-medium">{course.progress}%</span>
+                <span className="font-medium">{courseProgress}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div 
                   className="bg-blue-600 h-3 rounded-full transition-all"
-                  style={{ width: `${course.progress}%` }}
+                  style={{ width: `${courseProgress}%` }}
                 />
               </div>
             </div>

@@ -252,16 +252,16 @@ export default function QuizPage() {
             </div>
           </div>
           
-          {/* Progress Bar */}
+          {/* Progress Bar - shows answered questions count */}
           <div className="flex items-center gap-3">
             <div className="flex-1 bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-blue-600 h-2 rounded-full transition-all"
-                style={{ width: `${progress}%` }}
+                style={{ width: `${answeredCount > 0 ? (answeredCount / questions.length) * 100 : progress}%` }}
               />
             </div>
             <span className="text-sm text-gray-600">
-              {currentQuestion + 1}/{questions.length}
+              {answeredCount}/{questions.length}
             </span>
           </div>
         </div>
@@ -316,20 +316,21 @@ export default function QuizPage() {
               Đã trả lời: {answeredCount}/{questions.length}
             </div>
 
-            {currentQuestion < questions.length - 1 ? (
+            {/* Show "Nộp bài" when all questions are answered, otherwise show "Câu sau" */}
+            {answeredCount === questions.length ? (
               <button
-                onClick={() => setCurrentQuestion(prev => prev + 1)}
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={handleSubmit}
+                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
               >
-                Câu sau →
+                Nộp bài
               </button>
             ) : (
               <button
-                onClick={handleSubmit}
-                disabled={answeredCount < questions.length}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setCurrentQuestion(prev => prev + 1)}
+                disabled={currentQuestion >= questions.length - 1}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Nộp bài
+                Câu sau →
               </button>
             )}
           </div>

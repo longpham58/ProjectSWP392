@@ -51,7 +51,7 @@ export default function CourseCard({ course, viewMode = 'grid' }: CourseCardProp
             </div>
             <div className="flex items-center gap-2">
               <span className="font-medium">Thời gian:</span>
-              <span>{new Date(course.startDate).toLocaleDateString('vi-VN')} - {new Date(course.endDate).toLocaleDateString('vi-VN')}</span>
+              <span>{course.startDate ? new Date(course.startDate).toLocaleDateString('vi-VN') : 'N/A'} - {course.endDate ? new Date(course.endDate).toLocaleDateString('vi-VN') : 'N/A'}</span>
             </div>
           </div>
 
@@ -104,7 +104,8 @@ export default function CourseCard({ course, viewMode = 'grid' }: CourseCardProp
         </div>
         <div className="flex items-center gap-2">
           <span className="font-medium">Thời gian:</span>
-          <span>{new Date(course.startDate).toLocaleDateString('vi-VN')} - {new Date(course.endDate).toLocaleDateString('vi-VN')}</span>
+          <span>{course.startDate ? new Date(course.startDate).toLocaleDateString('vi-VN') : 'N/A'} - {course.endDate ? new Date(course.endDate).toLocaleDateString('vi-VN') : 'N/A'}</span>
+
         </div>
       </div>
 

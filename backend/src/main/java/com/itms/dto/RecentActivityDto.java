@@ -15,4 +15,8 @@ public class RecentActivityDto {
 
     private String time;
 
+    private String icon;
+
+    private String color;
+
 }

@@ -19,6 +19,7 @@ export interface Video {
   duration: string;
   url: string;
   thumbnail?: string;
+  type: 'VIDEO';
 }
 
 export interface Quiz {
@@ -27,6 +28,12 @@ export interface Quiz {
   title: string;
   description: string;
   questions: QuizQuestion[];
+  // Additional properties
+  quizType?: string;
+  durationMinutes?: number;
+  maxAttempts?: number;
+  passingScore?: number;
+  totalQuestions?: number;
 }
 
 export interface Test {
