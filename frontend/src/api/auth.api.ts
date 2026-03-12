@@ -19,6 +19,8 @@ export interface UserInfo {
   username: string;
   email: string;
   fullName: string;
+  phone?: string;
+  address?: string;
   roles: string[];
   department?: {
     id: number;

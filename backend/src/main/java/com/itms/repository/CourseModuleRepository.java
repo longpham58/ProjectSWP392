@@ -9,6 +9,8 @@ import java.util.List;
 
 @Repository
 public interface CourseModuleRepository extends JpaRepository<CourseModule, Integer> {
+    List<CourseModule> findByCourseId(int courseId);
+    
     @EntityGraph(attributePaths = {"materials"})
     List<CourseModule> findByCourseIdOrderByDisplayOrderAsc(int courseId);
 }

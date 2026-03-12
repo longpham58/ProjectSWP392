@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import type { Notification } from '../../data/mockNotifications';
+import type { Notification } from '../../api/notification.api';
 
 interface NotificationCardProps {
   notification: Notification;

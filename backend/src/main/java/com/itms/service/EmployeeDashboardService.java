@@ -1,8 +1,11 @@
 package com.itms.service;
 
+import com.itms.common.CompletionStatus;
+import com.itms.common.EnrollmentStatus;
 import com.itms.dto.DeadlineDto;
 import com.itms.dto.RecentActivityDto;
 import com.itms.dto.TodayProgressDto;
+import com.itms.dto.UserProfileStatsDto;
 import com.itms.repository.AttendanceRepository;
 import com.itms.repository.CertificateRepository;
 import com.itms.repository.EnrollmentRepository;
@@ -203,6 +206,29 @@ public class EmployeeDashboardService {
                 ? quizzesDue : QUIZZES_TARGET_FALLBACK;
         dto.setQuizzesTarget(quizzesTarget);
 
+        return dto;
+    }
+    
+    public UserProfileStatsDto getProfileStats(Integer userId) {
+        UserProfileStatsDto dto = new UserProfileStatsDto();
+        
+        // Total courses (enrollments)
+        Integer totalCourses = enrollmentRepository.countEnrollmentsByUserId(userId);
+        dto.setTotalCourses(totalCourses != null ? totalCourses : 0);
+        
+        // Completed courses
+        Integer completedCourses = enrollmentRepository.countCompletedEnrollmentsByUserId(userId);
+        dto.setCompletedCourses(completedCourses != null ? completedCourses : 0);
+        
+        // Certificates
+        Integer certificates = certificateRepository.countByUserId(userId);
+        dto.setCertificates(certificates != null ? certificates : 0);
+        
+        // Average score - could be calculated from quiz attempts
+        // For now, set a default value or calculate from quiz results
+        Double averageScore = 0.0;
+        dto.setAverageScore(averageScore);
+        
         return dto;
     }
 }

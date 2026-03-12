@@ -15,7 +15,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -27,6 +29,8 @@ public class QuizService {
     private final UserModuleProgressRepository moduleProgressRepository;
     private final UserRepository userRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final QuizRequiredModuleRepository quizRequiredModuleRepository;
+    private final CourseModuleRepository courseModuleRepository;
 
     /**
      * Get all quizzes for a course
@@ -38,12 +42,21 @@ public class QuizService {
         for (Quiz quiz : quizzes) {
             QuizDto dto = mapToDto(quiz);
             
-            // Check if quiz is unlocked (module completed)
-            if (quiz.getModule() != null) {
+            // Check if quiz is unlocked based on ANY required module completed (OR logic)
+            // First check if quiz has any required modules in Quiz_Required_Modules table
+            List<Integer> requiredModuleIds = quizRequiredModuleRepository.findModuleIdsByQuizId(quiz.getId());
+            
+            if (!requiredModuleIds.isEmpty()) {
+                // Quiz has required modules - check if ANY one is completed
+                boolean isUnlocked = isAnyRequiredModuleCompleted(userId, requiredModuleIds);
+                dto.setIsUnlocked(isUnlocked);
+            } else if (quiz.getModule() != null) {
+                // Fallback to legacy single module field
                 boolean isUnlocked = isModuleCompleted(userId, quiz.getModule().getId());
                 dto.setIsUnlocked(isUnlocked);
             } else {
-                dto.setIsUnlocked(true); // No module requirement
+                // No module requirement - quiz is always unlocked
+                dto.setIsUnlocked(true);
             }
 
             // Get attempt count and pass status
@@ -66,8 +79,12 @@ public class QuizService {
 
         QuizDto dto = mapToDto(quiz);
 
-        // Check unlock status
-        if (quiz.getModule() != null) {
+        // Check unlock status - check required modules first
+        List<Integer> requiredModuleIds = quizRequiredModuleRepository.findModuleIdsByQuizId(quiz.getId());
+        
+        if (!requiredModuleIds.isEmpty()) {
+            dto.setIsUnlocked(isAnyRequiredModuleCompleted(userId, requiredModuleIds));
+        } else if (quiz.getModule() != null) {
             dto.setIsUnlocked(isModuleCompleted(userId, quiz.getModule().getId()));
         } else {
             dto.setIsUnlocked(true);
@@ -191,6 +208,150 @@ public class QuizService {
         Optional<UserModuleProgress> progress = moduleProgressRepository
                 .findByUserIdAndModuleId(userId, moduleId);
         return progress.isPresent() && progress.get().getIsCompleted();
+    }
+
+    /**
+     * Check if ANY of the required modules is completed (OR logic)
+     */
+    private boolean isAnyRequiredModuleCompleted(Integer userId, List<Integer> requiredModuleIds) {
+        for (Integer moduleId : requiredModuleIds) {
+            if (isModuleCompleted(userId, moduleId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get course quiz status with unlock info, certificate status, and final exam unlock
+     * This implements the logic:
+     * - Tests unlock when required modules are completed (ANY module unlocks the test)
+     * - Certificate earned after passing required number of tests
+     * - Final exam unlocks after earning certificate
+     */
+    public Map<String, Object> getCourseQuizStatus(Integer courseId, Integer userId) {
+        Map<String, Object> status = new HashMap<>();
+        
+        // Get all quizzes for the course
+        List<Quiz> quizzes = quizRepository.findByCourseIdAndQuizTypeIn(courseId);
+        
+        // Get user's module progress for this course
+        List<UserModuleProgress> userProgress = moduleProgressRepository.findByUserIdAndCourseId(userId, courseId);
+        int completedModulesCount = (int) userProgress.stream().filter(UserModuleProgress::getIsCompleted).count();
+        int totalModules = courseModuleRepository.findByCourseId(courseId).size();
+        
+        // Calculate which quizzes are unlocked based on required modules
+        List<QuizDto> quizDtos = new ArrayList<>();
+        int unlockedQuizCount = 0;
+        
+        for (Quiz quiz : quizzes) {
+            QuizDto dto = mapToDto(quiz);
+            
+            // Check unlock based on required modules
+            List<Integer> requiredModuleIds = quizRequiredModuleRepository.findModuleIdsByQuizId(quiz.getId());
+            
+            if (!requiredModuleIds.isEmpty()) {
+                dto.setIsUnlocked(isAnyRequiredModuleCompleted(userId, requiredModuleIds));
+            } else if (quiz.getModule() != null) {
+                dto.setIsUnlocked(isModuleCompleted(userId, quiz.getModule().getId()));
+            } else {
+                dto.setIsUnlocked(true);
+            }
+            
+            // Get attempt count and pass status
+            List<QuizAttempt> attempts = quizAttemptRepository.findByQuizIdAndUserId(quiz.getId(), userId);
+            dto.setAttemptsCount(attempts.size());
+            dto.setHasPassed(attempts.stream().anyMatch(QuizAttempt::getPassed));
+            
+            quizDtos.add(dto);
+            
+            if (dto.getIsUnlocked()) {
+                unlockedQuizCount++;
+            }
+        }
+        
+        status.put("quizzes", quizDtos);
+        status.put("completedModulesCount", completedModulesCount);
+        status.put("totalModules", totalModules);
+        status.put("unlockedQuizCount", unlockedQuizCount);
+        
+        // Calculate test passing requirements
+        // Default values if no quizzes exist
+        BigDecimal testPassingScore = BigDecimal.valueOf(70);
+        Integer testMaxAttempts = 3;
+        
+        if (!quizzes.isEmpty()) {
+            testPassingScore = quizzes.stream()
+                .map(Quiz::getPassingScore)
+                .filter(ps -> ps != null)
+                .max(BigDecimal::compareTo)
+                .orElse(BigDecimal.valueOf(70));
+            
+            testMaxAttempts = quizzes.stream()
+                .map(Quiz::getMaxAttempts)
+                .filter(ma -> ma != null)
+                .max(Integer::compareTo)
+                .orElse(3);
+        }
+        
+        status.put("testPassingScore", testPassingScore);
+        status.put("testMaxAttempts", testMaxAttempts);
+        
+        // Calculate required pass count: if >= 3 tests, need 2; otherwise need ceil(tests/2)
+        int totalTests = quizzes.size();
+        int requiredPassCount = totalTests >= 3 ? 2 : Math.max(1, (int) Math.ceil(totalTests / 2.0));
+        status.put("requiredPassCount", requiredPassCount);
+        
+        // Calculate passed tests
+        int passedTests = 0;
+        for (Quiz quiz : quizzes) {
+            List<QuizAttempt> attempts = quizAttemptRepository.findByQuizIdAndUserId(quiz.getId(), userId);
+            boolean hasPassed = attempts.stream().anyMatch(a -> 
+                a.getPassed() != null && a.getPassed() || 
+                (a.getScore() != null && a.getScore().compareTo(testPassingScore) >= 0)
+            );
+            if (hasPassed) {
+                passedTests++;
+            }
+        }
+        
+        status.put("passedTests", passedTests);
+        
+        // Certificate earned when passedTests >= requiredPassCount
+        boolean certificateEarned = passedTests >= requiredPassCount;
+        status.put("certificateEarned", certificateEarned);
+        
+        // Final exam unlocks after earning certificate
+        // Find final exam quiz
+        Quiz finalExam = quizzes.stream()
+            .filter(q -> q.getIsFinalExam() != null && q.getIsFinalExam())
+            .findFirst()
+            .orElse(null);
+        
+        boolean finalExamUnlocked = false;
+        if (finalExam != null) {
+            // Check if final exam has required modules
+            List<Integer> finalExamRequiredModules = quizRequiredModuleRepository.findModuleIdsByQuizId(finalExam.getId());
+            
+            if (!finalExamRequiredModules.isEmpty()) {
+                finalExamUnlocked = certificateEarned && isAnyRequiredModuleCompleted(userId, finalExamRequiredModules);
+            } else if (finalExam.getModule() != null) {
+                finalExamUnlocked = certificateEarned && isModuleCompleted(userId, finalExam.getModule().getId());
+            } else {
+                // Final exam without module requirement - just needs certificate
+                finalExamUnlocked = certificateEarned;
+            }
+            
+            // Get final exam attempt info
+            List<QuizAttempt> finalExamAttempts = quizAttemptRepository.findByQuizIdAndUserId(finalExam.getId(), userId);
+            status.put("finalExamAttemptsCount", finalExamAttempts.size());
+            status.put("finalExamHasPassed", finalExamAttempts.stream().anyMatch(QuizAttempt::getPassed));
+        }
+        
+        status.put("finalExamUnlocked", finalExamUnlocked);
+        status.put("finalExam", finalExam != null ? mapToDto(finalExam) : null);
+        
+        return status;
     }
 
     private QuizDto mapToDto(Quiz quiz) {

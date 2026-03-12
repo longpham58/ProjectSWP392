@@ -30,4 +30,10 @@ public interface CertificateRepository extends JpaRepository<Certificate, Intege
         ORDER BY cert.issue_date DESC
     """, nativeQuery = true)
     List<Object[]> findRecentCertificateActivities(@Param("userId") Integer userId);
+
+    /**
+     * Count certificates for a user.
+     */
+    @Query("SELECT COUNT(c) FROM Certificate c WHERE c.user.id = :userId AND c.isValid = true")
+    Integer countByUserId(@Param("userId") Integer userId);
 }

@@ -13,6 +13,7 @@ export interface Notification {
   referenceType?: string | null;
   referenceId?: number | null;
 
+  detail_content?: string;
   detailContent?: string;
   relatedCourse?: string;
   actionUrl?: string;
@@ -48,6 +49,14 @@ export const notificationApi = {
   // Delete notification
   async deleteNotification(notificationId: number) {
     await axios.delete(`${API_URL}/${notificationId}`);
+  },
+
+  // Get single notification by ID
+  async getNotificationById(notificationId: number): Promise<Notification> {
+    const res = await axios.get<ApiResponse<Notification>>(
+      `${API_URL}/${notificationId}`
+    );
+    return res.data.data;
   },
 
 }

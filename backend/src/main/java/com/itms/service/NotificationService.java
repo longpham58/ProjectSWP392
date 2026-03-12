@@ -1,5 +1,6 @@
 package com.itms.service;
 
+import com.itms.common.ReferenceType;
 import com.itms.dto.NotificationDto;
 import com.itms.entity.Notification;
 import com.itms.repository.NotificationRepository;
@@ -43,6 +44,27 @@ public class NotificationService {
 
         notificationRepository.delete(notification);
     }
+
+    public void markAllAsRead(Integer userId) {
+        List<Notification> unreadNotifications = 
+                notificationRepository.findByUserIdOrderBySentDateDesc(userId);
+
+        for (Notification notification : unreadNotifications) {
+            if (!notification.getIsRead()) {
+                notification.setIsRead(true);
+                notification.setReadAt(LocalDateTime.now());
+                notificationRepository.save(notification);
+            }
+        }
+    }
+
+    public NotificationDto getNotificationById(Integer notificationId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        return convertToDto(notification);
+    }
+
     private NotificationDto convertToDto(Notification notification) {
 
         return NotificationDto.builder()

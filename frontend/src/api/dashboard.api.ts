@@ -36,6 +36,13 @@ export interface LearningStreakData {
   daysRemaining: number;
 }
 
+export interface UserProfileStats {
+  totalCourses: number;
+  completedCourses: number;
+  certificates: number;
+  averageScore: number;
+}
+
 export const dashboardApi = {
   // Get learning streak with milestone data
   getLearningStreak: () =>
@@ -52,4 +59,8 @@ export const dashboardApi = {
   // Get today's progress
   getTodayProgress: () =>
     axios.get<ApiResponse<TodayProgress>>("employee/dashboard/today-progress"),
+
+  // Get user profile stats
+  getProfileStats: () =>
+    axios.get<ApiResponse<UserProfileStats>>("employee/dashboard/profile-stats"),
 };

@@ -111,4 +111,24 @@ export const quizApi = {
    */
   getUserQuizAttemptsInCourse: (userId: number, courseId: number) =>
     axios.get<ApiResponse<QuizAttemptDto[]>>(`/quizzes/attempts/user/${userId}/course/${courseId}`),
+
+  /**
+   * Get course quiz status with unlock info, certificate status, and final exam unlock
+   * This returns:
+   * - quizzes: list of all quizzes with unlock status
+   * - completedModulesCount: number of completed modules
+   * - totalModules: total number of modules
+   * - unlockedQuizCount: number of unlocked quizzes
+   * - testPassingScore: passing score for tests
+   * - testMaxAttempts: max attempts for tests
+   * - requiredPassCount: number of tests needed to pass for certificate
+   * - passedTests: number of tests passed
+   * - certificateEarned: whether certificate is earned
+   * - finalExamUnlocked: whether final exam is unlocked
+   * - finalExam: final exam quiz info if exists
+   * - finalExamAttemptsCount: number of final exam attempts
+   * - finalExamHasPassed: whether final exam has been passed
+   */
+  getCourseQuizStatus: (courseId: number, userId: number) =>
+    axios.get<ApiResponse<any>>(`/quizzes/course/${courseId}/user/${userId}/status`),
 };

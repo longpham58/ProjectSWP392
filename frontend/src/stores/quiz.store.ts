@@ -11,6 +11,8 @@ interface QuizState {
   finalExam: QuizDto | null;
   loading: boolean;
   error: string | null;
+  // Course quiz status
+  courseQuizStatus: any | null;
 
   fetchQuizzes: (courseId: number, userId: number) => Promise<void>;
   fetchQuizById: (quizId: number, userId: number) => Promise<void>;
@@ -19,6 +21,7 @@ interface QuizState {
   startQuizAttempt: (quizId: number, userId: number, enrollmentId: number) => Promise<void>;
   submitQuizAttempt: (attemptId: number, answers: QuizAnswerDto[], timeTakenMinutes: number) => Promise<void>;
   fetchQuizAttempts: (userId: number, quizId: number) => Promise<void>;
+  fetchCourseQuizStatus: (courseId: number, userId: number) => Promise<void>;
   resetQuiz: () => void;
 }
 
@@ -30,6 +33,7 @@ export const useQuizStore = create<QuizState>((set) => ({
   finalExam: null,
   loading: false,
   error: null,
+  courseQuizStatus: null,
 
   fetchQuizzes: async (courseId: number, userId: number) => {
     set({ loading: true, error: null });
@@ -303,5 +307,20 @@ export const useQuizStore = create<QuizState>((set) => ({
 
   resetQuiz: () => {
     set({ currentQuiz: null, currentAttempt: null, attempts: [], error: null });
+  },
+
+  fetchCourseQuizStatus: async (courseId: number, userId: number) => {
+    set({ loading: true, error: null });
+    try {
+      const res = await quizApi.getCourseQuizStatus(courseId, userId);
+      if (res.data.data) {
+        set({ courseQuizStatus: res.data.data, loading: false });
+      } else {
+        set({ courseQuizStatus: null, loading: false });
+      }
+    } catch (error: any) {
+      console.log('fetchCourseQuizStatus API failed:', error.message);
+      set({ courseQuizStatus: null, loading: false, error: error.message });
+    }
   },
 }));

@@ -91,4 +91,19 @@ public class QuizController {
         List<QuizAttemptDto> attempts = quizService.getUserQuizAttemptsInCourse(userId, courseId);
         return ResponseEntity.ok(ResponseDto.success(attempts, "Attempts retrieved successfully"));
     }
+
+    /**
+     * Get course quiz status with unlock info, certificate status, and final exam unlock
+     * This implements the logic:
+     * - Tests unlock when required modules are completed (ANY module unlocks the test)
+     * - Certificate earned after passing required number of tests
+     * - Final exam unlocks after earning certificate
+     */
+    @GetMapping("/course/{courseId}/user/{userId}/status")
+    public ResponseEntity<ResponseDto<Map<String, Object>>> getCourseQuizStatus(
+            @PathVariable Integer courseId,
+            @PathVariable Integer userId) {
+        Map<String, Object> status = quizService.getCourseQuizStatus(courseId, userId);
+        return ResponseEntity.ok(ResponseDto.success(status, "Course quiz status retrieved successfully"));
+    }
 }

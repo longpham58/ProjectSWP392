@@ -77,4 +77,16 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
         ORDER BY e.registered_at DESC
     """, nativeQuery = true)
     List<Object[]> findRecentEnrollmentActivities(@Param("userId") Integer userId);
+
+    /**
+     * Count total enrollments for a user.
+     */
+    @Query("SELECT COUNT(e) FROM Enrollment e WHERE e.user.id = :userId")
+    Integer countEnrollmentsByUserId(@Param("userId") Integer userId);
+
+    /**
+     * Count completed enrollments for a user.
+     */
+    @Query("SELECT COUNT(e) FROM Enrollment e WHERE e.user.id = :userId AND e.status = 'COMPLETED'")
+    Integer countCompletedEnrollmentsByUserId(@Param("userId") Integer userId);
 }

@@ -1,22 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../stores/auth.store';
+import { useProfileStore } from '../../stores/profile.store';
 import { useToast } from '../../components/common/Toast';
 
 export default function ProfilePage() {
   const { user } = useAuthStore();
+  const { profileStats, loading: loadingStats, fetchProfileStats } = useProfileStore();
   const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
     email: user?.email || '',
-    phone: '0123456789',
-    address: 'Hà Nội, Việt Nam',
+    phone: user?.phone || '',
+    address: user?.address || '',
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
+
+  // Fetch profile stats on page load
+  useEffect(() => {
+    fetchProfileStats();
+  }, [fetchProfileStats]);
+
+  // Update formData when user data is loaded
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        fullName: user.fullName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        address: user.address || '',
+      });
+    }
+  }, [user]);
 
   const handleSaveProfile = () => {
     showToast('Cập nhật thông tin thành công!', 'success');
@@ -63,24 +82,28 @@ export default function ProfilePage() {
           {/* Stats Card */}
           <div className="bg-white rounded-lg shadow p-6">
             <h4 className="font-semibold mb-4">Thống kê học tập</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 text-sm">Khóa học</span>
-                <span className="font-bold text-blue-600">6</span>
+            {loadingStats ? (
+              <div className="text-center text-gray-500 text-sm">Đang tải...</div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 text-sm">Khóa học</span>
+                  <span className="font-bold text-blue-600">{profileStats.totalCourses}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 text-sm">Hoàn thành</span>
+                  <span className="font-bold text-green-600">{profileStats.completedCourses}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 text-sm">Chứng chỉ</span>
+                  <span className="font-bold text-purple-600">{profileStats.certificates}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 text-sm">Điểm TB</span>
+                  <span className="font-bold text-orange-600">{profileStats.averageScore > 0 ? `${profileStats.averageScore}%` : 'N/A'}</span>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 text-sm">Hoàn thành</span>
-                <span className="font-bold text-green-600">3</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 text-sm">Chứng chỉ</span>
-                <span className="font-bold text-purple-600">3</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 text-sm">Điểm TB</span>
-                <span className="font-bold text-orange-600">91.7%</span>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Activity Card */}
@@ -170,7 +193,7 @@ export default function ProfilePage() {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   disabled={!isEditing}
-                  placeholder="Nhập số điện thoại"
+                  placeholder={user?.phone || "Nhập số điện thoại"}
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
                 />
               </div>

@@ -50,4 +50,27 @@ public class NotificationController {
         );
     }
 
+    @PutMapping("/read-all")
+    public ResponseEntity<ResponseDto<Void>> markAllAsRead(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        int userId = userDetails.getId();
+        notificationService.markAllAsRead(userId);
+
+        return ResponseEntity.ok(
+                ResponseDto.success(null, "All notifications marked as read")
+        );
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ResponseDto<NotificationDto>> getNotificationById(
+            @PathVariable Integer id) {
+
+        NotificationDto notification = notificationService.getNotificationById(id);
+
+        return ResponseEntity.ok(
+                ResponseDto.success(notification, "Notification retrieved successfully")
+        );
+    }
+
 }
