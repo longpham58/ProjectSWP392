@@ -63,10 +63,41 @@ public class Notification {
     @Column(name = "detail_content")
     private String detailContent;
 
+    // Trainer notification fields
+    @ManyToOne
+    @JoinColumn(name = "sender_id")
+    private User sender;
+
+    @Column(name = "recipient_type", length = 50)
+    private String recipientType; // "STUDENTS", "HR", "SYSTEM"
+
+    @Column(name = "class_codes", columnDefinition = "NVARCHAR(MAX)")
+    private String classCodes; // Comma-separated class codes
+
+    @Column(name = "is_draft", nullable = false)
+    private Boolean isDraft = false;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @PrePersist
     public void prePersist() {
         if (sentDate == null) {
             sentDate = LocalDateTime.now();
         }
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (isDraft == null) {
+            isDraft = false;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

@@ -68,6 +68,14 @@ public class Course {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
+    @ManyToOne
+    @JoinColumn(name = "updated_by")
+    private User updatedBy;
+
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Material> materials;
 

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -26,4 +27,13 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     WHERE LOWER(u.username) = LOWER(:username)
 """)
     Optional<User> findByUsernameWithRole(@Param("username") String username);
+
+    // Find users by role name or code
+    @Query("""
+    SELECT DISTINCT u FROM User u
+    JOIN u.userRole ur
+    JOIN ur.role r
+    WHERE r.roleName = :roleName OR r.roleCode = :roleCode
+""")
+    List<User> findByRoleNameOrCode(@Param("roleName") String roleName, @Param("roleCode") String roleCode);
 }
