@@ -1,32 +1,75 @@
 package com.itms.service;
 
+import com.itms.dto.CourseDto;
+import com.itms.dto.TrainerScheduleDto;
 import com.itms.entity.Course;
-import com.itms.entity.Enrollment;
+import com.itms.entity.Session;
 import com.itms.repository.CourseRepository;
-import com.itms.repository.EnrollmentRepository;
+import com.itms.repository.SessionRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CourseService {
 
-    private final EnrollmentRepository enrollmentRepository;
     private final CourseRepository courseRepository;
+    private final SessionRepository sessionRepository;
 
-    public List<Course> getCoursesByUserId(int userId) {
-        List<Enrollment> enrollments = enrollmentRepository.findByUserId(userId);
-        return enrollments.stream()
-                .map(e -> e.getSession().getCourse()).distinct()
+
+    /**
+     * Get courses for a user with enrollment info (returns CourseDto)
+     */
+    public List<CourseDto> getCourseDtosByUserId(Integer userId) {
+        return courseRepository.findCoursesByUserId(userId)
+                .stream()
+                .map(CourseDto::fromEntity)
                 .toList();
     }
 
-    public Course getCourseById(int id) {
+    public CourseDto getCourseById(Integer id) {
         return courseRepository.findById(id)
+                .map(CourseDto::fromEntity)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + id));
+    }
+
+    /**
+     * Get courses assigned to a trainer
+     */
+    public List<Course> getCoursesByTrainerId(Integer trainerId) {
+        return courseRepository.findByTrainerId(trainerId);
+    }
+
+    /**
+     * Get schedule for a trainer (all sessions created by the trainer)
+     */
+    public List<TrainerScheduleDto> getScheduleByTrainerId(Integer trainerId) {
+        List<Session> sessions = sessionRepository.findByTrainerIdOrderByDateAsc(trainerId);
+        
+        return sessions.stream()
+                .map(session -> TrainerScheduleDto.builder()
+                        .sessionId(session.getId())
+                        .sessionName(session.getSessionName())
+                        .sessionNumber(session.getSessionNumber())
+                        .date(session.getDate())
+                        .timeStart(session.getTimeStart())
+                        .timeEnd(session.getTimeEnd())
+                        .location(session.getLocation())
+                        .status(session.getStatus())
+                        .meetingLink(session.getMeetingLink())
+                        .courseId(session.getCourse().getId())
+                        .courseCode(session.getCourse().getCode())
+                        .courseName(session.getCourse().getName())
+                        .dayOfWeek(session.getDate().getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : 
+                                   session.getDate().getDayOfWeek().getValue())
+                        .build())
+                .toList();
     }
 
 }

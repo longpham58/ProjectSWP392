@@ -1,10 +1,10 @@
 package com.itms.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.itms.common.CourseStatus;
 import com.itms.common.Level;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -12,6 +12,9 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "Course")
 public class Course {
 

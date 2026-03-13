@@ -3,9 +3,11 @@ package com.itms.service;
 import com.itms.dto.CourseModuleDto;
 import com.itms.entity.Course;
 import com.itms.entity.CourseModule;
+import com.itms.entity.Material;
 import com.itms.entity.Quiz;
 import com.itms.repository.CourseModuleRepository;
 import com.itms.repository.CourseRepository;
+import com.itms.repository.MaterialRepository;
 import com.itms.repository.QuizRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class CourseModuleService {
     private final CourseModuleRepository courseModuleRepository;
     private final CourseRepository courseRepository;
     private final QuizRepository quizRepository;
+    private final MaterialRepository materialRepository;
 
     public List<CourseModuleDto> getModulesByCourseId(int courseId) {
         List<CourseModule> modules = courseModuleRepository.findByCourseIdOrderByDisplayOrderAsc(courseId);
@@ -74,5 +77,36 @@ public class CourseModuleService {
             throw new RuntimeException("Module not found with id: " + moduleId);
         }
         courseModuleRepository.deleteById(moduleId);
+    }
+    
+    @Transactional
+    public CourseModuleDto.MaterialDto createMaterial(int moduleId, String title, String description, 
+            String type, String fileUrl, Long fileSize, Integer displayOrder) {
+        CourseModule module = courseModuleRepository.findById(moduleId)
+                .orElseThrow(() -> new RuntimeException("Module not found with id: " + moduleId));
+        
+        Material material = new Material();
+        material.setModule(module);
+        material.setCourse(module.getCourse());
+        material.setTitle(title);
+        material.setDescription(description);
+        material.setType(com.itms.common.MaterialType.valueOf(type != null ? type : "DOCUMENT"));
+        material.setFileUrl(fileUrl);
+        material.setFileSize(fileSize);
+        material.setDisplayOrder(displayOrder != null ? displayOrder : 0);
+        material.setIsRequired(false);
+        material.setIsDownloadable(true);
+        material.setCreatedAt(java.time.LocalDateTime.now());
+        
+        Material saved = materialRepository.save(material);
+        return CourseModuleDto.MaterialDto.from(saved);
+    }
+    
+    @Transactional
+    public void deleteMaterial(Long materialId) {
+        if (!materialRepository.existsById(materialId)) {
+            throw new RuntimeException("Material not found with id: " + materialId);
+        }
+        materialRepository.deleteById(materialId);
     }
 }
