@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "Quiz")
@@ -83,4 +84,8 @@ public class Quiz {
     // Is this a final exam quiz?
     @Column(name = "is_final_exam")
     private Boolean isFinalExam;
+    
+    // Quiz questions
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<QuizQuestion> questions;
 }

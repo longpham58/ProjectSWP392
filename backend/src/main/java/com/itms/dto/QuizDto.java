@@ -36,17 +36,7 @@ public class QuizDto {
     private Boolean isUnlocked;
     private Integer attemptsCount;
     private Boolean hasPassed;
+    private List<Integer> requiredModuleIds;
+    private List<String> requiredModuleTitles;
 }
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-class QuizQuestionDto {
-    private Integer id;
-    private String questionText;
-    private String questionType;
-    private List<String> options;
-    private Integer correctAnswerIndex;
-    private BigDecimal marks;
-}

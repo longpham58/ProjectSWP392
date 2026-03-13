@@ -2,10 +2,8 @@ package com.itms.service;
 
 import com.itms.dto.QuizAttemptDto;
 import com.itms.dto.QuizDto;
-import com.itms.entity.Quiz;
-import com.itms.entity.QuizAttempt;
-import com.itms.entity.User;
-import com.itms.entity.UserModuleProgress;
+import com.itms.dto.QuizQuestionDto;
+import com.itms.entity.*;
 import com.itms.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +13,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,8 +46,8 @@ public class QuizService {
             List<Integer> requiredModuleIds = quizRequiredModuleRepository.findModuleIdsByQuizId(quiz.getId());
             
             if (!requiredModuleIds.isEmpty()) {
-                // Quiz has required modules - check if ANY one is completed
-                boolean isUnlocked = isAnyRequiredModuleCompleted(userId, requiredModuleIds);
+                // Quiz has required modules - check if ALL are completed (AND logic)
+                boolean isUnlocked = areAllRequiredModulesCompleted(userId, requiredModuleIds);
                 dto.setIsUnlocked(isUnlocked);
             } else if (quiz.getModule() != null) {
                 // Fallback to legacy single module field
@@ -83,7 +82,7 @@ public class QuizService {
         List<Integer> requiredModuleIds = quizRequiredModuleRepository.findModuleIdsByQuizId(quiz.getId());
         
         if (!requiredModuleIds.isEmpty()) {
-            dto.setIsUnlocked(isAnyRequiredModuleCompleted(userId, requiredModuleIds));
+            dto.setIsUnlocked(areAllRequiredModulesCompleted(userId, requiredModuleIds));
         } else if (quiz.getModule() != null) {
             dto.setIsUnlocked(isModuleCompleted(userId, quiz.getModule().getId()));
         } else {
@@ -118,12 +117,22 @@ public class QuizService {
             throw new RuntimeException("Maximum attempts reached");
         }
 
+        // Get enrollment if valid enrollmentId provided
+        Enrollment enrollment = null;
+        if (enrollmentId != null && enrollmentId > 0) {
+            enrollment = enrollmentRepository.findById(enrollmentId).orElse(null);
+        }
+
         // Create new attempt
         QuizAttempt attempt = QuizAttempt.builder()
                 .quiz(quiz)
                 .user(user)
-                .enrollment(enrollmentRepository.findById(enrollmentId).orElse(null))
+                .enrollment(enrollment)
                 .attemptNumber(attemptNumber)
+                .score(BigDecimal.ZERO)
+                .totalMarks(BigDecimal.ZERO)
+                .obtainedMarks(BigDecimal.ZERO)
+                .passed(false)
                 .startedAt(LocalDateTime.now())
                 .status("IN_PROGRESS")
                 .createdAt(LocalDateTime.now())
@@ -211,15 +220,15 @@ public class QuizService {
     }
 
     /**
-     * Check if ANY of the required modules is completed (OR logic)
+     * Check if ALL of the required modules are completed (AND logic)
      */
-    private boolean isAnyRequiredModuleCompleted(Integer userId, List<Integer> requiredModuleIds) {
+    private boolean areAllRequiredModulesCompleted(Integer userId, List<Integer> requiredModuleIds) {
         for (Integer moduleId : requiredModuleIds) {
-            if (isModuleCompleted(userId, moduleId)) {
-                return true;
+            if (!isModuleCompleted(userId, moduleId)) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     /**
@@ -251,7 +260,7 @@ public class QuizService {
             List<Integer> requiredModuleIds = quizRequiredModuleRepository.findModuleIdsByQuizId(quiz.getId());
             
             if (!requiredModuleIds.isEmpty()) {
-                dto.setIsUnlocked(isAnyRequiredModuleCompleted(userId, requiredModuleIds));
+                dto.setIsUnlocked(areAllRequiredModulesCompleted(userId, requiredModuleIds));
             } else if (quiz.getModule() != null) {
                 dto.setIsUnlocked(isModuleCompleted(userId, quiz.getModule().getId()));
             } else {
@@ -277,7 +286,7 @@ public class QuizService {
         
         // Calculate test passing requirements
         // Default values if no quizzes exist
-        BigDecimal testPassingScore = BigDecimal.valueOf(70);
+        BigDecimal testPassingScore;
         Integer testMaxAttempts = 3;
         
         if (!quizzes.isEmpty()) {
@@ -292,8 +301,10 @@ public class QuizService {
                 .filter(ma -> ma != null)
                 .max(Integer::compareTo)
                 .orElse(3);
+        } else {
+            testPassingScore = BigDecimal.valueOf(70);
         }
-        
+
         status.put("testPassingScore", testPassingScore);
         status.put("testMaxAttempts", testMaxAttempts);
         
@@ -334,7 +345,7 @@ public class QuizService {
             List<Integer> finalExamRequiredModules = quizRequiredModuleRepository.findModuleIdsByQuizId(finalExam.getId());
             
             if (!finalExamRequiredModules.isEmpty()) {
-                finalExamUnlocked = certificateEarned && isAnyRequiredModuleCompleted(userId, finalExamRequiredModules);
+                finalExamUnlocked = certificateEarned && areAllRequiredModulesCompleted(userId, finalExamRequiredModules);
             } else if (finalExam.getModule() != null) {
                 finalExamUnlocked = certificateEarned && isModuleCompleted(userId, finalExam.getModule().getId());
             } else {
@@ -354,7 +365,47 @@ public class QuizService {
         return status;
     }
 
+    private int convertAnswerToIndex(String answer) {
+        if (answer == null) return 0;
+        String upper = answer.toUpperCase().trim();
+        if (upper.equals("A") || upper.equals("0")) return 0;
+        if (upper.equals("B") || upper.equals("1")) return 1;
+        if (upper.equals("C") || upper.equals("2")) return 2;
+        if (upper.equals("D") || upper.equals("3")) return 3;
+        try {
+            return Integer.parseInt(upper);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+    
     private QuizDto mapToDto(Quiz quiz) {
+        // Get required module IDs
+        List<Integer> requiredModuleIds = quizRequiredModuleRepository.findModuleIdsByQuizId(quiz.getId());
+        
+        // Get required module titles
+        List<String> requiredModuleTitles = new ArrayList<>();
+        if (!requiredModuleIds.isEmpty()) {
+            for (Integer moduleId : requiredModuleIds) {
+                courseModuleRepository.findById(moduleId).ifPresent(m -> requiredModuleTitles.add(m.getTitle()));
+            }
+        }
+        
+        // Map quiz questions to DTO
+        List<QuizQuestionDto> questionDtos = new ArrayList<>();
+        if (quiz.getQuestions() != null) {
+            for (QuizQuestion q : quiz.getQuestions()) {
+                QuizQuestionDto qdto = QuizQuestionDto.builder()
+                    .id(q.getId())
+                    .questionText(q.getQuestionText())
+                    .questionType("SINGLE_CHOICE")
+                    .options(Arrays.asList(q.getOptionA(), q.getOptionB(), q.getOptionC(), q.getOptionD()))
+                    .correctAnswerIndex(q.getCorrectAnswer() != null ? convertAnswerToIndex(q.getCorrectAnswer()) : 0)
+                    .build();
+                questionDtos.add(qdto);
+            }
+        }
+        
         return QuizDto.builder()
                 .id(quiz.getId())
                 .courseId(quiz.getCourse().getId())
@@ -374,6 +425,9 @@ public class QuizService {
                 .isActive(quiz.getIsActive())
                 .dueDate(quiz.getDueDate())
                 .isFinalExam(quiz.getIsFinalExam())
+                .requiredModuleIds(requiredModuleIds)
+                .requiredModuleTitles(requiredModuleTitles)
+                .questions(questionDtos)
                 .build();
     }
 

@@ -31,7 +31,7 @@ public class QuizAttempt {
 
     // Enrollment context
     @ManyToOne
-    @JoinColumn(name = "enrollment_id")
+    @JoinColumn(name = "enrollment_id", nullable = true)
     private Enrollment enrollment;
 
     @Column(name = "attempt_number")
