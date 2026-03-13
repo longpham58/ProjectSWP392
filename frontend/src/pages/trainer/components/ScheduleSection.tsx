@@ -41,14 +41,52 @@ const ScheduleSection: React.FC = () => {
   // Get unique course codes for filter
   const uniqueCourseCodes = Array.from(new Set(schedule.map(s => s.courseCode)));
 
-  const getClassesForDay = (dayIndex: number) => {
-    let filteredSchedule = schedule.filter(s => s.dayOfWeek === dayIndex);
+  // Calculate week dates based on selected date
+  const getWeekDates = (date: Date) => {
+    const current = new Date(date);
+    const dayOfWeek = current.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const startOfWeek = new Date(current);
+    startOfWeek.setDate(current.getDate() - dayOfWeek); // Go to Sunday
+    
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+      const weekDate = new Date(startOfWeek);
+      weekDate.setDate(startOfWeek.getDate() + i);
+      weekDates.push(weekDate);
+    }
+    return weekDates;
+  };
+
+  const weekDates = getWeekDates(selectedDate);
+
+  // Format date as DD/MM
+  const formatDate = (date: Date) => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    return `${day}/${month}`;
+  };
+
+  // Get classes for a specific date
+  const getClassesForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+    
+    let filteredSchedule = schedule.filter(s => {
+      // Compare dates
+      return s.date === dateStr;
+    });
     
     if (!selectedClasses.includes('ALL')) {
       filteredSchedule = filteredSchedule.filter(s => selectedClasses.includes(s.courseCode));
     }
     
     return filteredSchedule;
+  };
+
+  // Navigate to previous/next week
+  const navigateWeek = (direction: 'prev' | 'next') => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
+    setSelectedDate(newDate);
   };
 
 
@@ -101,20 +139,40 @@ const ScheduleSection: React.FC = () => {
         </div>
       )}
 
-      {/* Date Picker & Class Filter */}
+      {/* Week Navigation & Class Filter */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="flex items-center gap-4">
+          {/* Week Navigation */}
           <div className="flex-1">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Date</label>
-            <div className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-lg">
-              <input
-                type="date"
-                value={selectedDate.toISOString().split('T')[0]}
-                onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                className="flex-1 outline-none"
-              />
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Tuần</label>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigateWeek('prev')}
+                className="px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium"
+              >
+                ← Tuần trước
+              </button>
+              <div className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center">
+                <span className="font-semibold">
+                  {formatDate(weekDates[0])} - {formatDate(weekDates[6])}
+                </span>
+              </div>
+              <button
+                onClick={() => navigateWeek('next')}
+                className="px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium"
+              >
+                Tuần sau →
+              </button>
+              <button
+                onClick={() => setSelectedDate(new Date())}
+                className="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition font-medium"
+              >
+                Hôm nay
+              </button>
             </div>
           </div>
+          
+          {/* Class Filter */}
           <div className="flex-1">
             <label className="block text-sm font-semibold text-gray-700 mb-2">Khóa học</label>
             <select
@@ -158,19 +216,30 @@ const ScheduleSection: React.FC = () => {
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <div className="min-w-full">
-            {/* Header Row - Days of Week */}
+            {/* Header Row - Days of Week with Dates */}
             <div className="grid gap-0" style={{ gridTemplateColumns: '120px repeat(7, 1fr)' }}>
               <div className="bg-blue-500 text-white p-4 font-semibold border-r border-blue-400">
                 Thời gian
               </div>
-              {daysOfWeek.map((day, index) => (
-                <div 
-                  key={index} 
-                  className="bg-blue-500 text-white p-4 font-semibold text-center border-r border-blue-400"
-                >
-                  {day}
-                </div>
-              ))}
+              {weekDates.map((date, index) => {
+                const isToday = date.toDateString() === new Date().toDateString();
+                return (
+                  <div 
+                    key={index} 
+                    className={`${isToday ? 'bg-blue-600' : 'bg-blue-500'} text-white p-4 font-semibold text-center border-r border-blue-400`}
+                  >
+                    <div className="text-sm">{daysOfWeek[index]}</div>
+                    <div className={`text-xs mt-1 ${isToday ? 'font-bold' : 'opacity-90'}`}>
+                      {formatDate(date)}
+                    </div>
+                    {isToday && (
+                      <div className="text-xs mt-1 bg-white text-blue-600 rounded px-2 py-0.5 inline-block">
+                        Hôm nay
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Time Slots - Vertical Layout */}
@@ -186,15 +255,17 @@ const ScheduleSection: React.FC = () => {
                 </div>
 
                 {/* Day Cells */}
-                {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => {
-                  const classesForSlot = getClassesForDay(dayIndex).filter(c => c.slot === timeSlot.id);
+                {weekDates.map((date, dayIndex) => {
+                  const classesForDate = getClassesForDate(date);
+                  const classesForSlot = classesForDate.filter(c => c.slot === timeSlot.id);
+                  const isToday = date.toDateString() === new Date().toDateString();
                   
                   return (
                     <div
                       key={dayIndex}
-                      className="relative min-h-[100px] border-r border-gray-200 p-2 bg-white hover:bg-gray-50 transition"
+                      className={`relative min-h-[100px] border-r border-gray-200 p-2 ${isToday ? 'bg-blue-50' : 'bg-white'} hover:bg-gray-50 transition`}
                     >
-                      {/* Classes for this slot and day */}
+                      {/* Classes for this slot and date */}
                       {classesForSlot.map((classItem, index) => (
                         <div
                           key={index}
