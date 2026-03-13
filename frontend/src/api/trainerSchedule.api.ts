@@ -17,6 +17,12 @@ export interface TrainerScheduleDto {
   courseCode: string;
   courseName: string;
   
+  // Class info
+  classCode?: string;
+  
+  // Trainer info
+  trainerName?: string;
+  
   // Capacity
   maxCapacity: number;
   currentEnrolled: number;

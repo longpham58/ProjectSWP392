@@ -12,6 +12,12 @@ import java.util.List;
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer> {
 
     List<Enrollment> findByUserId(int userId);
+
+    /**
+     * Find enrollment by user and session
+     */
+    Enrollment findByUserIdAndSessionId(Integer userId, Integer sessionId);
+
     /**
      * Count sessions scheduled for the employee today (from approved enrollments).
      */

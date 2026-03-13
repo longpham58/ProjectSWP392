@@ -27,23 +27,44 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
 
     /**
      * Find all sessions for courses taught by a trainer
+     * Updated to use Session.trainer_id directly
      */
-    @Query("SELECT s FROM Session s WHERE s.course.trainer.id = :trainerId ORDER BY s.date ASC, s.timeStart ASC")
+    @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId ORDER BY s.date ASC, s.timeStart ASC")
     List<Session> findByTrainerId(@Param("trainerId") Integer trainerId);
 
     /**
-     * Get session number from VIEW for a specific session
+     * Get session number by counting sessions before this date for the same class
      */
-    @Query(value = "SELECT session_number FROM V_Session WHERE id = :sessionId", nativeQuery = true)
-    Optional<Integer> getSessionNumber(@Param("sessionId") Long sessionId);
+    @Query(value = """
+        SELECT COUNT(*) + 1
+        FROM Session s
+        WHERE s.class_id = :classId
+          AND (
+              s.date < CAST(:sessionDate AS DATE)
+              OR (s.date = CAST(:sessionDate AS DATE) AND s.time_start < CAST(:sessionTime AS TIME))
+          )
+    """, nativeQuery = true)
+    Integer getSessionNumber(
+            @Param("classId") Long classId,
+            @Param("sessionDate") java.time.LocalDate sessionDate,
+            @Param("sessionTime") java.time.LocalTime sessionTime
+    );
 
     /**
      * Get session attendance for a user in a course - single query with JOINs
+     * Session number is calculated by counting previous sessions
      */
     @Query(value = """
-        SELECT new com.itms.dto.SessionAttendanceDto(
+        SELECT 
             s.id,
-            CAST(v.session_number AS INTEGER),
+            (SELECT COUNT(*) + 1 
+             FROM Session s2 
+             WHERE s2.class_id = s.class_id 
+               AND (
+                   s2.date < s.date 
+                   OR (s2.date = s.date AND s2.time_start < s.time_start)
+               )
+            ) as session_number,
             s.date,
             s.time_start,
             s.time_end,
@@ -52,16 +73,14 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
             a.attended,
             a.completion_status,
             u.full_name
-        )
         FROM Session s
-        LEFT JOIN V_Session v ON s.id = v.id
         LEFT JOIN Enrollment e ON e.session_id = s.id AND e.user_id = :userId
         LEFT JOIN Attendance a ON a.enrollment_id = e.id
         LEFT JOIN [User] u ON u.id = a.marked_by
         WHERE s.course_id = :courseId
-        ORDER BY s.date ASC
+        ORDER BY s.date ASC, s.time_start ASC
     """, nativeQuery = true)
-    List<SessionAttendanceDto> getSessionAttendanceForUser(
+    List<Object[]> getSessionAttendanceForUserRaw(
             @Param("userId") Integer userId,
             @Param("courseId") Integer courseId
     );

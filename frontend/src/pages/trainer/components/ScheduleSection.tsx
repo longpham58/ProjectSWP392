@@ -273,6 +273,11 @@ const ScheduleSection: React.FC = () => {
                           className="bg-cyan-400 rounded-lg p-2 shadow-md hover:shadow-lg hover:bg-cyan-500 transition cursor-pointer mb-1 text-center"
                         >
                           <div className="text-xs font-bold text-gray-900">{classItem.courseCode}</div>
+                          {classItem.classCode && (
+                            <div className="text-xs text-gray-800 mt-0.5">
+                              {classItem.classCode}
+                            </div>
+                          )}
                           <div className="text-xs text-gray-800 mt-0.5">
                             Buổi {classItem.sessionNumber}
                           </div>
@@ -327,6 +332,9 @@ const ClassDetailModal: React.FC<{
             <div className="text-white">
               <h2 className="text-2xl font-bold">{classItem.courseCode}</h2>
               <p className="text-cyan-100 mt-1">{classItem.courseName}</p>
+              {classItem.classCode && (
+                <p className="text-cyan-200 mt-1 text-sm">Lớp: {classItem.classCode}</p>
+              )}
             </div>
             <button 
               onClick={onClose}
@@ -413,6 +421,12 @@ const ClassDetailModal: React.FC<{
                 <span className="text-gray-600">Tên khóa học:</span>
                 <span className="font-medium text-gray-900">{classItem.courseName}</span>
               </div>
+              {classItem.classCode && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Mã lớp:</span>
+                  <span className="font-medium text-gray-900">{classItem.classCode}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-gray-600">Phiên số:</span>
                 <span className="font-medium text-gray-900">{classItem.sessionNumber}</span>

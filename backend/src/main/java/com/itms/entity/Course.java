@@ -58,6 +58,12 @@ public class Course {
     @Column(name = "max_attempts")
     private Integer maxAttempts;
 
+    @Column(name = "start_date")
+    private java.time.LocalDate startDate;
+
+    @Column(name = "end_date")
+    private java.time.LocalDate endDate;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private CourseStatus status;

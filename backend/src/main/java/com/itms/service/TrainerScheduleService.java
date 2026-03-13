@@ -66,12 +66,22 @@ public class TrainerScheduleService {
         // Calculate slot based on time
         int slot = calculateSlot(session.getTimeStart());
         
-        // Get session_number from VIEW
-        Integer sessionNumber = sessionRepository.getSessionNumber(session.getId()).orElse(0);
+        // Get session_number by counting previous sessions
+        Integer sessionNumber = sessionRepository.getSessionNumber(
+                session.getClassRoom().getId(),
+                session.getDate(),
+                session.getTimeStart()
+        );
+        
+        // Get class info
+        String classCode = session.getClassRoom() != null ? session.getClassRoom().getClassCode() : "";
+        
+        // Get trainer info
+        String trainerName = session.getTrainer() != null ? session.getTrainer().getFullName() : "";
         
         return TrainerScheduleDto.builder()
                 .id(session.getId())
-                .sessionNumber(sessionNumber)
+                .sessionNumber(sessionNumber != null ? sessionNumber : 0)
                 .date(session.getDate())
                 .timeStart(session.getTimeStart())
                 .timeEnd(session.getTimeEnd())
@@ -82,6 +92,8 @@ public class TrainerScheduleService {
                 .courseId(session.getCourse().getId())
                 .courseCode(session.getCourse().getCode())
                 .courseName(session.getCourse().getName())
+                .classCode(classCode)
+                .trainerName(trainerName)
                 .maxCapacity(session.getMaxCapacity())
                 .currentEnrolled(session.getCurrentEnrolled())
                 .dayOfWeek(dayOfWeek)

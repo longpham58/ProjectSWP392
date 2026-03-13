@@ -31,6 +31,9 @@ public class DataSeeder {
             RoleRepository roleRepository,
             UserRoleRepository userRoleRepository,
             CourseRepository courseRepository,
+            ClassRoomRepository classRoomRepository,
+            ClassMemberRepository classMemberRepository,
+            CourseScheduleRepository courseScheduleRepository,
             SessionRepository sessionRepository,
             EnrollmentRepository enrollmentRepository
     ) {
@@ -120,6 +123,8 @@ public class DataSeeder {
                 Level.BEGINNER,
                 70.0,
                 3,
+                LocalDate.now().plusDays(7),  // Start date
+                LocalDate.now().plusDays(37), // End date (30 days later)
                 CourseStatus.ACTIVE,
                 admin
             );
@@ -136,6 +141,8 @@ public class DataSeeder {
                 Level.INTERMEDIATE,
                 75.0,
                 3,
+                LocalDate.now().plusDays(7),
+                LocalDate.now().plusDays(37),
                 CourseStatus.ACTIVE,
                 admin
             );
@@ -152,52 +159,72 @@ public class DataSeeder {
                 Level.INTERMEDIATE,
                 70.0,
                 3,
-                CourseStatus.ACTIVE,
-                admin
-            );
-
-            Course databaseCourse = createCourse(courseRepository,
-                "ITM5004-M04",
-                "Database Design & SQL",
-                "Learn database design principles, SQL queries, and optimization techniques for relational databases.",
-                "Design normalized databases\nWrite complex SQL queries\nOptimize database performance",
-                "Basic computer knowledge",
-                35.0,
-                trainer,
-                "Database",
-                Level.BEGINNER,
-                65.0,
-                3,
-                CourseStatus.ACTIVE,
-                admin
-            );
-
-            Course devopsCourse = createCourse(courseRepository,
-                "ITM5005-M05",
-                "DevOps & CI/CD",
-                "Master DevOps practices including Docker, Kubernetes, Jenkins, and automated deployment pipelines.",
-                "Containerize applications with Docker\nOrchestrate with Kubernetes\nImplement CI/CD pipelines",
-                "Linux basics\nBasic programming knowledge",
-                45.0,
-                trainer,
-                "DevOps",
-                Level.ADVANCED,
-                80.0,
-                2,
+                LocalDate.now().plusDays(7),
+                LocalDate.now().plusDays(37),
                 CourseStatus.ACTIVE,
                 admin
             );
 
             // =========================
-            // Seed Sessions
+            // Seed ClassRooms
             // =========================
-            System.out.println("📅 Seeding sessions...");
+            System.out.println("🏫 Seeding classrooms...");
             
-            seedSessions(sessionRepository, javaCourse, trainer);
-            seedSessions(sessionRepository, springCourse, trainer);
-            seedSessions(sessionRepository, reactCourse, trainer);
-            seedSessions(sessionRepository, databaseCourse, trainer);
-            seedSessions(sessionRepository, devopsCourse, trainer);
+            ClassRoom javaClass1 = createClassRoom(classRoomRepository, javaCourse, "SE18D01", "Java Class Morning", trainer, 30, admin);
+            ClassRoom javaClass2 = createClassRoom(classRoomRepository, javaCourse, "SE18D02", "Java Class Evening", trainer, 30, admin);
+            ClassRoom springClass = createClassRoom(classRoomRepository, springCourse, "SE18D10", "Spring Boot Class", trainer, 25, admin);
+            ClassRoom reactClass = createClassRoom(classRoomRepository, reactCourse, "SE18D15", "React Class", trainer, 35, admin);
+
+            // =========================
+            // Add ClassMembers (Students)
+            // =========================
+            System.out.println("👥 Adding students to classes...");
+            
+            addClassMember(classMemberRepository, javaClass1, emp1, admin);
+            addClassMember(classMemberRepository, javaClass1, emp2, admin);
+            addClassMember(classMemberRepository, springClass, emp1, admin);
+            addClassMember(classMemberRepository, reactClass, emp2, admin);
+
+            // =========================
+            // Seed CourseSchedules (Recurring patterns)
+            // =========================
+            System.out.println("📆 Seeding course schedules...");
+            
+            // Java Class 1: Mon, Wed, Fri at 07:00-09:00
+            createCourseSchedule(courseScheduleRepository, javaCourse, javaClass1, trainer, "MON", 
+                LocalTime.of(7, 0), LocalTime.of(9, 0), "Phòng 101", LocationType.OFFLINE, null, admin);
+            createCourseSchedule(courseScheduleRepository, javaCourse, javaClass1, trainer, "WED", 
+                LocalTime.of(7, 0), LocalTime.of(9, 0), "Phòng 101", LocationType.OFFLINE, null, admin);
+            createCourseSchedule(courseScheduleRepository, javaCourse, javaClass1, trainer, "FRI", 
+                LocalTime.of(7, 0), LocalTime.of(9, 0), "Phòng 101", LocationType.OFFLINE, null, admin);
+
+            // Java Class 2: Tue, Thu at 17:00-19:00
+            createCourseSchedule(courseScheduleRepository, javaCourse, javaClass2, trainer, "TUE", 
+                LocalTime.of(17, 0), LocalTime.of(19, 0), "Phòng 102", LocationType.OFFLINE, null, admin);
+            createCourseSchedule(courseScheduleRepository, javaCourse, javaClass2, trainer, "THU", 
+                LocalTime.of(17, 0), LocalTime.of(19, 0), "Phòng 102", LocationType.OFFLINE, null, admin);
+
+            // Spring Boot: Mon, Wed at 09:00-11:00
+            createCourseSchedule(courseScheduleRepository, springCourse, springClass, trainer, "MON", 
+                LocalTime.of(9, 0), LocalTime.of(11, 0), "Phòng 201", LocationType.OFFLINE, null, admin);
+            createCourseSchedule(courseScheduleRepository, springCourse, springClass, trainer, "WED", 
+                LocalTime.of(9, 0), LocalTime.of(11, 0), "Phòng 201", LocationType.OFFLINE, null, admin);
+
+            // React: Tue, Thu at 13:00-15:00 (Online)
+            createCourseSchedule(courseScheduleRepository, reactCourse, reactClass, trainer, "TUE", 
+                LocalTime.of(13, 0), LocalTime.of(15, 0), "Online", LocationType.ONLINE, "https://zoom.us/j/123456789", admin);
+            createCourseSchedule(courseScheduleRepository, reactCourse, reactClass, trainer, "THU", 
+                LocalTime.of(13, 0), LocalTime.of(15, 0), "Online", LocationType.ONLINE, "https://zoom.us/j/123456789", admin);
+
+            // =========================
+            // Generate Sessions using SP logic
+            // =========================
+            System.out.println("📅 Generating sessions from schedules...");
+            
+            generateSessionsForClass(sessionRepository, courseScheduleRepository, javaClass1);
+            generateSessionsForClass(sessionRepository, courseScheduleRepository, javaClass2);
+            generateSessionsForClass(sessionRepository, courseScheduleRepository, springClass);
+            generateSessionsForClass(sessionRepository, courseScheduleRepository, reactClass);
 
             // =========================
             // Seed Enrollments
@@ -207,9 +234,11 @@ public class DataSeeder {
             seedEnrollments(enrollmentRepository, sessionRepository, emp1, emp2);
 
             System.out.println("✅ ITMS seed data completed successfully");
-            System.out.println("📊 Total courses in database: " + courseRepository.count());
-            System.out.println("📅 Total sessions in database: " + sessionRepository.count());
-            System.out.println("📝 Total enrollments in database: " + enrollmentRepository.count());
+            System.out.println("📊 Total courses: " + courseRepository.count());
+            System.out.println("🏫 Total classrooms: " + classRoomRepository.count());
+            System.out.println("📆 Total schedules: " + courseScheduleRepository.count());
+            System.out.println("📅 Total sessions: " + sessionRepository.count());
+            System.out.println("📝 Total enrollments: " + enrollmentRepository.count());
             }
         };
     }
@@ -304,6 +333,8 @@ public class DataSeeder {
             Level level,
             Double passingScore,
             Integer maxAttempts,
+            LocalDate startDate,
+            LocalDate endDate,
             CourseStatus status,
             User createdBy
     ) {
@@ -324,6 +355,8 @@ public class DataSeeder {
                     course.setLevel(level);
                     course.setPassingScore(passingScore);
                     course.setMaxAttempts(maxAttempts);
+                    course.setStartDate(startDate);
+                    course.setEndDate(endDate);
                     course.setStatus(status);
                     course.setCreatedAt(LocalDateTime.now());
                     course.setCreatedBy(createdBy);
@@ -334,110 +367,196 @@ public class DataSeeder {
                 });
     }
 
-    /**
-     * Seed sessions for a course
-     */
-    private void seedSessions(SessionRepository sessionRepository, Course course, User trainer) {
-        // Check if sessions already exist for this course
-        if (!sessionRepository.findByCourseIdOrderByDateAsc(course.getId()).isEmpty()) {
-            System.out.println("⏭️ Sessions already exist for course: " + course.getCode());
+    private ClassRoom createClassRoom(
+            ClassRoomRepository repo,
+            Course course,
+            String classCode,
+            String className,
+            User trainer,
+            Integer maxStudents,
+            User createdBy
+    ) {
+        return repo.findAll().stream()
+                .filter(c -> c.getClassCode().equals(classCode))
+                .findFirst()
+                .orElseGet(() -> {
+                    ClassRoom classRoom = new ClassRoom();
+                    classRoom.setCourse(course);
+                    classRoom.setClassCode(classCode);
+                    classRoom.setClassName(className);
+                    classRoom.setTrainer(trainer);
+                    classRoom.setMaxStudents(maxStudents);
+                    classRoom.setStatus("ACTIVE");
+                    classRoom.setCreatedAt(LocalDateTime.now());
+                    classRoom.setCreatedBy(createdBy);
+                    
+                    ClassRoom saved = repo.save(classRoom);
+                    System.out.println("✅ Created classroom: " + classCode + " - " + className);
+                    return saved;
+                });
+    }
+
+    private void addClassMember(
+            ClassMemberRepository repo,
+            ClassRoom classRoom,
+            User student,
+            User addedBy
+    ) {
+        boolean exists = repo.findAll().stream()
+                .anyMatch(cm -> cm.getClassRoom().getId().equals(classRoom.getId()) 
+                        && cm.getUser().getId().equals(student.getId()));
+        
+        if (exists) {
+            System.out.println("⏭️ Student " + student.getFullName() + " already in class " + classRoom.getClassCode());
             return;
         }
 
-        System.out.println("📅 Creating sessions for course: " + course.getCode());
+        ClassMember member = new ClassMember();
+        member.setClassRoom(classRoom);
+        member.setUser(student);
+        member.setJoinedAt(LocalDateTime.now());
+        member.setStatus("ACTIVE");
+        member.setAddedBy(addedBy);
         
-        // Get current date for scheduling
-        LocalDate startDate = LocalDate.now().plusDays(7); // Start next week
+        repo.save(member);
+        System.out.println("✅ Added " + student.getFullName() + " to class " + classRoom.getClassCode());
+    }
+
+    private void createCourseSchedule(
+            CourseScheduleRepository repo,
+            Course course,
+            ClassRoom classRoom,
+            User trainer,
+            String dayOfWeek,
+            LocalTime timeStart,
+            LocalTime timeEnd,
+            String location,
+            LocationType locationType,
+            String meetingLink,
+            User createdBy
+    ) {
+        boolean exists = repo.findAll().stream()
+                .anyMatch(cs -> cs.getClassRoom().getId().equals(classRoom.getId()) 
+                        && cs.getDayOfWeek().equals(dayOfWeek)
+                        && cs.getTimeStart().equals(timeStart));
         
-        // Create sessions based on course type
-        switch (course.getCode()) {
-            case "ITM5001-M01": // Java Programming - 3 sessions per week
-                createSessionsForJava(sessionRepository, course, trainer, startDate);
-                break;
-            case "ITM5002-M02": // Spring Boot - 2 sessions per week
-                createSessionsForSpringBoot(sessionRepository, course, trainer, startDate);
-                break;
-            case "ITM5003-M03": // React - 2 sessions per week
-                createSessionsForReact(sessionRepository, course, trainer, startDate);
-                break;
-            case "ITM5004-M04": // Database - 2 sessions per week
-                createSessionsForDatabase(sessionRepository, course, trainer, startDate);
-                break;
-            case "ITM5005-M05": // DevOps - 1 session per week (intensive)
-                createSessionsForDevOps(sessionRepository, course, trainer, startDate);
-                break;
+        if (exists) {
+            System.out.println("⏭️ Schedule already exists for " + classRoom.getClassCode() + " on " + dayOfWeek);
+            return;
         }
-    }
 
-    private void createSessionsForJava(SessionRepository repo, Course course, User trainer, LocalDate startDate) {
-        // Java: Every day at 07:00-08:00 (6 sessions across 2 weeks)
-        for (int i = 0; i < 6; i++) {
-            createSession(repo, course, 
-                    startDate.plusDays(i), LocalTime.of(7, 0), LocalTime.of(8, 0), 
-                    "Phòng 101", LocationType.OFFLINE, null, 30, trainer);
-        }
-    }
-
-    private void createSessionsForSpringBoot(SessionRepository repo, Course course, User trainer, LocalDate startDate) {
-        // Spring Boot: Every day at 08:00-09:00 (4 sessions across 2 weeks)
-        for (int i = 0; i < 4; i++) {
-            createSession(repo, course, 
-                    startDate.plusDays(i), LocalTime.of(8, 0), LocalTime.of(9, 0), 
-                    "Phòng 201", LocationType.OFFLINE, null, 25, trainer);
-        }
-    }
-
-    private void createSessionsForReact(SessionRepository repo, Course course, User trainer, LocalDate startDate) {
-        // React: Every day at 09:00-10:00 (4 sessions across 2 weeks)
-        for (int i = 0; i < 4; i++) {
-            createSession(repo, course, 
-                    startDate.plusDays(i), LocalTime.of(9, 0), LocalTime.of(10, 0), 
-                    "Online Meeting Room", LocationType.ONLINE, "https://zoom.us/j/123456789", 35, trainer);
-        }
-    }
-
-    private void createSessionsForDatabase(SessionRepository repo, Course course, User trainer, LocalDate startDate) {
-        // Database: Every day at 10:00-11:00 (4 sessions across 2 weeks)
-        for (int i = 0; i < 4; i++) {
-            createSession(repo, course, 
-                    startDate.plusDays(i), LocalTime.of(10, 0), LocalTime.of(11, 0), 
-                    "Phòng 301", LocationType.OFFLINE, null, 40, trainer);
-        }
-    }
-
-    private void createSessionsForDevOps(SessionRepository repo, Course course, User trainer, LocalDate startDate) {
-        // DevOps: Every day at 11:00-13:00 (3 sessions across 2 weeks)
-        for (int i = 0; i < 3; i++) {
-            createSession(repo, course, 
-                    startDate.plusDays(i), LocalTime.of(11, 0), LocalTime.of(13, 0), 
-                    "Lab 401", LocationType.OFFLINE, null, 20, trainer);
-        }
-    }
-
-    private void createSession(SessionRepository repo, Course course,
-                              LocalDate date, LocalTime startTime, LocalTime endTime, 
-                              String location, LocationType locationType, String meetingLink, 
-                              int maxCapacity, User createdBy) {
-        Session session = new Session();
-        session.setCourse(course);
-        session.setDate(date);
-        session.setTimeStart(startTime);
-        session.setTimeEnd(endTime);
-        session.setLocation(location);
-        session.setLocationType(locationType);
-        session.setMeetingLink(meetingLink);
-        session.setMaxCapacity(maxCapacity);
-        session.setCurrentEnrolled(0);
-        session.setStatus(SessionStatus.SCHEDULED);
-        session.setCreatedAt(LocalDateTime.now());
-        session.setCreatedBy(createdBy);
+        CourseSchedule schedule = new CourseSchedule();
+        schedule.setCourse(course);
+        schedule.setClassRoom(classRoom);
+        schedule.setTrainer(trainer);
+        schedule.setDayOfWeek(dayOfWeek);
+        schedule.setTimeStart(timeStart);
+        schedule.setTimeEnd(timeEnd);
+        schedule.setLocation(location);
+        schedule.setLocationType(locationType);
+        schedule.setMeetingLink(meetingLink);
+        schedule.setCreatedAt(LocalDateTime.now());
+        schedule.setCreatedBy(createdBy);
         
-        repo.save(session);
-        System.out.println("✅ Created session on " + date + " at " + startTime);
+        repo.save(schedule);
+        System.out.println("✅ Created schedule: " + classRoom.getClassCode() + " - " + dayOfWeek + " " + timeStart);
+    }
+
+    /**
+     * Generate sessions for a class based on CourseSchedule (mimics SP_GenerateSessions)
+     */
+    private void generateSessionsForClass(
+            SessionRepository sessionRepo,
+            CourseScheduleRepository scheduleRepo,
+            ClassRoom classRoom
+    ) {
+        Course course = classRoom.getCourse();
+        LocalDate startDate = course.getStartDate();
+        LocalDate endDate = course.getEndDate();
+        
+        if (startDate == null || endDate == null) {
+            System.out.println("⚠️ Course " + course.getCode() + " has no start/end date, skipping session generation");
+            return;
+        }
+
+        // Get all schedules for this class
+        java.util.List<CourseSchedule> schedules = scheduleRepo.findAll().stream()
+                .filter(cs -> cs.getClassRoom().getId().equals(classRoom.getId()))
+                .toList();
+
+        if (schedules.isEmpty()) {
+            System.out.println("⚠️ No schedules found for class " + classRoom.getClassCode());
+            return;
+        }
+
+        System.out.println("📅 Generating sessions for class: " + classRoom.getClassCode() + 
+                " from " + startDate + " to " + endDate);
+
+        int sessionCount = 0;
+        LocalDate currentDate = startDate;
+
+        while (!currentDate.isAfter(endDate)) {
+            String dayOfWeek = getDayOfWeekCode(currentDate);
+            final LocalDate finalCurrentDate = currentDate; // Make effectively final for lambda
+            
+            // Find schedules matching this day
+            for (CourseSchedule schedule : schedules) {
+                if (schedule.getDayOfWeek().equals(dayOfWeek)) {
+                    final CourseSchedule finalSchedule = schedule; // Make effectively final for lambda
+                    
+                    // Check if session already exists
+                    boolean exists = sessionRepo.findAll().stream()
+                            .anyMatch(s -> s.getClassRoom().getId().equals(classRoom.getId())
+                                    && s.getDate().equals(finalCurrentDate)
+                                    && s.getTimeStart().equals(finalSchedule.getTimeStart()));
+                    
+                    if (!exists) {
+                        Session session = new Session();
+                        session.setCourse(course);
+                        session.setClassRoom(classRoom);
+                        session.setSchedule(finalSchedule);
+                        session.setTrainer(finalSchedule.getTrainer()); // ⭐ Copy trainer from schedule
+                        session.setDate(finalCurrentDate);
+                        session.setTimeStart(finalSchedule.getTimeStart());
+                        session.setTimeEnd(finalSchedule.getTimeEnd());
+                        session.setLocation(finalSchedule.getLocation());
+                        session.setLocationType(finalSchedule.getLocationType());
+                        session.setMeetingLink(finalSchedule.getMeetingLink());
+                        session.setMaxCapacity(classRoom.getMaxStudents());
+                        session.setCurrentEnrolled(0);
+                        session.setStatus(SessionStatus.SCHEDULED);
+                        session.setCreatedAt(LocalDateTime.now());
+                        
+                        sessionRepo.save(session);
+                        sessionCount++;
+                    }
+                }
+            }
+            
+            currentDate = currentDate.plusDays(1);
+        }
+
+        System.out.println("✅ Generated " + sessionCount + " sessions for class " + classRoom.getClassCode());
+    }
+
+    /**
+     * Convert LocalDate to day of week code (MON, TUE, etc.)
+     */
+    private String getDayOfWeekCode(LocalDate date) {
+        return switch (date.getDayOfWeek()) {
+            case MONDAY -> "MON";
+            case TUESDAY -> "TUE";
+            case WEDNESDAY -> "WED";
+            case THURSDAY -> "THU";
+            case FRIDAY -> "FRI";
+            case SATURDAY -> "SAT";
+            case SUNDAY -> "SUN";
+        };
     }
 
     /**
      * Seed enrollments for employees
+     * Only enroll students into sessions of classes they are members of
      */
     private void seedEnrollments(EnrollmentRepository enrollmentRepository, 
                                 SessionRepository sessionRepository,
@@ -450,17 +569,28 @@ public class DataSeeder {
             return;
         }
 
-        // Enroll emp1 in all sessions
-        System.out.println("📝 Enrolling " + emp1.getFullName() + " in all sessions...");
+        System.out.println("📝 Creating enrollments based on class membership...");
+        
+        // Enroll each student only in sessions of their classes
         for (Session session : allSessions) {
-            createEnrollmentWithAttendance(enrollmentRepository, emp1, session);
+            ClassRoom classRoom = session.getClassRoom();
+            
+            // Check if emp1 is a member of this class
+            boolean emp1IsMember = classRoom.getClassCode().equals("SE18D01") || 
+                                   classRoom.getClassCode().equals("SE18D10");
+            if (emp1IsMember) {
+                createEnrollmentWithAttendance(enrollmentRepository, emp1, session);
+            }
+            
+            // Check if emp2 is a member of this class
+            boolean emp2IsMember = classRoom.getClassCode().equals("SE18D01") || 
+                                   classRoom.getClassCode().equals("SE18D15");
+            if (emp2IsMember) {
+                createEnrollmentWithAttendance(enrollmentRepository, emp2, session);
+            }
         }
-
-        // Enroll emp2 in all sessions
-        System.out.println("📝 Enrolling " + emp2.getFullName() + " in all sessions...");
-        for (Session session : allSessions) {
-            createEnrollmentWithAttendance(enrollmentRepository, emp2, session);
-        }
+        
+        System.out.println("✅ Enrollments created successfully");
     }
 
     /**

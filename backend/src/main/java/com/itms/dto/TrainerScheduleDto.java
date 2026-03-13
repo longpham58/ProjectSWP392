@@ -30,6 +30,12 @@ public class TrainerScheduleDto {
     private String courseCode;
     private String courseName;
     
+    // Class info
+    private String classCode;
+    
+    // Trainer info
+    private String trainerName;
+    
     // Capacity
     private Integer maxCapacity;
     private Integer currentEnrolled;
