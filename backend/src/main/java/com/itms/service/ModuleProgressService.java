@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +24,40 @@ public class ModuleProgressService {
     private final UserModuleProgressRepository progressRepository;
     private final CourseModuleRepository moduleRepository;
     private final UserRepository userRepository;
+
+    /**
+     * Get overall course progress for a user
+     * Calculates: (completed modules / total modules) * 100
+     */
+    public Map<String, Object> getCourseProgress(Integer userId, Integer courseId) {
+        // Get total modules in the course
+        List<CourseModule> courseModules = moduleRepository.findByCourseId(courseId);
+        int totalModules = courseModules.size();
+        
+        // Get completed modules count for this user in this course
+        int completedModules = progressRepository.countCompletedModules(userId, courseId);
+        
+        // Calculate progress percentage
+        double progressPercentage = totalModules > 0 
+            ? (completedModules * 100.0) / totalModules 
+            : 0.0;
+        
+        // Get all module progress details
+        List<UserModuleProgress> allProgress = progressRepository.findByUserIdAndCourseId(userId, courseId);
+        int totalTimeSpent = allProgress.stream()
+            .mapToInt(p -> p.getTimeSpentMinutes() != null ? p.getTimeSpentMinutes() : 0)
+            .sum();
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("courseId", courseId);
+        result.put("userId", userId);
+        result.put("totalModules", totalModules);
+        result.put("completedModules", completedModules);
+        result.put("progressPercentage", Math.round(progressPercentage * 100.0) / 100.0);
+        result.put("timeSpentMinutes", totalTimeSpent);
+        
+        return result;
+    }
 
     /**
      * Get all module progress for a user in a specific course
@@ -50,13 +86,11 @@ public class ModuleProgressService {
                 .orElse(UserModuleProgress.builder()
                         .user(user)
                         .module(module)
-                        .progressPercentage(java.math.BigDecimal.ZERO)
                         .timeSpentMinutes(0)
                         .build());
         
         progress.setIsCompleted(true);
         progress.setCompletedAt(LocalDateTime.now());
-        progress.setProgressPercentage(java.math.BigDecimal.valueOf(100));
         progress.setLastAccessedAt(LocalDateTime.now());
         
         UserModuleProgress saved = progressRepository.save(progress);
@@ -79,11 +113,9 @@ public class ModuleProgressService {
                 .orElse(UserModuleProgress.builder()
                         .user(user)
                         .module(module)
-                        .progressPercentage(java.math.BigDecimal.ZERO)
                         .timeSpentMinutes(0)
                         .build());
-        
-        progress.setProgressPercentage(percentage);
+
         progress.setLastAccessedAt(LocalDateTime.now());
         
         // Auto-complete if 100%
@@ -140,7 +172,6 @@ public class ModuleProgressService {
                 .enrollmentId(progress.getEnrollment() != null ? progress.getEnrollment().getId() : null)
                 .isCompleted(progress.getIsCompleted())
                 .completedAt(progress.getCompletedAt())
-                .progressPercentage(progress.getProgressPercentage())
                 .timeSpentMinutes(progress.getTimeSpentMinutes())
                 .lastAccessedAt(progress.getLastAccessedAt())
                 .createdAt(progress.getCreatedAt())

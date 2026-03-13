@@ -20,7 +20,6 @@ public class ModuleProgressDto {
     private Integer enrollmentId;
     private Boolean isCompleted;
     private LocalDateTime completedAt;
-    private BigDecimal progressPercentage;
     private Integer timeSpentMinutes;
     private LocalDateTime lastAccessedAt;
     private LocalDateTime createdAt;

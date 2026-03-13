@@ -3,7 +3,6 @@ package com.itms.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -40,9 +39,6 @@ public class UserModuleProgress {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @Column(name = "progress_percentage")
-    private BigDecimal progressPercentage;
-
     @Column(name = "time_spent_minutes")
     private Integer timeSpentMinutes;
 
@@ -60,9 +56,6 @@ public class UserModuleProgress {
         createdAt = LocalDateTime.now();
         if (isCompleted == null) {
             isCompleted = false;
-        }
-        if (progressPercentage == null) {
-            progressPercentage = BigDecimal.ZERO;
         }
         if (timeSpentMinutes == null) {
             timeSpentMinutes = 0;
