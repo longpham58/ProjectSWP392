@@ -7,7 +7,6 @@ export interface ApiResponse<T> {
 
 export interface SessionAttendance {
   sessionId: number;
-  sessionName: string;
   sessionNumber: number;
   date: string;
   timeStart: string;

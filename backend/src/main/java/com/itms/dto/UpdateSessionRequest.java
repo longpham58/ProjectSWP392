@@ -17,10 +17,7 @@ import java.time.LocalTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateSessionRequest {
-    
-    @NotNull(message = "Course ID is required")
-    private Integer courseId;
+public class UpdateSessionRequest {
     
     @NotNull(message = "Date is required")
     private LocalDate date;
@@ -44,6 +41,7 @@ public class CreateSessionRequest {
     @Positive(message = "Max capacity must be positive")
     private Integer maxCapacity;
     
-    private SessionStatus status = SessionStatus.SCHEDULED;
+    private SessionStatus status;
     private String notes;
+    private String cancellationReason;
 }
