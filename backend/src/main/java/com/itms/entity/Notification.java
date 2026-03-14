@@ -32,6 +32,10 @@ public class Notification {
     @JoinColumn(name = "sender_id")
     private User sender;
 
+    @ManyToOne
+    @JoinColumn(name = "sender_id")
+    private User sender;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
     private NotificationType type;
@@ -72,10 +76,36 @@ public class Notification {
     @Column(name = "is_sent_copy")
     private Boolean isSentCopy = false;
 
+    @Column(name = "recipient_type", length = 50)
+    private String recipientType;
+
+    @Column(name = "class_codes")
+    private String classCodes;
+
+    @Column(name = "is_draft", nullable = false)
+    private Boolean isDraft = false;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @PrePersist
     public void prePersist() {
         if (sentDate == null) {
             sentDate = LocalDateTime.now();
         }
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (isDraft == null) {
+            isDraft = false;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

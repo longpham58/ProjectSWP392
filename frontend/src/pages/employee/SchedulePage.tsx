@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSessionStore } from '../../stores/session.store';
-import { CourseSchedule } from '../../api/session.api';
+import type { CourseSchedule } from '../../api/session.api';
 
 export default function SchedulePage() {
   const { schedule, scheduleLoading, scheduleError, fetchCourseSchedule } = useSessionStore();
   const [selectedWeek, setSelectedWeek] = useState('2026-W10');
   const [viewMode, setViewMode] = useState<'week' | 'list'>('week');
 
-  // Fetch schedule from store
   useEffect(() => {
     fetchCourseSchedule();
   }, [fetchCourseSchedule]);
@@ -31,8 +30,29 @@ export default function SchedulePage() {
     { slot: 4, label: 'Slot 4', time: '13:00 - 15:00' },
   ];
 
+  // Memoize schedule if needed
+  const memoSchedule: CourseSchedule[] = useMemo(() => {
+    return schedule.map((item, index) => {
+      const dateObj = new Date(item.date);
+      const dayOfWeek = Number.isNaN(dateObj.getTime()) ? 1 : dateObj.getDay();
+      const time = `${item.startTime} - ${item.endTime}`;
+      let slot = 1;
+      if (time === '07:00 - 09:00') slot = 1;
+      else if (time === '09:00 - 11:00') slot = 2;
+      else if (time === '11:00 - 13:00') slot = 3;
+      else if (time === '13:00 - 15:00') slot = 4;
+
+      return {
+        ...item,
+        id: item.id ?? index + 1,
+        slot,
+        dayOfWeek,
+      } as CourseSchedule;
+    });
+  }, [schedule]);
+
   const getSessionForSlot = (dayOfWeek: number, slotNumber: number) => {
-    return schedule.find(
+    return memoSchedule.find(
       s => s.dayOfWeek === dayOfWeek && s.slot === slotNumber
     );
   };
@@ -62,7 +82,7 @@ export default function SchedulePage() {
       case 'CANCELLED':
         return 'Đã hủy';
       default:
-        return status;
+        return '';
     }
   };
 

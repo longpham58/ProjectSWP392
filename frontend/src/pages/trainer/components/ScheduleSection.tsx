@@ -1,14 +1,38 @@
-import React, { useState } from 'react';
-import { mockSchedule, ScheduleClass, TIME_SLOTS } from '../../../data/mockTrainerData';
+import React, { useMemo, useState } from 'react';
+import { ScheduleClass, TIME_SLOTS } from '../../../data/mockTrainerData';
+import { getAllTrainerSchedules } from '../../../mocks/mockScheduleStorage';
 
 const ScheduleSection: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedClasses, setSelectedClasses] = useState<string[]>(['ALL']); // Default: show all
-  const [schedule] = useState<ScheduleClass[]>(mockSchedule);
   const [viewingClass, setViewingClass] = useState<ScheduleClass | null>(null);
 
   const daysOfWeek = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
   const slots = [1, 2, 3, 4, 5, 6]; // 6 slots
+
+  const schedule: ScheduleClass[] = useMemo(() => {
+    const raw = getAllTrainerSchedules();
+    return raw.map((item, index) => {
+      const dateObj = new Date(item.date);
+      const dayOfWeek = Number.isNaN(dateObj.getTime()) ? 1 : dateObj.getDay(); // 0-6
+      const slotEntry = Object.entries(TIME_SLOTS).find(
+        ([, v]) => v.start === item.startTime && v.end === item.endTime,
+      );
+      const slot = slotEntry ? Number(slotEntry[0]) : 1;
+
+      return {
+        id: index + 1,
+        courseCode: item.courseCode,
+        courseName: item.courseName,
+        className: item.room,
+        slot,
+        dayOfWeek,
+        room: item.room,
+        startTime: item.startTime,
+        endTime: item.endTime,
+      };
+    });
+  }, []);
 
   const getClassesForDay = (dayIndex: number) => {
     if (selectedClasses.includes('ALL')) {

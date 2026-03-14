@@ -76,4 +76,17 @@ public class Course {
 
     @OneToMany(mappedBy = "course")
     private List<Session> sessions;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.status == null) {
+            this.status = CourseStatus.DRAFT;
+        }
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

@@ -12,6 +12,7 @@ import OtpGuard from "./guards/OtpGuard";
 import ResetPasswordGuard from "./guards/ResetPasswordGuard";
 
 import AdminLayout from "./layouts/AdminLayout";
+import HRLayout from "./layouts/HRLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UsersPage from "./pages/admin/UsersPage";
 import AuditLogsPage from "./pages/admin/AuditLogsPage";
@@ -159,6 +160,16 @@ function App() {
             }
           />
 
+          {/* HR Routes */}
+          <Route
+            path="/hr"
+            element={
+              <ProtectedRoute allowedRoles={["HR"]}>
+                <HRLayout />
+              </ProtectedRoute>
+            }
+          />
+
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -174,6 +185,8 @@ function getHomeByRole(role: string): string {
   switch (role) {
     case "ADMIN":
       return "/admin";
+    case "HR":
+      return "/hr";
     case "EMPLOYEE":
       return "/employee";
     case "TRAINER":

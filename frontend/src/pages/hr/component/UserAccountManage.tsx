@@ -1,39 +1,54 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import '@/assets/styles/UserAccountManagePage.css';
+import { hrEmployeeService } from '../../../services/api/hr';
+import type { Employee } from '../../../types/hr.types';
 
-const MOCK_USERS = [
-  { id: 1, userId: 'HR001', fullname: 'Nguyễn Văn A', email: 'anv@gmail.com', role: 'HR', status: 'Active' },
-  { id: 2, userId: 'TR002', fullname: 'Trần Thị B', email: 'bt@example.com', role: 'Trainer', status: 'Active' },
-  { id: 3, userId: 'EM003', fullname: 'Lê Văn C', email: 'c.le@example.com', role: 'Employee', status: 'Inactive' },
-  { id: 4, userId: 'EM004', fullname: 'Phạm Thị D', email: 'd.pham@example.com', role: 'Employee', status: 'Active' },
-  { id: 5, userId: 'TR005', fullname: 'Hoàng Văn E', email: 'e.hoang@example.com', role: 'Trainer', status: 'Inactive' },
-];
+type UserAccountManagePageProps = {
+  refreshToken?: number;
+};
 
-export const UserAccountManagePage: React.FC = () => {
+export const UserAccountManagePage: React.FC<UserAccountManagePageProps> = ({ refreshToken = 0 }) => {
   const [filterRole, setFilterRole] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterKeyword, setFilterKeyword] = useState('');
+  const [users, setUsers] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      const res = await hrEmployeeService.list({
+        role: filterRole || undefined,
+        status: filterStatus || undefined,
+        keyword: filterKeyword || undefined,
+      });
+      setUsers(res.data.data ?? []);
+    } catch (error: any) {
+      setUsers([]);
+      setErrorMessage(error?.response?.data?.message || 'Không thể tải danh sách tài khoản.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterRole, filterStatus, filterKeyword, refreshToken]);
 
   const filtered = useMemo(() => {
-    const kw = filterKeyword.trim().toLowerCase();
-    return MOCK_USERS.filter((u) => {
-      if (filterRole && u.role !== filterRole) return false;
-      if (filterStatus && u.status !== filterStatus) return false;
-      if (kw) {
-        const hay = `${u.fullname} ${u.email} ${u.userId}`.toLowerCase();
-        if (!hay.includes(kw)) return false;
-      }
-      return true;
-    });
-  }, [filterKeyword, filterRole, filterStatus]);
+    return users;
+  }, [users]);
 
   const stats = useMemo(() => {
-    const total = MOCK_USERS.length;
-    const active = MOCK_USERS.filter((u) => u.status === 'Active').length;
-    const inactive = MOCK_USERS.filter((u) => u.status === 'Inactive').length;
-    const trainers = MOCK_USERS.filter((u) => u.role === 'Trainer').length;
+    const total = users.length;
+    const active = users.filter((u) => u.status === 'Active').length;
+    const inactive = users.filter((u) => u.status === 'Inactive').length;
+    const trainers = users.filter((u) => u.role === 'Trainer').length;
     return { total, active, inactive, trainers };
-  }, []);
+  }, [users]);
 
   const initials = (name: string) => {
     const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -111,6 +126,7 @@ export const UserAccountManagePage: React.FC = () => {
           </select>
         </div>
       </div>
+      {errorMessage && <div style={{ color: '#dc2626', marginBottom: 8 }}>{errorMessage}</div>}
 
       <div className="user-account-table-wrap">
         <table className="user-account-table">
@@ -141,11 +157,16 @@ export const UserAccountManagePage: React.FC = () => {
                 <td>{u.role}</td>
                 <td><span className={`user-status user-status-${u.status.toLowerCase()}`}>{u.status}</span></td>
                 <td>
-                  <button type="button" className="user-icon-btn" title="Edit">✎</button>
-                  <button type="button" className="user-icon-btn" title="Delete">🗑</button>
+                  <button type="button" className="user-icon-btn" title="Edit" disabled>✎</button>
+                  <button type="button" className="user-icon-btn" title="Delete" disabled>🗑</button>
                 </td>
               </tr>
             ))}
+            {!loading && filtered.length === 0 && (
+              <tr>
+                <td colSpan={6} style={{ padding: 16, color: '#666' }}>Không có dữ liệu.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

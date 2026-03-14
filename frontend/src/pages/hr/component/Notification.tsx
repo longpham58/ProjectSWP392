@@ -1,27 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import '@/assets/styles/NotificationPage.css';
-
-type NotificationChannel = 'In-app' | 'Email';
-type NotificationStatus = 'Draft' | 'Scheduled' | 'Sent' | 'Cancelled';
-
-type HrNotification = {
-  id: number;
-  title: string;
-  content?: string;
-  channel: NotificationChannel;
-  sentTo: string;
-  scheduledAt?: string; // ISO
-  sentAt?: string; // ISO
-  creator: string;
-  status: NotificationStatus;
-};
-
-function toIsoLocal(input: string) {
-  // best-effort parse for seed only
-  const d = new Date(input);
-  if (!Number.isFinite(d.getTime())) return undefined;
-  return d.toISOString();
-}
+import { hrNotificationService } from '../../../services/api/hr';
+import type { HrNotification, NotificationChannel, NotificationStatus } from '../../../types/hr.types';
 
 function fmtDateTime(iso?: string) {
   if (!iso) return '-';
@@ -55,61 +35,21 @@ function isoToHm(iso?: string) {
   return `${hh}:${mm}`;
 }
 
-const SEED_NOTIFICATIONS: HrNotification[] = [
-  {
-    id: 1,
-    title: 'Lịch Học Python',
-    content: 'Thông báo lịch học Python đã được tạo.',
-    channel: 'In-app',
-    sentTo: 'Phòng ban 1',
-    scheduledAt: toIsoLocal('2026-02-10T09:00:00') ?? undefined,
-    sentAt: undefined,
-    creator: 'HR',
-    status: 'Draft',
-  },
-  {
-    id: 2,
-    title: 'Lịch Thi Nodejs',
-    content: 'Lịch thi Nodejs đã được lên lịch.',
-    channel: 'Email',
-    sentTo: 'Phòng ban 2',
-    scheduledAt: toIsoLocal('2026-02-11T07:00:00') ?? undefined,
-    sentAt: undefined,
-    creator: 'HR',
-    status: 'Scheduled',
-  },
-  {
-    id: 3,
-    title: 'Lịch OT',
-    content: 'Thông báo OT đã được gửi.',
-    channel: 'Email',
-    sentTo: 'Phòng ban 3',
-    scheduledAt: toIsoLocal('2026-02-12T17:00:00') ?? undefined,
-    sentAt: toIsoLocal('2026-02-12T17:00:00') ?? undefined,
-    creator: 'HR',
-    status: 'Sent',
-  },
-  {
-    id: 4,
-    title: 'Thông báo bảo trì hệ thống',
-    content: 'Hệ thống sẽ bảo trì theo lịch.',
-    channel: 'In-app',
-    sentTo: 'Tất cả',
-    scheduledAt: toIsoLocal('2026-02-13T08:30:00') ?? undefined,
-    sentAt: undefined,
-    creator: 'HR',
-    status: 'Cancelled',
-  },
-];
 
-export const NotificationPage: React.FC = () => {
+type NotificationPageProps = {
+  onNotificationsChanged?: () => void;
+};
+
+export const NotificationPage: React.FC<NotificationPageProps> = ({ onNotificationsChanged }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [filterChannel, setFilterChannel] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterKeyword, setFilterKeyword] = useState('');
   const [filterDate, setFilterDate] = useState('');
 
-  const [notifications, setNotifications] = useState<HrNotification[]>(SEED_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<HrNotification[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [pageError, setPageError] = useState('');
 
   type NotificationAction = 'Draft' | 'SendNow' | 'Schedule';
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -121,6 +61,24 @@ export const NotificationPage: React.FC = () => {
   const [formScheduleDate, setFormScheduleDate] = useState('');
   const [formScheduleTime, setFormScheduleTime] = useState('');
   const [formError, setFormError] = useState<string>('');
+
+  const fetchNotifications = async () => {
+    setLoading(true);
+    setPageError('');
+    try {
+      const res = await hrNotificationService.list();
+      setNotifications(res.data.data ?? []);
+    } catch (error: any) {
+      setNotifications([]);
+      setPageError(error?.response?.data?.message || 'Không thể tải thông báo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   const openCreateModal = () => {
     setEditingId(null);
@@ -170,9 +128,10 @@ export const NotificationPage: React.FC = () => {
 
   const combineDateTimeToIso = (dateYmd: string, timeHm: string) => {
     if (!dateYmd || !timeHm) return undefined;
-    const dt = new Date(`${dateYmd}T${timeHm}:00`);
+    const value = `${dateYmd}T${timeHm}:00`;
+    const dt = new Date(value);
     if (!Number.isFinite(dt.getTime())) return undefined;
-    return dt.toISOString();
+    return value;
   };
 
   const filtered = useMemo(() => {
@@ -304,6 +263,7 @@ export const NotificationPage: React.FC = () => {
           <input aria-label="Ngày" id="notif-date" type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
         </div>
       </div>
+      {pageError && <div style={{ color: '#dc2626', marginBottom: 8 }}>{pageError}</div>}
       <div className="notification-table-wrap">
         <table className="notification-table">
           <thead>
@@ -350,11 +310,24 @@ export const NotificationPage: React.FC = () => {
                       className="notif-icon-btn"
                       title="Huỷ lịch"
                       aria-label="Huỷ lịch"
-                      onClick={() =>
-                        setNotifications((prev) =>
-                          prev.map((x) => (x.id === n.id ? { ...x, status: 'Cancelled' } : x)),
-                        )
-                      }
+                      onClick={async () => {
+                        try {
+                          await hrNotificationService.update(n.id, {
+                            title: n.title,
+                            content: n.content,
+                            channel: n.channel,
+                            sentTo: n.sentTo,
+                            scheduledAt: n.scheduledAt,
+                            sentAt: n.sentAt,
+                            creator: n.creator,
+                            status: 'Cancelled',
+                          });
+                          await fetchNotifications();
+                          onNotificationsChanged?.();
+                        } catch (error: any) {
+                          setPageError(error?.response?.data?.message || 'Không thể huỷ lịch thông báo.');
+                        }
+                      }}
                     >
                       ⨯
                     </button>
@@ -364,10 +337,16 @@ export const NotificationPage: React.FC = () => {
                     className="notif-icon-btn"
                     title="Xóa"
                     aria-label="Xóa"
-                    onClick={() => {
+                    onClick={async () => {
                       const ok = window.confirm('Bạn có chắc chắn muốn xóa thông báo này?');
                       if (!ok) return;
-                      setNotifications((prev) => prev.filter((x) => x.id !== n.id));
+                      try {
+                        await hrNotificationService.remove(n.id);
+                        await fetchNotifications();
+                        onNotificationsChanged?.();
+                      } catch (error: any) {
+                        setPageError(error?.response?.data?.message || 'Không thể xóa thông báo.');
+                      }
                     }}
                   >
                     🗑
@@ -375,6 +354,11 @@ export const NotificationPage: React.FC = () => {
                 </td>
               </tr>
             ))}
+            {!loading && filtered.length === 0 && (
+              <tr>
+                <td colSpan={9} style={{ padding: 16, color: '#666' }}>Không có dữ liệu.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -388,7 +372,7 @@ export const NotificationPage: React.FC = () => {
             </div>
             <form
               className="notif-modal-form"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
 
                 const title = formTitle.trim();
@@ -407,7 +391,7 @@ export const NotificationPage: React.FC = () => {
 
                 if (formAction === 'SendNow') {
                   status = 'Sent';
-                  sentAt = new Date().toISOString();
+                  sentAt = new Date().toISOString().slice(0, 19);
                 } else if (formAction === 'Schedule') {
                   const iso = combineDateTimeToIso(formScheduleDate, formScheduleTime);
                   if (!iso) {
@@ -420,40 +404,29 @@ export const NotificationPage: React.FC = () => {
                   status = 'Draft';
                 }
 
-                if (editingId != null) {
-                  setNotifications((prev) =>
-                    prev.map((x) =>
-                      x.id === editingId
-                        ? {
-                            ...x,
-                            title,
-                            content: formContent.trim() || undefined,
-                            channel: formChannel,
-                            sentTo: formRecipient,
-                            status,
-                            scheduledAt: status === 'Scheduled' ? scheduledAt : undefined,
-                            sentAt: status === 'Sent' ? sentAt : undefined,
-                          }
-                        : x,
-                    ),
-                  );
-                } else {
-                  const nextId = Math.max(0, ...notifications.map((x) => x.id)) + 1;
-                  const next: HrNotification = {
-                    id: nextId,
-                    title,
-                    content: formContent.trim() || undefined,
-                    channel: formChannel,
-                    sentTo: formRecipient,
-                    scheduledAt,
-                    sentAt,
-                    creator: 'HR',
-                    status,
-                  };
+                const payload = {
+                  title,
+                  content: formContent.trim() || undefined,
+                  channel: formChannel,
+                  sentTo: formRecipient,
+                  scheduledAt: status === 'Scheduled' ? scheduledAt : undefined,
+                  sentAt: status === 'Sent' ? sentAt : undefined,
+                  creator: 'HR',
+                  status,
+                };
 
-                  setNotifications((prev) => [next, ...prev]);
+                try {
+                  if (editingId != null) {
+                    await hrNotificationService.update(editingId, payload);
+                  } else {
+                    await hrNotificationService.create(payload);
+                  }
+                  await fetchNotifications();
+                  onNotificationsChanged?.();
+                  closeModal();
+                } catch (error: any) {
+                  setFormError(error?.response?.data?.message || 'Không thể lưu thông báo.');
                 }
-                closeModal();
               }}
             >
               <div className="notif-form-field">
