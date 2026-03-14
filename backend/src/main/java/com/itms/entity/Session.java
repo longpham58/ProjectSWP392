@@ -60,16 +60,17 @@ public class Session {
        Location
     ========================= */
 
+    @Column(length = 255)
     private String location;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "location_type")
+    @Column(name = "location_type", length = 20)
     private LocationType locationType;
 
-    @Column(name = "meeting_link")
+    @Column(name = "meeting_link", length = 500)
     private String meetingLink;
 
-    @Column(name = "meeting_password")
+    @Column(name = "meeting_password", length = 100)
     private String meetingPassword;
 
     /* =========================
@@ -87,9 +88,10 @@ public class Session {
     ========================= */
 
     @Enumerated(EnumType.STRING)
-    private SessionStatus status;
+    @Column(nullable = false, length = 20)
+    private SessionStatus status = SessionStatus.SCHEDULED;
 
-    @Column(name = "cancellation_reason")
+    @Column(name = "cancellation_reason", length = 500)
     private String cancellationReason;
 
     @Column(columnDefinition = "NVARCHAR(MAX)")
@@ -107,4 +109,7 @@ public class Session {
 
     @OneToMany(mappedBy = "session")
     private List<Feedback> feedbacks;
+
+    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL)
+    private List<Enrollment> enrollments;
 }

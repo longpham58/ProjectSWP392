@@ -11,6 +11,17 @@ import java.util.List;
 
 @Repository
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
+<<<<<<< Updated upstream
+=======
+    
+    @Query("SELECT a FROM Attendance a JOIN FETCH a.enrollment e JOIN FETCH e.session s JOIN FETCH s.course c WHERE e.user.id = :userId AND c.id = :courseId")
+    List<Attendance> findByUserIdAndCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
+>>>>>>> Stashed changes
+
+    /**
+     * Find attendance by enrollment
+     */
+    Optional<Attendance> findByEnrollmentId(Integer enrollmentId);
 
     @Query(value = """
         SELECT DISTINCT activity_date
@@ -68,7 +79,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         SELECT TOP 10
             a.id           AS id,
             'SESSION'      AS type,
-            s.session_name AS title,
+            c.code         AS title,
             c.name         AS course,
             s.date         AS time
         FROM Attendance a

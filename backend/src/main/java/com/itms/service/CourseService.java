@@ -29,4 +29,38 @@ public class CourseService {
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + id));
     }
 
+<<<<<<< Updated upstream
+=======
+    /**
+     * Get courses assigned to a trainer
+     */
+    public List<Course> getCoursesByTrainerId(Integer trainerId) {
+        return courseRepository.findByTrainerId(trainerId);
+    }
+
+    /**
+     * Get schedule for a trainer (all sessions created by the trainer)
+     */
+    public List<TrainerScheduleDto> getScheduleByTrainerId(Integer trainerId) {
+        List<Session> sessions = sessionRepository.findByTrainerIdOrderByDateAsc(trainerId);
+        
+        return sessions.stream()
+                .map(session -> TrainerScheduleDto.builder()
+                        .sessionId(session.getId())
+                        .date(session.getDate())
+                        .timeStart(session.getTimeStart())
+                        .timeEnd(session.getTimeEnd())
+                        .location(session.getLocation())
+                        .status(session.getStatus())
+                        .meetingLink(session.getMeetingLink())
+                        .courseId(session.getCourse().getId())
+                        .courseCode(session.getCourse().getCode())
+                        .courseName(session.getCourse().getName())
+                        .dayOfWeek(session.getDate().getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : 
+                                   session.getDate().getDayOfWeek().getValue())
+                        .build())
+                .toList();
+    }
+
+>>>>>>> Stashed changes
 }

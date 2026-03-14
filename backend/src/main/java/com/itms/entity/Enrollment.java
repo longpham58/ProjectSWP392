@@ -47,8 +47,8 @@ public class Enrollment {
     ========================= */
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EnrollmentStatus status;
+    @Column(nullable = false, length = 20)
+    private EnrollmentStatus status = EnrollmentStatus.REGISTERED;
 
     /* =========================
        Approval
@@ -57,10 +57,10 @@ public class Enrollment {
     @Column(name = "approval_date")
     private LocalDateTime approvalDate;
 
-    @Column(name = "rejection_reason")
+    @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
 
-    @Column(name = "cancellation_reason")
+    @Column(name = "cancellation_reason", length = 500)
     private String cancellationReason;
 
     /* =========================
@@ -73,13 +73,13 @@ public class Enrollment {
     @Column(name = "completion_date")
     private LocalDateTime completionDate;
 
-    @Column(name = "completion_rate")
+    @Column(name = "completion_rate", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal completionRate;
 
-    @Column(name = "final_score")
+    @Column(name = "final_score", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal finalScore;
 
-    @Column(name = "certificate_issued")
+    @Column(name = "certificate_issued", nullable = false)
     private Boolean certificateIssued = false;
 
     /* =========================

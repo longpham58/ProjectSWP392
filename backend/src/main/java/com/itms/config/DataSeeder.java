@@ -24,12 +24,25 @@ public class DataSeeder {
             UserRoleRepository userRoleRepository
     ) {
         return args -> {
+<<<<<<< Updated upstream
             if (userRoleRepository.count() > 0) {
                 System.out.println("⏭ UserRole already seeded. Skipping.");
                 return;
             }
 
 
+=======
+            // Reset data if enabled
+            if (RESET_DATA) {
+                System.out.println("🔄 Resetting user data...");
+                userRoleRepository.deleteAll();
+                userRepository.deleteAll();
+                departmentRepository.deleteAll();
+                roleRepository.deleteAll();
+                System.out.println("✅ User data reset complete");
+            }
+
+>>>>>>> Stashed changes
             // =========================
             // Seed Roles
             // =========================
@@ -94,6 +107,12 @@ public class DataSeeder {
             assignRole(userRoleRepository, trainer, employeeRole, admin); // same as SQL
             assignRole(userRoleRepository, emp1, employeeRole, admin);
             assignRole(userRoleRepository, emp2, employeeRole, admin);
+<<<<<<< Updated upstream
+=======
+            assignRole(userRoleRepository, emp3, employeeRole, admin);
+            assignRole(userRoleRepository, emp4, employeeRole, admin);
+            assignRole(userRoleRepository, emp5, employeeRole, admin);
+>>>>>>> Stashed changes
 
             System.out.println("✅ ITMS seed data completed successfully");
         };

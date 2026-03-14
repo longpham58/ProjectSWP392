@@ -24,9 +24,9 @@ public class EmployeeDashboardService {
     private final EnrollmentRepository enrollmentRepository;
 
     // Fallback daily targets when no sessions are scheduled
-    private static final int LESSONS_TARGET_FALLBACK = 1;
-    private static final double STUDY_HOURS_TARGET_FALLBACK = 1.0;
-    private static final int QUIZZES_TARGET_FALLBACK = 1;
+    private static final int LESSONS_TARGET_FALLBACK = 0;
+    private static final double STUDY_HOURS_TARGET_FALLBACK = 0.0;
+    private static final int QUIZZES_TARGET_FALLBACK = 0;
 
     public List<DeadlineDto> getDeadlines(Integer userId) {
 

@@ -28,7 +28,11 @@ public interface QuizRepository extends JpaRepository<Quiz, Integer> {
     WHERE q.isActive = true
     AND q.dueDate IS NOT NULL
     AND c.id IN (
+<<<<<<< Updated upstream
         SELECT s.course.id
+=======
+        SELECT e.session.course.id
+>>>>>>> Stashed changes
         FROM Enrollment e
         JOIN e.session s
         WHERE e.user.id = :userId

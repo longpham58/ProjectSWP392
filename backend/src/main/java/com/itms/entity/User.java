@@ -46,6 +46,11 @@ public class User {
     @Column(length = 20)
     private String phone;
 
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
@@ -111,4 +116,3 @@ public class User {
         this.updatedAt = LocalDateTime.now();
     }
 }
-
