@@ -3,6 +3,8 @@ package com.itms.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "QuizQuestion")
 @Getter
@@ -16,28 +18,65 @@ public class QuizQuestion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
+    // =============================
+    // Relationship
+    // =============================
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
 
-    @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
-    private String question;
+    // =============================
+    // Question
+    // =============================
+    @Column(name = "question_text", nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    private String questionText;
 
-    @Column(name = "option_a", nullable = false, columnDefinition = "NVARCHAR(500)")
+    @Column(name = "question_type")
+    private String questionType; // MCQ, TRUE_FALSE, etc
+
+    // =============================
+    // Options
+    // =============================
+    @Column(name = "option_a", columnDefinition = "NVARCHAR(500)")
     private String optionA;
 
-    @Column(name = "option_b", nullable = false, columnDefinition = "NVARCHAR(500)")
+    @Column(name = "option_b", columnDefinition = "NVARCHAR(500)")
     private String optionB;
 
-    @Column(name = "option_c", nullable = false, columnDefinition = "NVARCHAR(500)")
+    @Column(name = "option_c", columnDefinition = "NVARCHAR(500)")
     private String optionC;
 
-    @Column(name = "option_d", nullable = false, columnDefinition = "NVARCHAR(500)")
+    @Column(name = "option_d", columnDefinition = "NVARCHAR(500)")
     private String optionD;
 
+    // =============================
+    // Answer
+    // =============================
     @Column(name = "correct_answer", nullable = false)
-    private Integer correctAnswer; // 0=A, 1=B, 2=C, 3=D
+    private String correctAnswer;
+    // Example: A, B, C, D or 0,1,2,3 depending on your system
 
-    @Column(name = "display_order", nullable = false)
+    // =============================
+    // Marks
+    // =============================
+    @Column(name = "marks")
+    private Integer marks;
+
+    @Column(name = "explanation", columnDefinition = "NVARCHAR(MAX)")
+    private String explanation;
+
+    // =============================
+    // Order
+    // =============================
+    @Column(name = "display_order")
     private Integer displayOrder = 0;
+
+    // =============================
+    // Audit fields
+    // =============================
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

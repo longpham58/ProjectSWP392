@@ -24,7 +24,7 @@ export default function AdminLayout() {
       {/* ================= HEADER ================= */}
       <header className="trainer-header">
         <div className="header-left">
-          <h1 className="header-title">ITMS - Admin Portal</h1>
+          <h1 className="header-title">Training Management - Admin Portal</h1>
         </div>
 
         <div className="header-right">

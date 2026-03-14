@@ -1,38 +1,71 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { mockTestAttempts, mockFinalExam, mockTests } from '../../mocks/quiz.mock';
+import { mockTestAttempts, mockFinalExam } from '../../mocks/quiz.mock';
 import { useCourseStore } from '../../stores/course.store';
 import { useQuizStore } from '../../stores/quiz.store';
-import { useModuleProgressStore } from '../../stores/moduleProgress.store';
 import { useAuthStore } from '../../stores/auth.store';
+import { useModuleProgressStore } from '../../stores/moduleProgress.store';
+import { feedbackApi, FeedbackDto } from '../../api/feedback.api';
 
 export default function CourseDetailPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'modules' | 'tests' | 'progress'>('overview');
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'modules' | 'tests' | 'progress' | 'feedback'>('overview');
   
   const { currentCourse: course, modules, loading, fetchCourseDetail } = useCourseStore();
-  const { quizzes, attempts, fetchQuizzes, fetchQuizAttemptsInCourse } = useQuizStore();
-  const { moduleProgress, fetchModuleProgress, completeModule } = useModuleProgressStore();
-
+  const { fetchCourseQuizStatus, courseQuizStatus } = useQuizStore();
+  const { fetchModuleProgress, moduleProgress } = useModuleProgressStore();
+  
+  // Feedback state
+  const [courseFeedback, setCourseFeedback] = useState<FeedbackDto[]>([]);
+  const [userFeedback, setUserFeedback] = useState<FeedbackDto | null>(null);
+  const [hasSubmittedFeedback, setHasSubmittedFeedback] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  
+  // Feedback form state
+  const [feedbackForm, setFeedbackForm] = useState({
+    courseRating: 5,
+    trainerRating: 5,
+    contentRating: 5,
+    comments: '',
+    suggestions: '',
+    wouldRecommend: true,
+    isAnonymous: false,
+  });
   useEffect(() => {
     if (courseId && user?.id) {
       fetchCourseDetail(Number(courseId));
-      fetchQuizzes(Number(courseId), user.id);
-      fetchQuizAttemptsInCourse(user.id, Number(courseId));
+      fetchCourseQuizStatus(Number(courseId), user.id);
       fetchModuleProgress(user.id, Number(courseId));
+      // Fetch feedback
+      fetchFeedbackData();
     }
-  }, [courseId, user?.id, fetchCourseDetail, fetchQuizzes, fetchQuizAttemptsInCourse, fetchModuleProgress]);
+  }, [courseId, user?.id, fetchCourseDetail, fetchCourseQuizStatus]);
 
-  // Filter tests: course-level quizzes (PRE_TEST/POST_TEST) - have courseId but no moduleId
-  // These are fetched from quizStore
-  const tests = quizzes.filter((q: any) => q.courseId && !q.moduleId);
+  const fetchFeedbackData = async () => {
+    if (!courseId || !user?.id) return;
+    setFeedbackLoading(true);
+    try {
+      const [courseRes, userRes, existsRes] = await Promise.all([
+        feedbackApi.getCourseFeedback(Number(courseId)),
+        feedbackApi.getUserFeedback(user.id, Number(courseId)),
+        feedbackApi.hasUserSubmittedFeedback(user.id, Number(courseId)),
+      ]);
+      setCourseFeedback(courseRes.data.data || []);
+      setUserFeedback(userRes.data.data || null);
+      setHasSubmittedFeedback(existsRes.data.data || false);
+    } catch (error) {
+      console.error('Error fetching feedback:', error);
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+  // Get tests from courseQuizStatus API
+  const tests = courseQuizStatus?.quizzes?.filter((q: any) => q.courseId && !q.moduleId) || [];
   
-  // Module quizzes: PRACTICE type - come from modules data (each module has quizzes array)
-  // No need to filter from quiz store - they're in modules[i].quizzes
-
-  if (loading) {
+  if (loading && !courseQuizStatus) {
     return (
       <div className="p-6 flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -40,57 +73,52 @@ export default function CourseDetailPage() {
     );
   }
 
-  if (!course) {
-    return <div className="p-6">Không tìm thấy khóa học</div>;
+  if (!course && !courseQuizStatus) {
+    return <div className="p-6">Đang tải...</div>;
   }
 
-  // Calculate course progress from module progress if not provided
-  const courseProgress = course.progress ?? (
-    moduleProgress.length > 0 
-      ? Math.round(moduleProgress.reduce((sum, p) => sum + (p.progressPercentage || 0), 0) / moduleProgress.length)
-      : 0
-  );
+  // Use courseQuizStatus data - this is the main source of truth from API
+  const completedModulesCount = courseQuizStatus?.completedModulesCount ?? 0;
+  const totalModules = courseQuizStatus?.totalModules ?? modules?.length ?? 0;
+  const courseProgress = totalModules > 0 ? Math.round((completedModulesCount / totalModules) * 100) : 0;
+  
+  // Test unlock logic: use API data (tests unlock based on required modules in backend)
+  const testsUnlocked = (courseQuizStatus?.unlockedQuizCount ?? 0) > 0;
 
-  // Count completed modules
-  const completedModulesCount = moduleProgress.filter((p: any) => p.isCompleted).length;
-  const totalModules = modules.length;
+  // Get dynamic test info from API
+  const testPassingScore = courseQuizStatus?.testPassingScore ?? 70;
+  const testMaxAttempts = courseQuizStatus?.testMaxAttempts ?? 3;
+  const requiredPassCount = courseQuizStatus?.requiredPassCount ?? 1;
 
-  // Test unlock logic: unlock after completing 1 module
-  const modulesRequiredForTest = 1;
-  const testsUnlocked = completedModulesCount >= modulesRequiredForTest;
+  // Get passed tests and certificate status from API
+  const passedTests = courseQuizStatus?.passedTests ?? 0;
+  const certificateEarned = courseQuizStatus?.certificateEarned ?? false;
 
-  // Get dynamic test info - calculate from ALL tests
-  const testPassingScore = tests.length > 0 
-    ? Math.max(...tests.map((t: any) => t.passingScore || 70)) 
-    : 70;
-  const testMaxAttempts = tests.length > 0 
-    ? Math.max(...tests.map((t: any) => t.maxAttempts || 3)) 
-    : 3;
-  const requiredPassCount = tests.length >= 3 ? 2 : Math.max(1, Math.ceil(tests.length / 2));
-
-  // Calculate passed tests from actual attempts in store
-  const passedTests = attempts.filter((a: any) => a.passed || (a.score && a.score >= testPassingScore)).length;
-  const certificateEarned = passedTests >= requiredPassCount;
-
-  // Final exam unlocks after passing required number of tests
-  const finalExamUnlocked = certificateEarned;
+  // Final exam unlocks after earning certificate
+  const finalExamUnlocked = courseQuizStatus?.finalExamUnlocked ?? false;
 
   // Filter materials into documents and videos (backend returns materials as single list with type)
   const getModuleDocuments = (module: any) => {
-    console.log('Filtering documents for module:', module.id, 'with materials:', module.materials);
-    // Check both materials array and direct documents array for compatibility
-    return module.materials?.filter((m: any) => m.type === 'PDF' || m.type === 'DOCX' || m.type === 'PPTX') || module.documents || [];
+    
+    // Documents include: PDF, DOCX, PPTX, LINK, DOCUMENT, SLIDE, OTHER
+    return module.materials?.filter((m: any) => 
+      ['PDF', 'DOCUMENT', 'DOCX', 'SLIDE', 'PPTX', 'LINK', 'OTHER'].includes(m.type)
+    ) || module.documents || [];
   };
   const getModuleVideos = (module: any) => {
-    console.log('Filtering videos for module:', module.id, 'with materials:', module.materials);
+    
     // Check both materials array and direct videos array for compatibility
-    return module.materials?.filter((m: any) => m.type === 'VIDEO') || module.videos || [];
+    // Videos include: VIDEO, AUDIO
+    return module.materials?.filter((m: any) => 
+      ['VIDEO', 'AUDIO'].includes(m.type)
+    ) || module.videos || [];
   };
 
-  // Check if module is completed from moduleProgress store
+  // Check if module is completed - use API data
   const isModuleCompleted = (moduleId: number) => {
-    const progress = moduleProgress.find((p: any) => p.moduleId === moduleId);
-    return progress?.isCompleted || false;
+    // Use courseQuizStatus to check if module is completed
+    // For now, we'll check if the quiz is unlocked to determine if module is completed
+    return moduleProgress?.some((mp: any) => mp.moduleId === moduleId && mp.isCompleted);
   };
 
   const handleDownload = (url: string, title: string) => {
@@ -103,28 +131,64 @@ export default function CourseDetailPage() {
   };
 
   const handleStartFinalExam = () => {
-    if (finalExamUnlocked) {
+    if (finalExamUnlocked && course) {
       navigate(`/employee/final-exam/${course.id}`);
     }
   };
 
+  const handleSubmitFeedback = async () => {
+    if (!courseId || !user?.id) return;
+    try {
+      await feedbackApi.submitFeedback({
+        courseId: Number(courseId),
+        userId: user.id,
+        ...feedbackForm,
+        overallRating: Math.round((feedbackForm.courseRating + feedbackForm.trainerRating + feedbackForm.contentRating) / 3),
+      });
+      setShowFeedbackForm(false);
+      fetchFeedbackData();
+      alert('Cảm ơn bạn đã đánh giá khóa học!');
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      alert('Có lỗi khi gửi đánh giá. Vui lòng thử lại.');
+    }
+  };
+
   const getTestStatus = (testId: number) => {
-    // Check if tests are unlocked first
-    if (!testsUnlocked) {
+    // Get test info from courseQuizStatus
+    const test = tests.find((t: any) => t.id === testId);
+    
+    // Check if tests are unlocked - use API data
+    const isUnlockedFromApi = test?.isUnlocked;
+    
+    if (isUnlockedFromApi === false) {
+      return { status: 'locked', text: '🔒 Chưa mở khóa', color: 'bg-gray-200 text-gray-700' };
+    }
+    if (!testsUnlocked && isUnlockedFromApi === undefined) {
       return { status: 'locked', text: '🔒 Chưa mở khóa', color: 'bg-gray-200 text-gray-700' };
     }
     
-    const attemptsForTest = attempts.filter((a: any) => a.quizId === testId || a.testId === testId);
-    if (attemptsForTest.length === 0) return { status: 'not-started', text: 'Chưa làm', color: 'bg-gray-200 text-gray-700' };
+    // Check if passed from API data
+    if (test?.hasPassed) {
+      return { status: 'passed', text: 'Đã đạt', color: 'bg-green-100 text-green-700' };
+    }
     
-    const lastAttempt = attemptsForTest[attemptsForTest.length - 1];
-    const passed = lastAttempt.passed || (lastAttempt.score && lastAttempt.score >= testPassingScore);
-    if (passed) return { status: 'passed', text: 'Đã đạt', color: 'bg-green-100 text-green-700' };
+    // Check attempts from API
+    const attemptsCount = test?.attemptsCount || 0;
+    if (attemptsCount === 0) return { status: 'not-started', text: 'Chưa làm', color: 'bg-gray-200 text-gray-700' };
     
-    const test = tests.find(t => t.id === testId);
-    if (attemptsForTest.length >= (test?.maxAttempts || 3)) return { status: 'failed', text: 'Hết lượt', color: 'bg-red-100 text-red-700' };
+    if (attemptsCount >= (test?.maxAttempts || 3)) return { status: 'failed', text: 'Hết lượt', color: 'bg-red-100 text-red-700' };
     
-    return { status: 'in-progress', text: `Lần ${attemptsForTest.length}/${test?.maxAttempts || 3}`, color: 'bg-yellow-100 text-yellow-700' };
+    return { status: 'in-progress', text: `Lần ${attemptsCount}/${test?.maxAttempts || 3}`, color: 'bg-yellow-100 text-yellow-700' };
+  };
+
+  const currentCourse = course || {
+    id: Number(courseId),
+    title: 'Course',
+    description: '',
+    instructor: '',
+    duration: '',
+    progress: courseProgress
   };
 
   return (
@@ -138,16 +202,16 @@ export default function CourseDetailPage() {
           >
             ← Quay lại
           </button>
-          <h1 className="text-3xl font-bold mb-2">{course.title}</h1>
-          <p className="text-blue-100 mb-4">{course.description}</p>
+          <h1 className="text-3xl font-bold mb-2">{currentCourse.title}</h1>
+          <p className="text-blue-100 mb-4">{currentCourse.description}</p>
           <div className="flex gap-6 text-sm">
             <div>
               <span className="opacity-75">Giảng viên:</span>
-              <span className="ml-2 font-medium">{course.instructor}</span>
+              <span className="ml-2 font-medium">{currentCourse.instructor}</span>
             </div>
             <div>
               <span className="opacity-75">Thời lượng:</span>
-              <span className="ml-2 font-medium">{course.duration}</span>
+              <span className="ml-2 font-medium">{currentCourse.duration}</span>
             </div>
             <div>
               <span className="opacity-75">Tiến độ:</span>
@@ -201,6 +265,16 @@ export default function CourseDetailPage() {
             >
               Tiến độ
             </button>
+            <button
+              onClick={() => setSelectedTab('feedback')}
+              className={`py-4 border-b-2 transition-colors ${
+                selectedTab === 'feedback'
+                  ? 'border-blue-600 text-blue-600 font-medium'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Đánh giá
+            </button>
           </div>
         </div>
       </div>
@@ -212,13 +286,13 @@ export default function CourseDetailPage() {
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-xl font-bold mb-4">Về khóa học này</h2>
-                <p className="text-gray-700 mb-4">{course.description}</p>
+                <p className="text-gray-700 mb-4">{currentCourse.description}</p>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
                     <span className="text-green-600 text-xl">✓</span>
                     <div>
                       <div className="font-medium">Học theo module</div>
-                      <div className="text-sm text-gray-600">{modules.length} modules với tài liệu và video</div>
+                      <div className="text-sm text-gray-600">{totalModules} modules với tài liệu và video</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -252,7 +326,7 @@ export default function CourseDetailPage() {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Số modules:</span>
-                    <span className="font-medium">{modules.length}</span>
+                    <span className="font-medium">{totalModules}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Bài test:</span>
@@ -408,15 +482,19 @@ export default function CourseDetailPage() {
               <p className="text-gray-600 mb-6">
                 {testsUnlocked 
                   ? `Hoàn thành ${requiredPassCount}/${tests.length} bài test để nhận chứng chỉ khóa học`
-                  : `Hoàn thành ${modulesRequiredForTest} module để mở khóa bài test`
+                  : `Hoàn thành ${completedModulesCount}/${totalModules} module để mở khóa bài test`
                 }
               </p>
               
               <div className="space-y-4">
-                {tests.map((test, idx) => {
+                {tests.map((test: any, idx: number) => {
+                  console.log('Test from API:', test);
                   const status = getTestStatus(test.id);
                   const attempts = mockTestAttempts.filter(a => a.testId === test.id);
                   const canRetake = attempts.length < test.maxAttempts && !attempts.some(a => a.passed);
+
+                  // Get required modules info
+                  const requiredModules = test.requiredModuleTitles || [];
 
                   return (
                     <div key={test.id} className="border-2 rounded-lg p-5 hover:shadow-md transition-shadow">
@@ -428,11 +506,22 @@ export default function CourseDetailPage() {
                           </div>
                           <p className="text-sm text-gray-600 mb-3">{test.description}</p>
                           <div className="flex gap-4 text-xs text-gray-500">
-                            <span>⏱️ {test.duration} phút</span>
+                            <span>⏱️ {test.durationMinutes} phút</span>
                             <span>📊 Điểm đạt: {test.passingScore}%</span>
                             <span>🔄 Tối đa {test.maxAttempts} lần</span>
                             <span>📝 {test.questions?.length || 0} câu hỏi</span>
                           </div>
+                          {/* Show required modules to unlock */}
+                          {requiredModules.length > 0 && (
+                            <div className="mt-2 text-xs text-orange-600 bg-orange-50 p-2 rounded">
+                              🔑 Yêu cầu hoàn thành: {requiredModules.join(', ')}
+                            </div>
+                          )}
+                          {requiredModules.length === 0 && test.isUnlocked === undefined && (
+                            <div className="mt-2 text-xs text-green-600 bg-green-50 p-2 rounded">
+                              ✅ Mở khóa sẵn
+                            </div>
+                          )}
                         </div>
                         <span className={`px-4 py-2 rounded-full text-sm font-medium ${status.color}`}>
                           {status.text}
@@ -455,14 +544,15 @@ export default function CourseDetailPage() {
 
                       <button
                         onClick={() => handleStartTest(test.id)}
-                        disabled={!testsUnlocked || (!canRetake && attempts.length > 0 && !attempts.some((a: any) => a.passed))}
+                        disabled={(!testsUnlocked && test.isUnlocked === undefined) || (!test.isUnlocked && test.isUnlocked !== undefined) || (!canRetake && attempts.length > 0 && !attempts.some((a: any) => a.passed))}
                         className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                          testsUnlocked && (canRetake || attempts.length === 0)
+                          (testsUnlocked || test.isUnlocked) && (canRetake || attempts.length === 0)
                             ? 'bg-blue-600 text-white hover:bg-blue-700'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                       >
-                        {!testsUnlocked ? '🔒 Chưa mở khóa' :
+                        {!testsUnlocked && test.isUnlocked === undefined ? '🔒 Chưa mở khóa' :
+                         test.isUnlocked === false ? '🔒 Chưa mở khóa' :
                          attempts.length === 0 ? 'Bắt đầu làm bài' : 
                          attempts.some((a: any) => a.passed) ? 'Xem lại kết quả' :
                          canRetake ? 'Làm lại' : 'Đã hết lượt'}
@@ -553,7 +643,7 @@ export default function CourseDetailPage() {
               <div className="border rounded-lg p-4">
                 <div className="text-gray-600 text-sm mb-1">Modules hoàn thành</div>
                 <div className="text-2xl font-bold text-green-600">
-                  {modules.filter(m => m.completed).length}/{modules.length}
+                  {completedModulesCount}/{totalModules}
                 </div>
               </div>
               <div className="border rounded-lg p-4">
@@ -571,7 +661,7 @@ export default function CourseDetailPage() {
             <div>
               <h3 className="font-bold mb-4">Chi tiết bài test</h3>
               <div className="space-y-3">
-                {tests.map(test => {
+                {tests.map((test: any) => {
                   const attempts = mockTestAttempts.filter(a => a.testId === test.id);
                   const bestScore = attempts.length > 0 
                     ? Math.max(...attempts.map(a => a.score))
@@ -602,6 +692,180 @@ export default function CourseDetailPage() {
                   );
                 })}
               </div>
+            </div>
+          </div>
+        )}
+
+        {selectedTab === 'feedback' && (
+          <div className="space-y-6">
+            {/* Feedback Form / Status */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold">Đánh giá khóa học</h2>
+                {!hasSubmittedFeedback && !showFeedbackForm && (
+                  <button
+                    onClick={() => setShowFeedbackForm(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    Viết đánh giá
+                  </button>
+                )}
+                {hasSubmittedFeedback && (
+                  <span className="bg-green-100 text-green-700 px-4 py-2 rounded-lg">
+                    ✓ Bạn đã đánh giá
+                  </span>
+                )}
+              </div>
+
+              {showFeedbackForm && !hasSubmittedFeedback && (
+                <div className="space-y-6">
+                  {/* Rating Stars */}
+                  <div>
+                    <label className="block font-medium mb-2">Đánh giá khóa học</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setFeedbackForm({ ...feedbackForm, courseRating: star })}
+                          className={`text-2xl ${star <= feedbackForm.courseRating ? 'text-yellow-400' : 'text-gray-300'}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-medium mb-2">Đánh giá giảng viên</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setFeedbackForm({ ...feedbackForm, trainerRating: star })}
+                          className={`text-2xl ${star <= feedbackForm.trainerRating ? 'text-yellow-400' : 'text-gray-300'}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-medium mb-2">Đánh giá nội dung</label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setFeedbackForm({ ...feedbackForm, contentRating: star })}
+                          className={`text-2xl ${star <= feedbackForm.contentRating ? 'text-yellow-400' : 'text-gray-300'}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-medium mb-2">Nhận xét</label>
+                    <textarea
+                      value={feedbackForm.comments}
+                      onChange={(e) => setFeedbackForm({ ...feedbackForm, comments: e.target.value })}
+                      className="w-full border rounded-lg p-3 h-24"
+                      placeholder="Chia sẻ trải nghiệm học tập của bạn..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-medium mb-2">Đề xuất (không bắt buộc)</label>
+                    <textarea
+                      value={feedbackForm.suggestions}
+                      onChange={(e) => setFeedbackForm({ ...feedbackForm, suggestions: e.target.value })}
+                      className="w-full border rounded-lg p-3 h-24"
+                      placeholder="Đề xuất cải thiện..."
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={feedbackForm.wouldRecommend}
+                        onChange={(e) => setFeedbackForm({ ...feedbackForm, wouldRecommend: e.target.checked })}
+                        className="w-4 h-4"
+                      />
+                      Sẽ giới thiệu cho bạn bè
+                    </label>
+
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={feedbackForm.isAnonymous}
+                        onChange={(e) => setFeedbackForm({ ...feedbackForm, isAnonymous: e.target.checked })}
+                        className="w-4 h-4"
+                      />
+                      Đánh giá ẩn danh
+                    </label>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <button
+                      onClick={handleSubmitFeedback}
+                      className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                    >
+                      Gửi đánh giá
+                    </button>
+                    <button
+                      onClick={() => setShowFeedbackForm(false)}
+                      className="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300"
+                    >
+                      Hủy
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {hasSubmittedFeedback && userFeedback && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="font-medium text-green-800 mb-2">Cảm ơn đánh giá của bạn!</div>
+                  <div className="text-sm text-gray-600">
+                    Điểm trung bình: {userFeedback.overallRating}/5
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Course Reviews */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-bold mb-4">Đánh giá từ học viên</h3>
+              {feedbackLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                </div>
+              ) : courseFeedback.length > 0 ? (
+                <div className="space-y-4">
+                  {courseFeedback.map((feedback: any) => (
+                    <div key={feedback.id} className="border-b pb-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="font-medium">
+                          {feedback.isAnonymous ? 'Ẩn danh' : feedback.userName || 'Học viên'}
+                        </div>
+                        <div className="text-yellow-400">
+                          {'★'.repeat(feedback.overallRating || 5)}
+                          {'☆'.repeat(5 - (feedback.overallRating || 5))}
+                        </div>
+                      </div>
+                      {feedback.comments && (
+                        <p className="text-gray-600 text-sm mb-2">{feedback.comments}</p>
+                      )}
+                      {feedback.suggestions && (
+                        <p className="text-gray-500 text-xs italic">💡 {feedback.suggestions}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">Chưa có đánh giá nào</p>
+              )}
             </div>
           </div>
         )}

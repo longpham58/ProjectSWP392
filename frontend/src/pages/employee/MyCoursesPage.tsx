@@ -3,12 +3,14 @@ import CourseCard from '../../components/employee/CourseCard';
 import { CourseCardSkeleton } from '../../components/common/LoadingSpinner';
 import { NoCoursesFound } from '../../components/common/EmptyState';
 import { useCourseStore } from '../../stores/course.store';
+import { useAuthStore } from '../../stores/auth.store';
 
 type SortOption = 'newest' | 'oldest' | 'progress' | 'name';
 type ViewMode = 'grid' | 'list';
 
 export default function MyCoursesPage() {
   const { courses, fetchMyCourses, loading } = useCourseStore();
+  const { user } = useAuthStore();
   const [filter, setFilter] = useState<'all' | 'ACTIVE' | 'DRAFT' | 'ARCHIVED'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -16,8 +18,8 @@ export default function MyCoursesPage() {
 
   // Fetch courses from API
   useEffect(() => {
-    fetchMyCourses();
-  }, [fetchMyCourses]);
+    fetchMyCourses(user?.id);
+  }, [fetchMyCourses, user]);
 
   // Filter courses
   let filteredCourses = courses.filter(course => {

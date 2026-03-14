@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
         name = "Enrollment",
         uniqueConstraints = {
                 @UniqueConstraint(
-                        name = "UQ_Enrollment_UserSession",
-                        columnNames = {"user_id", "session_id"}
+                        name = "UQ_Enrollment_UserCourse",
+                        columnNames = {"user_id", "course_id"}
                 )
         }
 )
@@ -35,8 +35,8 @@ public class Enrollment {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_id", nullable = false)
-    private Session session;
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "approved_by")

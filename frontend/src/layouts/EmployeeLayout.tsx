@@ -26,16 +26,16 @@ export default function EmployeeLayout() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center gap-3">
               <div className="text-2xl">🎓</div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">ITMS</h1>
+                <h1 className="text-xl font-bold text-gray-900">Training Management</h1>
                 <p className="text-xs text-gray-500">Employee Portal</p>
               </div>
             </div>
@@ -148,16 +148,16 @@ export default function EmployeeLayout() {
         </div>
       </nav>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto">
+      {/* Main Content - Scrollable */}
+      <main className="max-w-7xl mx-auto w-full flex-1 overflow-y-auto">
         <Outlet />
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t mt-12">
+      <footer className="bg-white border-t flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-sm text-gray-500">
-            © 2026 ITMS - Internal Training Management System
+            © 2026 Training Management System
           </p>
         </div>
       </footer>

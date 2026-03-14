@@ -1,10 +1,16 @@
-import { useState } from 'react';
-import { mockCourseSchedule, type CourseSchedule } from '../../data/mockSchedule';
+import { useState, useEffect } from 'react';
+import { useSessionStore } from '../../stores/session.store';
+import { CourseSchedule } from '../../api/session.api';
 
 export default function SchedulePage() {
-  const [schedule] = useState(mockCourseSchedule);
+  const { schedule, scheduleLoading, scheduleError, fetchCourseSchedule } = useSessionStore();
   const [selectedWeek, setSelectedWeek] = useState('2026-W10');
   const [viewMode, setViewMode] = useState<'week' | 'list'>('week');
+
+  // Fetch schedule from store
+  useEffect(() => {
+    fetchCourseSchedule();
+  }, [fetchCourseSchedule]);
 
   // Days of week
   const daysOfWeek = [
@@ -33,11 +39,12 @@ export default function SchedulePage() {
 
   const getStatusColor = (status: CourseSchedule['status']) => {
     switch (status) {
-      case 'completed':
+      case 'COMPLETED':
         return 'bg-green-100 border-green-300 text-green-800';
-      case 'upcoming':
+      case 'SCHEDULED':
+      case 'ONGOING':
         return 'bg-blue-100 border-blue-300 text-blue-800';
-      case 'cancelled':
+      case 'CANCELLED':
         return 'bg-red-100 border-red-300 text-red-800';
       default:
         return 'bg-gray-100 border-gray-300 text-gray-800';
@@ -46,11 +53,13 @@ export default function SchedulePage() {
 
   const getStatusText = (status: CourseSchedule['status']) => {
     switch (status) {
-      case 'completed':
+      case 'COMPLETED':
         return 'Đã học';
-      case 'upcoming':
+      case 'SCHEDULED':
         return 'Sắp diễn ra';
-      case 'cancelled':
+      case 'ONGOING':
+        return 'Đang diễn ra';
+      case 'CANCELLED':
         return 'Đã hủy';
       default:
         return status;
@@ -111,8 +120,38 @@ export default function SchedulePage() {
           </div>
         </div>
 
+        {/* Loading State */}
+        {scheduleLoading && (
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <span className="ml-4 text-gray-600">Đang tải lịch học...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {scheduleError && !scheduleLoading && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-600">{scheduleError}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="mt-2 text-sm text-red-700 underline"
+            >
+              Thử lại
+            </button>
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!scheduleLoading && !scheduleError && schedule.length === 0 && (
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+            <div className="text-6xl mb-4">📅</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Chưa có lịch học</h3>
+            <p className="text-gray-600">Bạn chưa có lịch học nào. Hãy đăng ký khóa học để xem lịch học.</p>
+          </div>
+        )}
+
         {/* Week View */}
-        {viewMode === 'week' && (
+        {!scheduleLoading && !scheduleError && schedule.length > 0 && viewMode === 'week' && (
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -162,7 +201,7 @@ export default function SchedulePage() {
         )}
 
         {/* List View */}
-        {viewMode === 'list' && (
+        {!scheduleLoading && !scheduleError && schedule.length > 0 && viewMode === 'list' && (
           <div className="space-y-4">
             {schedule.map(session => (
               <div key={session.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
@@ -206,23 +245,25 @@ export default function SchedulePage() {
         )}
 
         {/* Legend */}
-        <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
-          <h3 className="font-semibold mb-4">Chú thích:</h3>
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-blue-100 border-2 border-blue-300"></div>
-              <span className="text-sm">Sắp diễn ra</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-green-100 border-2 border-green-300"></div>
-              <span className="text-sm">Đã học</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-red-100 border-2 border-red-300"></div>
-              <span className="text-sm">Đã hủy</span>
+        {!scheduleLoading && !scheduleError && schedule.length > 0 && (
+          <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
+            <h3 className="font-semibold mb-4">Chú thích:</h3>
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-blue-100 border-2 border-blue-300"></div>
+                <span className="text-sm">Sắp diễn ra / Đang diễn ra</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-green-100 border-2 border-green-300"></div>
+                <span className="text-sm">Đã học</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-red-100 border-2 border-red-300"></div>
+                <span className="text-sm">Đã hủy</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

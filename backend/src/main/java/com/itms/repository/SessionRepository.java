@@ -43,7 +43,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
         )
         FROM Session s
         LEFT JOIN Enrollment e 
-               ON e.session.id = s.id 
+               ON e.course.id = s.course.id 
                AND e.user.id = :userId
         LEFT JOIN Attendance a 
                ON a.enrollment.id = e.id
@@ -56,4 +56,34 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
             @Param("userId") Integer userId,
             @Param("courseId") Integer courseId
     );
+
+    /**
+     * Find all sessions for courses taught by a specific trainer, ordered by date
+     */
+    @Query("SELECT s FROM Session s WHERE s.course.trainer.id = :trainerId ORDER BY s.date ASC, s.sessionNumber ASC")
+    List<Session> findByCourseTrainerIdOrderByDateAsc(@Param("trainerId") Integer trainerId);
+
+    /**
+     * Find all sessions for courses taught by a specific trainer, ordered by date (alias)
+     */
+    @Query("SELECT s FROM Session s WHERE s.course.trainer.id = :trainerId ORDER BY s.date ASC, s.sessionNumber ASC")
+    List<Session> findByTrainerIdOrderByDateAsc(@Param("trainerId") Integer trainerId);
+
+    /**
+     * Find all sessions for courses taught by a specific trainer
+     */
+    @Query("SELECT s FROM Session s WHERE s.course.trainer.id = :trainerId")
+    List<Session> findByTrainerId(@Param("trainerId") Integer trainerId);
+
+    /**
+     * Find all sessions for a user (through enrollments), ordered by date
+     */
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.course = s.course WHERE e.user.id = :userId ORDER BY s.date ASC, s.sessionNumber ASC")
+    List<Session> findByUserIdOrderByDateAsc(@Param("userId") Integer userId);
+
+    /**
+     * Find all sessions for a user for a specific course
+     */
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.course = s.course WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.sessionNumber ASC")
+    List<Session> findByUserIdAndCourseIdOrderByDateAsc(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
 }

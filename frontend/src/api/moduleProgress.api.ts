@@ -71,4 +71,17 @@ export const moduleProgressApi = {
    */
   isFinalExamUnlocked: (userId: number, courseId: number) =>
     axios.get<ApiResponse<{ unlocked: boolean }>>(`/module-progress/final-exam-unlocked/${userId}/${courseId}`),
+
+  /**
+   * Get overall course progress percentage for a user
+   */
+  getCourseProgress: (userId: number, courseId: number) =>
+    axios.get<ApiResponse<{
+      courseId: number;
+      userId: number;
+      totalModules: number;
+      completedModules: number;
+      progressPercentage: number;
+      timeSpentMinutes: number;
+    }>>(`/module-progress/course-progress/${userId}/${courseId}`),
 };

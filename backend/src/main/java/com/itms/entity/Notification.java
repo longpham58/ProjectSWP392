@@ -22,10 +22,15 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    // Many notifications belong to one user
+    // Many notifications belong to one user (recipient)
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+    
+    // Sender of the notification
+    @ManyToOne
+    @JoinColumn(name = "sender_id")
+    private User sender;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
@@ -62,6 +67,10 @@ public class Notification {
 
     @Column(name = "detail_content")
     private String detailContent;
+    
+    // To track if this is a sent item for the sender
+    @Column(name = "is_sent_copy")
+    private Boolean isSentCopy = false;
 
     @PrePersist
     public void prePersist() {

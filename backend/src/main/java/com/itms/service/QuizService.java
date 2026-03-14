@@ -41,12 +41,12 @@ public class QuizService {
         for (Quiz quiz : quizzes) {
             QuizDto dto = mapToDto(quiz);
             
-            // Check if quiz is unlocked based on ANY required module completed (OR logic)
-            // First check if quiz has any required modules in Quiz_Required_Modules table
+            // Check if quiz is unlocked based on required modules
+            // Quiz 7 and similar tests require ALL modules to be completed
             List<Integer> requiredModuleIds = quizRequiredModuleRepository.findModuleIdsByQuizId(quiz.getId());
             
             if (!requiredModuleIds.isEmpty()) {
-                // Quiz has required modules - check if ALL are completed (AND logic)
+                // Check if ALL required modules are completed (AND logic)
                 boolean isUnlocked = areAllRequiredModulesCompleted(userId, requiredModuleIds);
                 dto.setIsUnlocked(isUnlocked);
             } else if (quiz.getModule() != null) {
@@ -232,6 +232,18 @@ public class QuizService {
     }
 
     /**
+     * Check if ANY of the required modules is completed (OR logic)
+     */
+    private boolean isAnyRequiredModuleCompleted(Integer userId, List<Integer> requiredModuleIds) {
+        for (Integer moduleId : requiredModuleIds) {
+            if (isModuleCompleted(userId, moduleId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Get course quiz status with unlock info, certificate status, and final exam unlock
      * This implements the logic:
      * - Tests unlock when required modules are completed (ANY module unlocks the test)
@@ -256,7 +268,7 @@ public class QuizService {
         for (Quiz quiz : quizzes) {
             QuizDto dto = mapToDto(quiz);
             
-            // Check unlock based on required modules
+            // Check unlock based on required modules - ALL modules must be completed
             List<Integer> requiredModuleIds = quizRequiredModuleRepository.findModuleIdsByQuizId(quiz.getId());
             
             if (!requiredModuleIds.isEmpty()) {
@@ -341,7 +353,7 @@ public class QuizService {
         
         boolean finalExamUnlocked = false;
         if (finalExam != null) {
-            // Check if final exam has required modules
+            // Check if final exam has required modules - ALL must be completed
             List<Integer> finalExamRequiredModules = quizRequiredModuleRepository.findModuleIdsByQuizId(finalExam.getId());
             
             if (!finalExamRequiredModules.isEmpty()) {

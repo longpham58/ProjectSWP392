@@ -12,13 +12,19 @@ import java.util.List;
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer> {
 
     List<Enrollment> findByUserId(int userId);
+
+    /**
+     * Find enrollment by user and course
+     */
+    @Query("SELECT e FROM Enrollment e WHERE e.user.id = :userId AND e.course.id = :courseId")
+    java.util.Optional<Enrollment> findByUserIdAndCourseId(@Param("userId") int userId, @Param("courseId") int courseId);
     /**
      * Count sessions scheduled for the employee today (from approved enrollments).
      */
     @Query(value = """
         SELECT COUNT(*)
         FROM Enrollment e
-        JOIN Session s ON e.session_id = s.id
+        JOIN Session s ON e.course_id = s.course_id
         WHERE e.user_id = :userId
         AND e.status IN ('APPROVED', 'COMPLETED')
         AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
@@ -31,7 +37,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     @Query(value = """
         SELECT COALESCE(SUM(DATEDIFF(MINUTE, s.time_start, s.time_end)), 0)
         FROM Enrollment e
-        JOIN Session s ON e.session_id = s.id
+        JOIN Session s ON e.course_id = s.course_id
         WHERE e.user_id = :userId
         AND e.status IN ('APPROVED', 'COMPLETED')
         AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
@@ -45,8 +51,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
         SELECT COUNT(*)
         FROM Quiz q
         JOIN Course c ON q.course_id = c.id
-        JOIN Session s ON s.course_id = c.id
-        JOIN Enrollment e ON e.session_id = s.id
+        JOIN Enrollment e ON e.course_id = c.id
         WHERE e.user_id = :userId
         AND e.status IN ('APPROVED', 'COMPLETED')
         AND q.is_active = 1
@@ -70,8 +75,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
             c.name            AS course,
             e.registered_at   AS time
         FROM Enrollment e
-        JOIN Session s ON e.session_id = s.id
-        JOIN Course c ON s.course_id = c.id
+        JOIN Course c ON e.course_id = c.id
         WHERE e.user_id = :userId
         AND e.status IN ('APPROVED', 'COMPLETED')
         ORDER BY e.registered_at DESC

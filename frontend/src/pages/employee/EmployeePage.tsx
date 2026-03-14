@@ -1,7 +1,7 @@
 import { useAuthStore } from '../../stores/auth.store';
 import { mockNotifications } from '../../data/mockNotifications';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useCourseStore } from '../../stores/course.store';
 import { useNotificationStore } from '../../stores/notification.store';
 import { useCertificateStore } from '../../stores/certificate.store';
@@ -17,14 +17,32 @@ export default function EmployeePage() {
   const { courses, fetchMyCourses } = useCourseStore();
   const { streak, fetchStreak, loading: streakLoading } = useStreakStore();
   const { deadlines, activities, todayProgress, loading: dashboardLoading, fetchDashboardData } = useDashboardStore();
+  
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchMyCourses();
-    fetchNotifications();
-    fetchCertificates(user?.id || 0);
-    fetchStreak(user?.id || 0);
-    fetchDashboardData();
-  }, []);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([
+          fetchMyCourses(user?.id),
+          fetchNotifications(),
+          fetchCertificates(user?.id || 0),
+          fetchStreak(user?.id || 0),
+          fetchDashboardData()
+        ]);
+        console.log(courses);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (user) {
+      fetchData();
+    }
+  }, [user?.id]);
 
   // Mock data - in real app, this would come from API
   const myCourses = courses;
@@ -47,13 +65,30 @@ export default function EmployeePage() {
   };
 
   const lessonProgress =
-  (progressData.lessonsCompleted / progressData.lessonsTarget) * 100;
+  progressData?.lessonsTarget > 0
+    ? (progressData.lessonsCompleted / progressData.lessonsTarget) * 100
+    : 0;
 
   const timeProgress =
-  (progressData.studyHours / progressData.studyTarget) * 100;
+  progressData?.studyTarget > 0
+    ? (progressData.studyHours / progressData.studyTarget) * 100
+    : 0;
 
   const quizProgress =
-  (progressData.quizzesCompleted / progressData.quizzesTarget) * 100;
+  progressData?.quizzesTarget > 0
+    ? (progressData.quizzesCompleted / progressData.quizzesTarget) * 100
+    : 0;
+  
+  if (!user) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="p-6">
@@ -290,7 +325,7 @@ export default function EmployeePage() {
           </div>
           {ongoingCourses.length > 0 ? (
             <div className="space-y-3">
-              {ongoingCourses.map((course, index) => (
+              {ongoingCourses.map((course) => (
                 <div 
                   key={course.id} 
                   className="border-l-4 border-blue-600 pl-4 py-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
@@ -302,10 +337,10 @@ export default function EmployeePage() {
                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                       <div 
                         className="bg-blue-600 h-2 rounded-full transition-all"
-                        style={{ width: `${(index + 1) * 30}%` }}
+                        style={{ width: `${(course as any).progress || 0}%` }}
                       />
                     </div>
-                    <span className="text-sm text-gray-600">{(index + 1) * 30}%</span>
+                    <span className="text-sm text-gray-600">{(course as any).progress || 0}%</span>
                   </div>
                 </div>
               ))}
