@@ -34,4 +34,11 @@ public class ResponseDto<T> {
                 .message(message)
                 .build();
     }
+
+    public static <T> ResponseDto<T> error(String message) {
+        return ResponseDto.<T>builder()
+                .success(false)
+                .message(message)
+                .build();
+    }
 }

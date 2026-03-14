@@ -8,9 +8,10 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
+public interface AttendanceRepository extends JpaRepository<Attendance, Integer> {
     
     @Query("SELECT a FROM Attendance a JOIN FETCH a.enrollment e JOIN FETCH e.course c WHERE e.user.id = :userId AND c.id = :courseId")
     List<Attendance> findByUserIdAndCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
@@ -83,4 +84,39 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         ORDER BY s.date DESC
     """, nativeQuery = true)
     List<Object[]> findRecentSessionActivities(@Param("userId") Integer userId);
+
+    /**
+     * Find attendance record by enrollment ID
+     */
+    Optional<Attendance> findByEnrollmentId(Integer enrollmentId);
+
+    /**
+     * Find all enrollments for a session (for trainer to mark attendance)
+     */
+    @Query("""
+        SELECT a FROM Attendance a
+        JOIN a.enrollment e
+        JOIN e.user u
+        WHERE e.session.id = :sessionId
+        ORDER BY u.fullName ASC
+    """)
+    List<Attendance> findBySessionId(@Param("sessionId") Long sessionId);
+
+    /**
+     * Count attended students in a session
+     */
+    @Query("""
+        SELECT COUNT(a) FROM Attendance a
+        WHERE a.enrollment.session.id = :sessionId AND a.attended = true
+    """)
+    Integer countAttendedBySessionId(@Param("sessionId") Long sessionId);
+
+    /**
+     * Count absent students in a session
+     */
+    @Query("""
+        SELECT COUNT(a) FROM Attendance a
+        WHERE a.enrollment.session.id = :sessionId AND a.attended = false
+    """)
+    Integer countAbsentBySessionId(@Param("sessionId") Long sessionId);
 }

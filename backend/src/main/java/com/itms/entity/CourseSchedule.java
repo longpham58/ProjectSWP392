@@ -1,21 +1,18 @@
 package com.itms.entity;
 
 import com.itms.common.LocationType;
-import com.itms.common.SessionStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.List;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "Session")
-public class Session {
+@Table(name = "CourseSchedule")
+public class CourseSchedule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,10 +31,6 @@ public class Session {
     private ClassRoom classRoom;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_id")
-    private CourseSchedule schedule;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trainer_id")
     private User trainer;
 
@@ -45,16 +38,12 @@ public class Session {
     @JoinColumn(name = "created_by")
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by")
-    private User updatedBy;
-
     /* =========================
-       Session Info
+       Schedule Info
     ========================= */
 
-    @Column(nullable = false)
-    private LocalDate date;
+    @Column(name = "day_of_week", nullable = false, length = 3)
+    private String dayOfWeek; // MON, TUE, WED, THU, FRI, SAT, SUN
 
     @Column(name = "time_start", nullable = false)
     private LocalTime timeStart;
@@ -66,40 +55,15 @@ public class Session {
        Location
     ========================= */
 
+    @Column(length = 255)
     private String location;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "location_type")
-    private LocationType locationType;
+    @Column(name = "location_type", nullable = false)
+    private LocationType locationType = LocationType.OFFLINE;
 
-    @Column(name = "meeting_link")
+    @Column(name = "meeting_link", length = 500)
     private String meetingLink;
-
-    @Column(name = "meeting_password")
-    private String meetingPassword;
-
-    /* =========================
-       Capacity
-    ========================= */
-
-    @Column(name = "max_capacity", nullable = false)
-    private Integer maxCapacity;
-
-    @Column(name = "current_enrolled")
-    private Integer currentEnrolled = 0;
-
-    /* =========================
-       Status
-    ========================= */
-
-    @Enumerated(EnumType.STRING)
-    private SessionStatus status;
-
-    @Column(name = "cancellation_reason")
-    private String cancellationReason;
-
-    @Column(columnDefinition = "NVARCHAR(MAX)")
-    private String notes;
 
     /* =========================
        Audit
@@ -111,6 +75,13 @@ public class Session {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "session")
-    private List<Feedback> feedbacks;
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

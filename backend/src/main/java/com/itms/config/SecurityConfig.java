@@ -37,7 +37,9 @@ public class SecurityConfig {
                         .requestMatchers("/",
                                 "/oauth2/**",
                                 "/login/**",
-                                "/api/auth/**").permitAll() // allow login, register
+                                "/api/auth/**",
+                                "/api/test/**",
+                                "/api/health/**").permitAll() // allow login, register, test, and health endpoints
                         // swagger / openapi
                         .requestMatchers(
                                 "/v3/api-docs/**",

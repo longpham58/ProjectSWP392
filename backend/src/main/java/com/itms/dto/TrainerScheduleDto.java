@@ -1,5 +1,6 @@
 package com.itms.dto;
 
+import com.itms.common.LocationType;
 import com.itms.common.SessionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,21 +15,32 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrainerScheduleDto {
-    private Long sessionId;
-    private String sessionName;
+    private Long id;
     private Integer sessionNumber;
     private LocalDate date;
     private LocalTime timeStart;
     private LocalTime timeEnd;
     private String location;
-    private SessionStatus status;
+    private LocationType locationType;
     private String meetingLink;
+    private SessionStatus status;
     
     // Course info
     private Integer courseId;
     private String courseCode;
     private String courseName;
     
-    // Day of week (0 = Sunday, 1 = Monday, etc.)
-    private Integer dayOfWeek;
+    // Class info
+    private String classCode;
+    
+    // Trainer info
+    private String trainerName;
+    
+    // Capacity
+    private Integer maxCapacity;
+    private Integer currentEnrolled;
+    
+    // Computed fields for frontend
+    private Integer dayOfWeek; // 0-6 (Sunday-Saturday)
+    private Integer slot; // 1-11
 }

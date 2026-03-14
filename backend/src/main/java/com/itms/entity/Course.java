@@ -61,6 +61,12 @@ public class Course {
     @Column(name = "max_attempts")
     private Integer maxAttempts;
 
+    @Column(name = "start_date")
+    private java.time.LocalDate startDate;
+
+    @Column(name = "end_date")
+    private java.time.LocalDate endDate;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private CourseStatus status;
@@ -70,6 +76,14 @@ public class Course {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
+    @ManyToOne
+    @JoinColumn(name = "updated_by")
+    private User updatedBy;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Material> materials;
