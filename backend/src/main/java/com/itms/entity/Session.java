@@ -30,6 +30,18 @@ public class Session {
     private Course course;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id")
+    private ClassRoom classRoom;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id")
+    private CourseSchedule schedule;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trainer_id")
+    private User trainer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
 
@@ -41,7 +53,7 @@ public class Session {
        Session Info
     ========================= */
 
-    @Column(name = "session_name", nullable = false)
+    @Column(name = "session_name")
     private String sessionName;
 
     @Column(name = "session_number")
