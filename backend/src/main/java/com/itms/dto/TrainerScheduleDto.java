@@ -1,5 +1,6 @@
 package com.itms.dto;
 
+import com.itms.common.LocationType;
 import com.itms.common.SessionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +22,7 @@ public class TrainerScheduleDto {
     private LocalTime timeStart;
     private LocalTime timeEnd;
     private String location;
+    private LocationType locationType;
     private SessionStatus status;
     private String meetingLink;
     
@@ -28,6 +30,16 @@ public class TrainerScheduleDto {
     private Integer courseId;
     private String courseCode;
     private String courseName;
+    
+    // Class info
+    private String classCode;
+    
+    // Trainer info
+    private String trainerName;
+    
+    // Capacity
+    private Integer maxCapacity;
+    private Integer currentEnrolled;
     
     // Day of week (0 = Sunday, 1 = Monday, etc.)
     private Integer dayOfWeek;
