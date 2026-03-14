@@ -1,15 +1,21 @@
 package com.itms.entity;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(
         name = "Feedback",
         uniqueConstraints = {
-                @UniqueConstraint(name = "UQ_Feedback_EnrollmentSession",
-                        columnNames = {"enrollment_id", "session_id"})
+                @UniqueConstraint(name = "UQ_Feedback_Enrollment",
+                        columnNames = {"enrollment_id"})
         }
 )
 public class Feedback {
@@ -27,7 +33,7 @@ public class Feedback {
     private Enrollment enrollment;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_id", nullable = false)
+    @JoinColumn(name = "session_id")
     private Session session;
 
     @ManyToOne(fetch = FetchType.LAZY)

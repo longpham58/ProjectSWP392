@@ -1,14 +1,21 @@
 package com.itms.entity;
 
 import jakarta.persistence.*;
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
 import lombok.*;
 >>>>>>> Stashed changes
+=======
+import lombok.Getter;
+import lombok.Setter;
+>>>>>>> origin/main
 
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "Attendance")
 public class Attendance {
 

@@ -1,4 +1,4 @@
-import type { CourseModule, Test, TestAttempt, FinalExam, Quiz, Document, Video } from '../types/quiz.types';
+import type { CourseModule, Test, TestAttempt, FinalExam, Quiz, Document, Video, UserModuleProgress } from '../types/quiz.types';
 
 // Mock Documents
 const mockDocuments: Document[] = [
@@ -21,19 +21,19 @@ const mockDocuments: Document[] = [
 // Mock Videos
 const mockVideos: Video[] = [
   // Course 1 - Information Security
-  { id: 1, title: 'Giới thiệu về An ninh thông tin', duration: '15:30', url: '/videos/intro-security.mp4', thumbnail: 'https://via.placeholder.com/320x180' },
-  { id: 2, title: 'Các mối đe dọa phổ biến', duration: '22:45', url: '/videos/threats.mp4', thumbnail: 'https://via.placeholder.com/320x180' },
-  { id: 3, title: 'Bảo vệ dữ liệu cá nhân', duration: '18:20', url: '/videos/data-protection.mp4', thumbnail: 'https://via.placeholder.com/320x180' },
-  
+  { id: 1, title: 'Giới thiệu về An ninh thông tin', duration: '15:30', url: '/videos/intro-security.mp4', thumbnail: 'https://via.placeholder.com/320x180', type: 'VIDEO' },
+  { id: 2, title: 'Các mối đe dọa phổ biến', duration: '22:45', url: '/videos/threats.mp4', thumbnail: 'https://via.placeholder.com/320x180', type: 'VIDEO' },
+  { id: 3, title: 'Bảo vệ dữ liệu cá nhân', duration: '18:20', url: '/videos/data-protection.mp4', thumbnail: 'https://via.placeholder.com/320x180', type: 'VIDEO' },
+
   // Course 2 - Workplace Ethics
-  { id: 4, title: 'Đạo đức trong công việc', duration: '12:15', url: '/videos/work-ethics.mp4', thumbnail: 'https://via.placeholder.com/320x180' },
-  { id: 5, title: 'Xử lý xung đột lợi ích', duration: '16:30', url: '/videos/conflicts.mp4', thumbnail: 'https://via.placeholder.com/320x180' },
-  { id: 6, title: 'Văn hóa công ty', duration: '14:45', url: '/videos/company-culture.mp4', thumbnail: 'https://via.placeholder.com/320x180' },
-  
+  { id: 4, title: 'Đạo đức trong công việc', duration: '12:15', url: '/videos/work-ethics.mp4', thumbnail: 'https://via.placeholder.com/320x180', type: 'VIDEO' },
+  { id: 5, title: 'Xử lý xung đột lợi ích', duration: '16:30', url: '/videos/conflicts.mp4', thumbnail: 'https://via.placeholder.com/320x180', type: 'VIDEO' },
+  { id: 6, title: 'Văn hóa công ty', duration: '14:45', url: '/videos/company-culture.mp4', thumbnail: 'https://via.placeholder.com/320x180', type: 'VIDEO' },
+
   // Course 3 - Leadership
-  { id: 7, title: 'Phong cách lãnh đạo', duration: '20:30', url: '/videos/leadership-styles.mp4', thumbnail: 'https://via.placeholder.com/320x180' },
-  { id: 8, title: 'Động viên nhân viên', duration: '18:15', url: '/videos/motivation.mp4', thumbnail: 'https://via.placeholder.com/320x180' },
-  { id: 9, title: 'Quản lý thay đổi', duration: '25:40', url: '/videos/change-management.mp4', thumbnail: 'https://via.placeholder.com/320x180' },
+  { id: 7, title: 'Phong cách lãnh đạo', duration: '20:30', url: '/videos/leadership-styles.mp4', thumbnail: 'https://via.placeholder.com/320x180', type: 'VIDEO' },
+  { id: 8, title: 'Động viên nhân viên', duration: '18:15', url: '/videos/motivation.mp4', thumbnail: 'https://via.placeholder.com/320x180', type: 'VIDEO' },
+  { id: 9, title: 'Quản lý thay đổi', duration: '25:40', url: '/videos/change-management.mp4', thumbnail: 'https://via.placeholder.com/320x180', type: 'VIDEO' },
 ];
 
 // Mock Quizzes
@@ -43,18 +43,101 @@ export const mockQuizzes: Quiz[] = [
     moduleId: 1,
     title: 'Quiz: Kiến thức cơ bản về An ninh',
     description: 'Kiểm tra hiểu biết về an ninh thông tin',
+    quizType: 'PRACTICE',
+    durationMinutes: 15,
+    maxAttempts: 3,
+    passingScore: 70,
+    totalQuestions: 5,
     questions: [
       {
         id: 1,
         question: 'An ninh thông tin là gì?',
         options: ['Bảo vệ dữ liệu', 'Bảo vệ thông tin khỏi truy cập trái phép', 'Mã hóa dữ liệu', 'Sao lưu dữ liệu'],
         correctAnswer: 1
+      },
+      {
+        id: 2,
+        question: 'CIA trong an ninh là gì?',
+        options: ['Central Intelligence Agency', 'Confidentiality, Integrity, Availability', 'Computer Information Access', 'Cyber Internet Attack'],
+        correctAnswer: 1
+      },
+      {
+        id: 3,
+        question: 'Phishing là gì?',
+        options: ['Câu cá', 'Tấn công lừa đảo qua email', 'Virus máy tính', 'Firewall'],
+        correctAnswer: 1
+      },
+      {
+        id: 4,
+        question: 'Mật khẩu mạnh nên có?',
+        options: ['Chỉ chữ thường', 'Chỉ số', 'Kết hợp chữ, số, ký tự đặc biệt', 'Tên của bạn'],
+        correctAnswer: 2
+      },
+      {
+        id: 5,
+        question: 'Firewall dùng để?',
+        options: ['Chống cháy', 'Bảo vệ mạng', 'Tăng tốc internet', 'Lưu trữ dữ liệu'],
+        correctAnswer: 1
+      }
+    ]
+  },
+  {
+    id: 2,
+    moduleId: 2,
+    title: 'Quiz: Mối đe dọa an ninh',
+    description: 'Kiểm tra kiến thức về các mối đe dọa',
+    quizType: 'PRACTICE',
+    durationMinutes: 15,
+    maxAttempts: 3,
+    passingScore: 70,
+    totalQuestions: 5,
+    questions: [
+      {
+        id: 6,
+        question: 'Malware là gì?',
+        options: ['Phần mềm hợp pháp', 'Phần mềm độc hại', 'Phần mềm gián điệp', 'Phần mềm diệt virus'],
+        correctAnswer: 1
+      },
+      {
+        id: 7,
+        question: 'Ransomware là gì?',
+        options: ['Phần mềm quảng cáo', 'Phần mã hóa dữ liệu để đòi tiền', 'Phần mềm gián điệp', 'Phần mềm đào tiền ảo'],
+        correctAnswer: 1
+      },
+      {
+        id: 8,
+        question: 'SQL Injection là gì?',
+        options: ['Tấn công vào cơ sở dữ liệu', 'Tấn công từ chối dịch vụ', 'Tấn công man-in-the-middle', 'Tấn công vào mạng wifi'],
+        correctAnswer: 0
+      },
+      {
+        id: 9,
+        question: 'DDoS là gì?',
+        options: ['Tấn công trực tiếp', 'Tấn công từ chối dịch vụ phân tán', 'Tấn công lừa đảo', 'Tấn công vào database'],
+        correctAnswer: 1
+      },
+      {
+        id: 10,
+        question: 'Zero-day vulnerability là gì?',
+        options: ['Lỗ hổng đã được vá', 'Lỗ hổng chưa được vá', 'Lỗ hổng không nguy hiểm', 'Lỗ hổng chỉ xảy ra vào ngày mai'],
+        correctAnswer: 1
       }
     ]
   }
 ];
 
-export const mockQuizAttempts: any[] = [];
+export const mockQuizAttempts: any[] = [
+  // Quiz 1 attempts for user 1
+  {
+    id: 1,
+    userId: 1,
+    quizId: 1,
+    score: 80,
+    passed: true,
+    completedAt: '2026-03-01T10:30:00',
+    timeTakenMinutes: 10
+  }
+];
 
 // Mock Tests (3 tests per course)
 export const mockTests: Test[] = [
@@ -208,9 +291,7 @@ export const mockTests: Test[] = [
 ];
 
 export const mockTestAttempts: TestAttempt[] = [
-  { id: 1, testId: 1, attemptNumber: 1, score: 80, passed: true, answers: [1, 1, 2, 0, 1], completedAt: '2026-02-15T10:30:00' },
-  { id: 2, testId: 2, attemptNumber: 1, score: 60, passed: false, answers: [1, 0, 1, 1, 2], completedAt: '2026-02-20T14:00:00', nextAttemptAvailable: '2026-02-20T22:00:00' }
-];
+  ];
 
 // Mock Course Modules
 export const mockCourseModules: CourseModule[] = [
@@ -226,6 +307,148 @@ export const mockCourseModules: CourseModule[] = [
   { id: 7, courseId: 3, title: 'Module 1: Kỹ năng lãnh đạo cơ bản', description: 'Các kỹ năng cần thiết', order: 1, documents: [mockDocuments[6]], videos: [mockVideos[6], mockVideos[7]], quizzes: [], completed: false },
   { id: 8, courseId: 3, title: 'Module 2: Quản lý nhóm', description: 'Kỹ năng quản lý nhóm', order: 2, documents: [mockDocuments[7]], videos: [mockVideos[7]], quizzes: [], completed: false },
   { id: 9, courseId: 3, title: 'Module 3: Ra quyết định chiến lược', description: 'Kỹ năng ra quyết định', order: 3, documents: [mockDocuments[8]], videos: [mockVideos[8]], quizzes: [], completed: false }
+];
+
+// Mock User Module Progress
+export const mockUserModuleProgress: UserModuleProgress[] = [
+  // Course 1 - Information Security (userId: 1)
+  {
+    id: 1,
+    userId: 1,
+    moduleId: 1,
+    moduleTitle: 'Module 1: Giới thiệu An ninh thông tin',
+    courseId: 1,
+    courseName: 'An ninh thông tin',
+    enrollmentId: 1,
+    isCompleted: true,
+    completedAt: '2026-02-10T14:30:00',
+    progressPercentage: 100,
+    timeSpentMinutes: 45,
+    lastAccessedAt: '2026-02-10T14:30:00',
+    createdAt: '2026-02-01T09:00:00'
+  },
+  {
+    id: 2,
+    userId: 1,
+    moduleId: 2,
+    moduleTitle: 'Module 2: Mối đe dọa và Lỗ hổng',
+    courseId: 1,
+    courseName: 'An ninh thông tin',
+    enrollmentId: 1,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 65,
+    timeSpentMinutes: 30,
+    lastAccessedAt: '2026-03-05T10:15:00',
+    createdAt: '2026-02-05T09:00:00'
+  },
+  {
+    id: 3,
+    userId: 1,
+    moduleId: 3,
+    moduleTitle: 'Module 3: Bảo mật mạng',
+    courseId: 1,
+    courseName: 'An ninh thông tin',
+    enrollmentId: 1,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 0,
+    timeSpentMinutes: 0,
+    lastAccessedAt: null,
+    createdAt: '2026-02-10T09:00:00'
+  },
+  // Course 2 - Workplace Ethics (userId: 1)
+  {
+    id: 4,
+    userId: 1,
+    moduleId: 4,
+    moduleTitle: 'Module 1: Đạo đức công ty',
+    courseId: 2,
+    courseName: 'Đạo đức nghề nghiệp',
+    enrollmentId: 2,
+    isCompleted: true,
+    completedAt: '2026-02-20T16:00:00',
+    progressPercentage: 100,
+    timeSpentMinutes: 35,
+    lastAccessedAt: '2026-02-20T16:00:00',
+    createdAt: '2026-02-15T09:00:00'
+  },
+  {
+    id: 5,
+    userId: 1,
+    moduleId: 5,
+    moduleTitle: 'Module 2: Tuân thủ pháp luật',
+    courseId: 2,
+    courseName: 'Đạo đức nghề nghiệp',
+    enrollmentId: 2,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 40,
+    timeSpentMinutes: 20,
+    lastAccessedAt: '2026-03-01T11:30:00',
+    createdAt: '2026-02-18T09:00:00'
+  },
+  {
+    id: 6,
+    userId: 1,
+    moduleId: 6,
+    moduleTitle: 'Module 3: Hành vi chuyên nghiệp',
+    courseId: 2,
+    courseName: 'Đạo đức nghề nghiệp',
+    enrollmentId: 2,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 0,
+    timeSpentMinutes: 0,
+    lastAccessedAt: null,
+    createdAt: '2026-02-22T09:00:00'
+  },
+  // Course 3 - Leadership (userId: 1)
+  {
+    id: 7,
+    userId: 1,
+    moduleId: 7,
+    moduleTitle: 'Module 1: Kỹ năng lãnh đạo cơ bản',
+    courseId: 3,
+    courseName: 'Kỹ năng lãnh đạo',
+    enrollmentId: 3,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 80,
+    timeSpentMinutes: 50,
+    lastAccessedAt: '2026-03-08T09:00:00',
+    createdAt: '2026-03-01T09:00:00'
+  },
+  {
+    id: 8,
+    userId: 1,
+    moduleId: 8,
+    moduleTitle: 'Module 2: Quản lý nhóm',
+    courseId: 3,
+    courseName: 'Kỹ năng lãnh đạo',
+    enrollmentId: 3,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 20,
+    timeSpentMinutes: 15,
+    lastAccessedAt: '2026-03-07T14:00:00',
+    createdAt: '2026-03-05T09:00:00'
+  },
+  {
+    id: 9,
+    userId: 1,
+    moduleId: 9,
+    moduleTitle: 'Module 3: Ra quyết định chiến lược',
+    courseId: 3,
+    courseName: 'Kỹ năng lãnh đạo',
+    enrollmentId: 3,
+    isCompleted: false,
+    completedAt: null,
+    progressPercentage: 0,
+    timeSpentMinutes: 0,
+    lastAccessedAt: null,
+    createdAt: '2026-03-08T09:00:00'
+  }
 ];
 
 export const mockFinalExam: FinalExam = {

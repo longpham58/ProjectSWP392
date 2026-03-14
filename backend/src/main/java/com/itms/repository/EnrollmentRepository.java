@@ -11,11 +11,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
+public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer> {
 
     List<Enrollment> findByUserId(int userId);
 
     /**
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
      * Find enrollment by user and session
@@ -43,12 +44,19 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
 
     /**
 >>>>>>> Stashed changes
+=======
+     * Find enrollment by user and course
+     */
+    @Query("SELECT e FROM Enrollment e WHERE e.user.id = :userId AND e.course.id = :courseId")
+    java.util.Optional<Enrollment> findByUserIdAndCourseId(@Param("userId") int userId, @Param("courseId") int courseId);
+    /**
+>>>>>>> origin/main
      * Count sessions scheduled for the employee today (from approved enrollments).
      */
     @Query(value = """
         SELECT COUNT(*)
         FROM Enrollment e
-        JOIN Session s ON e.session_id = s.id
+        JOIN Session s ON e.course_id = s.course_id
         WHERE e.user_id = :userId
         AND e.status IN ('APPROVED', 'COMPLETED')
         AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
@@ -61,7 +69,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     @Query(value = """
         SELECT COALESCE(SUM(DATEDIFF(MINUTE, s.time_start, s.time_end)), 0)
         FROM Enrollment e
-        JOIN Session s ON e.session_id = s.id
+        JOIN Session s ON e.course_id = s.course_id
         WHERE e.user_id = :userId
         AND e.status IN ('APPROVED', 'COMPLETED')
         AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
@@ -75,12 +83,16 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
         SELECT COUNT(*)
         FROM Quiz q
         JOIN Course c ON q.course_id = c.id
+<<<<<<< HEAD
 <<<<<<< Updated upstream
         JOIN Session s ON s.course_id = c.id
         JOIN Enrollment e ON e.session_id = s.id
 =======
         JOIN Enrollment e ON e.session_id IN (SELECT id FROM Session WHERE course_id = c.id)
 >>>>>>> Stashed changes
+=======
+        JOIN Enrollment e ON e.course_id = c.id
+>>>>>>> origin/main
         WHERE e.user_id = :userId
         AND e.status IN ('APPROVED', 'COMPLETED')
         AND q.is_active = 1
@@ -104,16 +116,18 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
             c.name            AS course,
             e.registered_at   AS time
         FROM Enrollment e
-        JOIN Session s ON e.session_id = s.id
-        JOIN Course c ON s.course_id = c.id
+        JOIN Course c ON e.course_id = c.id
         WHERE e.user_id = :userId
         AND e.status IN ('APPROVED', 'COMPLETED')
         ORDER BY e.registered_at DESC
     """, nativeQuery = true)
     List<Object[]> findRecentEnrollmentActivities(@Param("userId") Integer userId);
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 }
 =======
+=======
+>>>>>>> origin/main
 
     /**
      * Count total enrollments for a user.
@@ -126,6 +140,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
      */
     @Query("SELECT COUNT(e) FROM Enrollment e WHERE e.user.id = :userId AND e.status = 'COMPLETED'")
     Integer countCompletedEnrollmentsByUserId(@Param("userId") Integer userId);
+<<<<<<< HEAD
 
     /**
      * Count enrollments by user and status.
@@ -134,3 +149,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     Integer countEnrollmentsByUserIdAndStatus(@Param("userId") Integer userId, @Param("status") String status);
 }
 >>>>>>> Stashed changes
+=======
+}
+>>>>>>> origin/main

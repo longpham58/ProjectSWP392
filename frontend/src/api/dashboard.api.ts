@@ -16,6 +16,8 @@ export interface RecentActivity {
   title: string;
   course: string;
   time: string;
+  icon?: string;
+  color?: string;
 }
 
 export interface TodayProgress {
@@ -27,8 +29,24 @@ export interface TodayProgress {
   quizzesTarget: number;
 }
 
+export interface LearningStreakData {
+  currentStreak: number;
+  milestone: number;
+  progress: number;
+  daysRemaining: number;
+}
+
+export interface UserProfileStats {
+  totalCourses: number;
+  completedCourses: number;
+  certificates: number;
+  averageScore: number;
+}
 
 export const dashboardApi = {
+  // Get learning streak with milestone data
+  getLearningStreak: () =>
+    axios.get<ApiResponse<number>>("streak/my"),
 
   // Get upcoming deadlines
   getDeadlines: () =>
@@ -41,4 +59,8 @@ export const dashboardApi = {
   // Get today's progress
   getTodayProgress: () =>
     axios.get<ApiResponse<TodayProgress>>("employee/dashboard/today-progress"),
+
+  // Get user profile stats
+  getProfileStats: () =>
+    axios.get<ApiResponse<UserProfileStats>>("employee/dashboard/profile-stats"),
 };

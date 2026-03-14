@@ -1,10 +1,10 @@
 package com.itms.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.itms.common.CourseStatus;
 import com.itms.common.Level;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +13,9 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "Course")
 public class Course {
 
@@ -58,6 +61,7 @@ public class Course {
     @Column(name = "max_attempts")
     private Integer maxAttempts;
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
     @Column(name = "start_date")
@@ -67,6 +71,14 @@ public class Course {
     private LocalDate endDate;
 
 >>>>>>> Stashed changes
+=======
+    @Column(name = "start_date")
+    private java.time.LocalDate startDate;
+
+    @Column(name = "end_date")
+    private java.time.LocalDate endDate;
+
+>>>>>>> origin/main
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private CourseStatus status;
@@ -77,8 +89,11 @@ public class Course {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 =======
+=======
+>>>>>>> origin/main
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
@@ -87,7 +102,10 @@ public class Course {
     @JoinColumn(name = "updated_by")
     private User updatedBy;
 
+<<<<<<< HEAD
 >>>>>>> Stashed changes
+=======
+>>>>>>> origin/main
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Material> materials;
 

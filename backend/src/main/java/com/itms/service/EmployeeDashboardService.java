@@ -1,8 +1,11 @@
 package com.itms.service;
 
+import com.itms.common.CompletionStatus;
+import com.itms.common.EnrollmentStatus;
 import com.itms.dto.DeadlineDto;
 import com.itms.dto.RecentActivityDto;
 import com.itms.dto.TodayProgressDto;
+import com.itms.dto.UserProfileStatsDto;
 import com.itms.repository.AttendanceRepository;
 import com.itms.repository.CertificateRepository;
 import com.itms.repository.EnrollmentRepository;
@@ -124,7 +127,46 @@ public class EmployeeDashboardService {
         // Sort combined list by time descending, return top 10
         activities.sort(Comparator.comparing(RecentActivityDto::getTime,
                 Comparator.nullsLast(Comparator.reverseOrder())));
-        return activities.size() > 10 ? activities.subList(0, 10) : activities;
+        
+        List<RecentActivityDto> topActivities = activities.size() > 10 
+                ? activities.subList(0, 10) 
+                : activities;
+        
+        // Set icon and color for each activity
+        for (RecentActivityDto activity : topActivities) {
+            setActivityIconAndColor(activity);
+        }
+        
+        return topActivities;
+    }
+    
+    private void setActivityIconAndColor(RecentActivityDto activity) {
+        String type = activity.getType();
+        switch (type != null ? type.toUpperCase() : "LESSON") {
+            case "QUIZ":
+            case "QUIZ_COMPLETE":
+                activity.setIcon("✅");
+                activity.setColor("green");
+                break;
+            case "COURSE":
+            case "ENROLLMENT":
+            case "JOIN_COURSE":
+                activity.setIcon("📚");
+                activity.setColor("blue");
+                break;
+            case "CERTIFICATE":
+            case "CERT_COMPLETE":
+                activity.setIcon("🏆");
+                activity.setColor("purple");
+                break;
+            case "LESSON":
+            case "SESSION":
+            case "ATTENDANCE":
+            default:
+                activity.setIcon("📖");
+                activity.setColor("teal");
+                break;
+        }
     }
 
     public TodayProgressDto getTodayProgress(Integer userId) {
@@ -164,6 +206,29 @@ public class EmployeeDashboardService {
                 ? quizzesDue : QUIZZES_TARGET_FALLBACK;
         dto.setQuizzesTarget(quizzesTarget);
 
+        return dto;
+    }
+    
+    public UserProfileStatsDto getProfileStats(Integer userId) {
+        UserProfileStatsDto dto = new UserProfileStatsDto();
+        
+        // Total courses (enrollments)
+        Integer totalCourses = enrollmentRepository.countEnrollmentsByUserId(userId);
+        dto.setTotalCourses(totalCourses != null ? totalCourses : 0);
+        
+        // Completed courses
+        Integer completedCourses = enrollmentRepository.countCompletedEnrollmentsByUserId(userId);
+        dto.setCompletedCourses(completedCourses != null ? completedCourses : 0);
+        
+        // Certificates
+        Integer certificates = certificateRepository.countByUserId(userId);
+        dto.setCertificates(certificates != null ? certificates : 0);
+        
+        // Average score - could be calculated from quiz attempts
+        // For now, set a default value or calculate from quiz results
+        Double averageScore = 0.0;
+        dto.setAverageScore(averageScore);
+        
         return dto;
     }
 }

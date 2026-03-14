@@ -14,6 +14,10 @@ public class CourseScheduleDto {
 
     private Long id;
     private Integer courseId;
+<<<<<<< HEAD
+=======
+    private Integer sessionNumber;
+>>>>>>> origin/main
     private String title;
     private String date;
     private String time;
@@ -37,12 +41,25 @@ public class CourseScheduleDto {
         String status = session.getStatus() != null ? 
             session.getStatus().name() : "SCHEDULED";
         
+<<<<<<< HEAD
 
+=======
+        // Format title as "{courseCode}-M{sessionNumber}" (e.g., "ITMS001-M01")
+        String courseCode = session.getCourse() != null && session.getCourse().getCode() != null ?
+            session.getCourse().getCode() : "COURSE";
+        String sessionNum = String.format("M%02d", session.getSessionNumber() != null ? session.getSessionNumber() : 1);
+        String title = courseCode + "-" + sessionNum;
+>>>>>>> origin/main
 
         return CourseScheduleDto.builder()
                 .id(session.getId())
                 .courseId(session.getCourse().getId())
+<<<<<<< HEAD
                 .title(session.getClass().getName())
+=======
+                .sessionNumber(session.getSessionNumber())
+                .title(title)
+>>>>>>> origin/main
                 .date(session.getDate() != null ? session.getDate().toString() : null)
                 .time(session.getTimeStart() != null ? session.getTimeStart().toString() : null)
                 .slot(slot)

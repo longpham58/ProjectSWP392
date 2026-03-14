@@ -1,30 +1,49 @@
 import { useAuthStore } from '../../stores/auth.store';
-import { mockCourses } from '../../data/mockCourses';
 import { mockNotifications } from '../../data/mockNotifications';
-import { mockCertificates } from '../../data/mockCertificates';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useCourseStore } from '../../stores/course.store';
 import { useNotificationStore } from '../../stores/notification.store';
 import { useCertificateStore } from '../../stores/certificate.store';
 import { useStreakStore } from '../../stores/streak.store';
+import { useDashboardStore } from '../../stores/dashboard.store';
 
 export default function EmployeePage() {
   const { user } = useAuthStore();
   const { notifications, fetchNotifications } = useNotificationStore();
   const { certificates, fetchCertificates } = useCertificateStore();
 
-
   const navigate = useNavigate();
   const { courses, fetchMyCourses } = useCourseStore();
-  const { streak, fetchStreak, loading } = useStreakStore();
+  const { streak, fetchStreak, loading: streakLoading } = useStreakStore();
+  const { deadlines, activities, todayProgress, loading: dashboardLoading, fetchDashboardData } = useDashboardStore();
+  
+  const [isLoading, setIsLoading] = useState(true);
 
-   useEffect(() => {
-    fetchMyCourses();
-    fetchNotifications();
-    fetchCertificates(user?.id || 0);
-    fetchStreak(user?.id || 0);
-  }, []);
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([
+          fetchMyCourses(user?.id),
+          fetchNotifications(),
+          fetchCertificates(user?.id || 0),
+          fetchStreak(user?.id || 0),
+          fetchDashboardData()
+        ]);
+        console.log(courses);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (user) {
+      fetchData();
+    }
+  }, [user?.id]);
+
   // Mock data - in real app, this would come from API
   const myCourses = courses;
   const ongoingCourses = courses.filter(c => c.status === "ACTIVE");
@@ -32,39 +51,45 @@ export default function EmployeePage() {
   const unreadNotifications = notifications.filter(n => !n.read);
   const learningStreak = streak?.currentStreak ?? 0;
   const milestone = 10;
-const progress = Math.min((learningStreak / milestone) * 100, 100);
-const daysRemaining = Math.max(milestone - learningStreak, 0);
+  const progress = Math.min((learningStreak / milestone) * 100, 100);
+  const daysRemaining = Math.max(milestone - learningStreak, 0);
 
-  // Mock upcoming deadlines
-  const upcomingDeadlines = [
-    { id: 1, title: 'Quiz 2: Spring Boot Advanced', course: 'Spring Boot Microservices', dueDate: '2026-03-05', daysLeft: 3, priority: 'high' },
-    { id: 2, title: 'Final Exam', course: 'React & TypeScript', dueDate: '2026-03-08', daysLeft: 6, priority: 'high' },
-    { id: 3, title: 'Quiz 1: Docker Basics', course: 'Docker & Kubernetes', dueDate: '2026-03-12', daysLeft: 10, priority: 'medium' },
-  ];
+  // Today's progress from API
+  const progressData = todayProgress || {
+    lessonsCompleted: 0,
+    lessonsTarget: 1,
+    studyHours: 0,
+    studyTarget: 1,
+    quizzesCompleted: 0,
+    quizzesTarget: 1
+  };
 
-  // Mock recent activities
-  const recentActivities = [
-    { id: 1, type: 'quiz', title: 'Hoàn thành Quiz 1', course: 'Spring Boot Microservices', time: '2 giờ trước', icon: '✅', color: 'green' },
-    { id: 2, type: 'course', title: 'Tham gia khóa học mới', course: 'Docker & Kubernetes', time: '1 ngày trước', icon: '📚', color: 'blue' },
-    { id: 3, type: 'certificate', title: 'Nhận chứng chỉ', course: 'Python Cơ bản', time: '2 ngày trước', icon: '🏆', color: 'purple' },
-    { id: 4, type: 'lesson', title: 'Hoàn thành bài học', course: 'React & TypeScript', time: '3 ngày trước', icon: '📖', color: 'teal' },
-  ];
-const todayProgress = {
-  lessonsCompleted: 1,
-  lessonsTarget: 5,
-  studyHours: 2.5,
-  studyTarget: 4,
-  quizzesCompleted: 1,
-  quizzesTarget: 2
-};
-const lessonProgress =
-  (todayProgress.lessonsCompleted / todayProgress.lessonsTarget) * 100;
+  const lessonProgress =
+  progressData?.lessonsTarget > 0
+    ? (progressData.lessonsCompleted / progressData.lessonsTarget) * 100
+    : 0;
 
-const timeProgress =
-  (todayProgress.studyHours / todayProgress.studyTarget) * 100;
+  const timeProgress =
+  progressData?.studyTarget > 0
+    ? (progressData.studyHours / progressData.studyTarget) * 100
+    : 0;
 
-const quizProgress =
-  (todayProgress.quizzesCompleted / todayProgress.quizzesTarget) * 100;
+  const quizProgress =
+  progressData?.quizzesTarget > 0
+    ? (progressData.quizzesCompleted / progressData.quizzesTarget) * 100
+    : 0;
+  
+  if (!user) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="p-6">
       {/* Welcome Section */}
@@ -149,106 +174,112 @@ const quizProgress =
         {/* Learning Streak */}
         <div className="bg-gradient-to-br from-orange-400 to-red-500 rounded-lg p-6 text-white">
 
-    <div className="flex items-center justify-between mb-4">
-      <h3 className="text-lg font-semibold">🔥 Chuỗi học tập</h3>
-      <span className="text-3xl font-bold">{learningStreak}</span>
-    </div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">🔥 Chuỗi học tập</h3>
+            <span className="text-3xl font-bold">{learningStreak}</span>
+          </div>
 
-    {/* MESSAGE */}
-    {learningStreak === 0 ? (
-      <p className="text-sm opacity-90 mb-3">
-        Hãy bắt đầu học hôm nay để tạo chuỗi học tập! 🚀
-      </p>
-    ) : (
-      <p className="text-sm opacity-90 mb-3">
-        Bạn đã học liên tục {learningStreak} ngày!
-      </p>
-    )}
+          {/* MESSAGE */}
+          {learningStreak === 0 ? (
+            <p className="text-sm opacity-90 mb-3">
+              Hãy bắt đầu học hôm nay để tạo chuỗi học tập! 🚀
+            </p>
+          ) : (
+            <p className="text-sm opacity-90 mb-3">
+              Bạn đã học liên tục {learningStreak} ngày!
+            </p>
+          )}
 
-    {/* PROGRESS BAR */}
-    <div className="bg-white bg-opacity-20 rounded-full h-2 mb-2">
-      <div
-        className="bg-white h-2 rounded-full transition-all duration-500"
-        style={{ width: `${progress}%` }}
-      ></div>
-    </div>
+          {/* PROGRESS BAR */}
+          <div className="bg-white bg-opacity-20 rounded-full h-2 mb-2">
+            <div
+              className="bg-white h-2 rounded-full transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
 
-    {/* MILESTONE TEXT */}
-    {learningStreak === 0 ? (
-      <p className="text-xs opacity-75">
-        Hoàn thành ngày học đầu tiên để bắt đầu chuỗi 🔥
-      </p>
-    ) : learningStreak >= milestone ? (
-      <p className="text-xs opacity-75">
-        🎉 Tuyệt vời! Bạn đã đạt mốc {milestone} ngày học liên tiếp!
-      </p>
-    ) : (
-      <p className="text-xs opacity-75">
-        Học thêm {daysRemaining} ngày để đạt mốc {milestone} ngày 🎯
-      </p>
-    )}
+          {/* MILESTONE TEXT */}
+          {learningStreak === 0 ? (
+            <p className="text-xs opacity-75">
+              Hoàn thành ngày học đầu tiên để bắt đầu chuỗi 🔥
+            </p>
+          ) : learningStreak >= milestone ? (
+            <p className="text-xs opacity-75">
+              🎉 Tuyệt vời! Bạn đã đạt mốc {milestone} ngày học liên tiếp!
+            </p>
+          ) : (
+            <p className="text-xs opacity-75">
+              Học thêm {daysRemaining} ngày để đạt mốc {milestone} ngày 🎯
+            </p>
+          )}
 
-  </div>
+        </div>
 
         {/* Today's Progress */}
         <div className="bg-white border rounded-lg p-6">
-  <h3 className="text-lg font-semibold mb-4">📊 Tiến độ hôm nay</h3>
+          <h3 className="text-lg font-semibold mb-4">📊 Tiến độ hôm nay</h3>
+          
+          {dashboardLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : (
+            <div className="space-y-3">
 
-  <div className="space-y-3">
+              {/* Lessons */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-600">Bài học hoàn thành</span>
+                  <span className="font-medium">
+                    {progressData.lessonsCompleted}/{progressData.lessonsTarget}
+                  </span>
+                </div>
 
-    {/* Lessons */}
-    <div>
-      <div className="flex justify-between text-sm mb-1">
-        <span className="text-gray-600">Bài học hoàn thành</span>
-        <span className="font-medium">
-          {todayProgress.lessonsCompleted}/{todayProgress.lessonsTarget}
-        </span>
-      </div>
+                <div className="bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-green-500 h-2 rounded-full transition-all"
+                    style={{ width: `${lessonProgress}%` }}
+                  ></div>
+                </div>
+              </div>
 
-      <div className="bg-gray-200 rounded-full h-2">
-        <div
-          className="bg-green-500 h-2 rounded-full transition-all"
-          style={{ width: `${lessonProgress}%` }}
-        ></div>
-      </div>
-    </div>
+              {/* Study Time */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-600">Thời gian học</span>
+                  <span className="font-medium">
+                    {progressData.studyHours}h/{progressData.studyTarget}h
+                  </span>
+                </div>
 
-    {/* Study Time */}
-    <div>
-      <div className="flex justify-between text-sm mb-1">
-        <span className="text-gray-600">Thời gian học</span>
-        <span className="font-medium">
-          {todayProgress.studyHours}h/{todayProgress.studyTarget}h
-        </span>
-      </div>
+                <div className="bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-blue-500 h-2 rounded-full transition-all"
+                    style={{ width: `${timeProgress}%` }}
+                  ></div>
+                </div>
+              </div>
 
-      <div className="bg-gray-200 rounded-full h-2">
-        <div
-          className="bg-blue-500 h-2 rounded-full transition-all"
-          style={{ width: `${timeProgress}%` }}
-        ></div>
-      </div>
-    </div>
+              {/* Quiz */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-600">Quiz hoàn thành</span>
+                  <span className="font-medium">
+                    {progressData.quizzesCompleted}/{progressData.quizzesTarget}
+                  </span>
+                </div>
 
-    {/* Quiz */}
-    <div>
-      <div className="flex justify-between text-sm mb-1">
-        <span className="text-gray-600">Quiz hoàn thành</span>
-        <span className="font-medium">
-          {todayProgress.quizzesCompleted}/{todayProgress.quizzesTarget}
-        </span>
-      </div>
+                <div className="bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-purple-500 h-2 rounded-full transition-all"
+                    style={{ width: `${quizProgress}%` }}
+                  ></div>
+                </div>
+              </div>
 
-      <div className="bg-gray-200 rounded-full h-2">
-        <div
-          className="bg-purple-500 h-2 rounded-full transition-all"
-          style={{ width: `${quizProgress}%` }}
-        ></div>
-      </div>
-    </div>
-
-  </div>
-</div>
+            </div>
+          )}
+        </div>
 
         {/* Achievements */}
         <div className="bg-white border rounded-lg p-6">
@@ -294,7 +325,7 @@ const quizProgress =
           </div>
           {ongoingCourses.length > 0 ? (
             <div className="space-y-3">
-              {ongoingCourses.map((course, index) => (
+              {ongoingCourses.map((course) => (
                 <div 
                   key={course.id} 
                   className="border-l-4 border-blue-600 pl-4 py-2 hover:bg-gray-50 rounded cursor-pointer transition-colors"
@@ -306,10 +337,10 @@ const quizProgress =
                     <div className="flex-1 bg-gray-200 rounded-full h-2">
                       <div 
                         className="bg-blue-600 h-2 rounded-full transition-all"
-                        style={{ width: `${(index + 1) * 30}%` }}
+                        style={{ width: `${(course as any).progress || 0}%` }}
                       />
                     </div>
-                    <span className="text-sm text-gray-600">{(index + 1) * 30}%</span>
+                    <span className="text-sm text-gray-600">{(course as any).progress || 0}%</span>
                   </div>
                 </div>
               ))}
@@ -330,31 +361,39 @@ const quizProgress =
               Xem tất cả →
             </button>
           </div>
-          <div className="space-y-3">
-            {upcomingDeadlines.map(deadline => (
-              <div 
-                key={deadline.id}
-                className={`border-l-4 pl-4 py-2 rounded hover:bg-gray-50 cursor-pointer transition-colors ${
-                  deadline.priority === 'high' ? 'border-red-500' : 'border-yellow-500'
-                }`}
-              >
-                <div className="flex justify-between items-start mb-1">
-                  <div className="font-medium text-sm">{deadline.title}</div>
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    deadline.daysLeft <= 3 ? 'bg-red-100 text-red-700' :
-                    deadline.daysLeft <= 7 ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-green-100 text-green-700'
-                  }`}>
-                    {deadline.daysLeft} ngày
-                  </span>
+          {dashboardLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : deadlines.length > 0 ? (
+            <div className="space-y-3">
+              {deadlines.map(deadline => (
+                <div 
+                  key={deadline.id}
+                  className={`border-l-4 pl-4 py-2 rounded hover:bg-gray-50 cursor-pointer transition-colors ${
+                    deadline.priority === 'high' ? 'border-red-500' : 'border-yellow-500'
+                  }`}
+                >
+                  <div className="flex justify-between items-start mb-1">
+                    <div className="font-medium text-sm">{deadline.title}</div>
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      deadline.daysLeft <= 3 ? 'bg-red-100 text-red-700' :
+                      deadline.daysLeft <= 7 ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {deadline.daysLeft} ngày
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-600">{deadline.course}</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Hạn: {new Date(deadline.dueDate).toLocaleDateString('vi-VN')}
+                  </div>
                 </div>
-                <div className="text-xs text-gray-600">{deadline.course}</div>
-                <div className="text-xs text-gray-500 mt-1">
-                  Hạn: {new Date(deadline.dueDate).toLocaleDateString('vi-VN')}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">Không có deadline sắp tới</p>
+          )}
         </div>
 
         {/* Recent Notifications */}
@@ -390,18 +429,26 @@ const quizProgress =
         {/* Recent Activity */}
         <div className="bg-white border rounded-lg p-6">
           <h2 className="text-xl font-semibold mb-4">📜 Hoạt động gần đây</h2>
-          <div className="space-y-3">
-            {recentActivities.map(activity => (
-              <div key={activity.id} className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded transition-colors">
-                <span className="text-2xl">{activity.icon}</span>
-                <div className="flex-1">
-                  <div className="font-medium text-sm">{activity.title}</div>
-                  <div className="text-xs text-gray-600">{activity.course}</div>
-                  <div className="text-xs text-gray-400 mt-1">{activity.time}</div>
+          {dashboardLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          ) : activities.length > 0 ? (
+            <div className="space-y-3">
+              {activities.map(activity => (
+                <div key={activity.id} className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded transition-colors">
+                  <span className="text-2xl">{activity.icon || '📖'}</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{activity.title}</div>
+                    <div className="text-xs text-gray-600">{activity.course}</div>
+                    <div className="text-xs text-gray-400 mt-1">{activity.time}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">Chưa có hoạt động gần đây</p>
+          )}
         </div>
       </div>
     </div>

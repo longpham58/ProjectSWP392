@@ -3,6 +3,7 @@ package com.itms.controller;
 import com.itms.dto.DeadlineDto;
 import com.itms.dto.RecentActivityDto;
 import com.itms.dto.TodayProgressDto;
+import com.itms.dto.UserProfileStatsDto;
 import com.itms.dto.common.ResponseDto;
 import com.itms.security.CustomUserDetails;
 import com.itms.service.EmployeeDashboardService;
@@ -55,6 +56,18 @@ public class EmployeeDashboardController {
         TodayProgressDto progress = dashboardService.getTodayProgress(userId);
 
         return ResponseEntity.ok(ResponseDto.success(progress, "Today's progress loaded"));
+    }
+
+    // 5️⃣ Profile stats
+    @GetMapping("/profile-stats")
+    public ResponseEntity<ResponseDto<UserProfileStatsDto>> getProfileStats(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Integer userId = userDetails.getUser().getId();
+
+        UserProfileStatsDto stats = dashboardService.getProfileStats(userId);
+
+        return ResponseEntity.ok(ResponseDto.success(stats, "Profile stats loaded"));
     }
 
 }

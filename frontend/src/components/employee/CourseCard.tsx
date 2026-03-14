@@ -51,21 +51,21 @@ export default function CourseCard({ course, viewMode = 'grid' }: CourseCardProp
             </div>
             <div className="flex items-center gap-2">
               <span className="font-medium">Thời gian:</span>
-              <span>{new Date(course.startDate).toLocaleDateString('vi-VN')} - {new Date(course.endDate).toLocaleDateString('vi-VN')}</span>
+              <span>{course.startDate ? new Date(course.startDate).toLocaleDateString('vi-VN') : 'N/A'} - {course.endDate ? new Date(course.endDate).toLocaleDateString('vi-VN') : 'N/A'}</span>
             </div>
           </div>
 
-          {course.progress !== undefined && (
+          {(course as any).progress !== undefined && (
             <div className="flex items-center gap-4">
               <div className="flex-1">
                 <div className="flex justify-between text-sm mb-1">
                   <span>Tiến độ</span>
-                  <span>{course.progress}%</span>
+                  <span>{(course as any).progress}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-600 h-2 rounded-full transition-all"
-                    style={{ width: `${course.progress}%` }}
+                    style={{ width: `${(course as any).progress}%` }}
                   />
                 </div>
               </div>
@@ -104,20 +104,21 @@ export default function CourseCard({ course, viewMode = 'grid' }: CourseCardProp
         </div>
         <div className="flex items-center gap-2">
           <span className="font-medium">Thời gian:</span>
-          <span>{new Date(course.startDate).toLocaleDateString('vi-VN')} - {new Date(course.endDate).toLocaleDateString('vi-VN')}</span>
+          <span>{course.startDate ? new Date(course.startDate).toLocaleDateString('vi-VN') : 'N/A'} - {course.endDate ? new Date(course.endDate).toLocaleDateString('vi-VN') : 'N/A'}</span>
+
         </div>
       </div>
 
-      {course.progress !== undefined && (
+      {(course as any).progress !== undefined && (
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-1">
             <span>Tiến độ</span>
-            <span>{course.progress}%</span>
+            <span>{(course as any).progress}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-blue-600 h-2 rounded-full transition-all"
-              style={{ width: `${course.progress}%` }}
+              style={{ width: `${(course as any).progress}%` }}
             />
           </div>
         </div>

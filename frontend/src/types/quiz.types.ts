@@ -19,6 +19,7 @@ export interface Video {
   duration: string;
   url: string;
   thumbnail?: string;
+  type: 'VIDEO';
 }
 
 export interface Quiz {
@@ -27,6 +28,12 @@ export interface Quiz {
   title: string;
   description: string;
   questions: QuizQuestion[];
+  // Additional properties
+  quizType?: string;
+  durationMinutes?: number;
+  maxAttempts?: number;
+  passingScore?: number;
+  totalQuestions?: number;
 }
 
 export interface Test {
@@ -38,6 +45,14 @@ export interface Test {
   duration: number;
   maxAttempts: number;
   questions: QuizQuestion[];
+  // Additional properties for compatibility with QuizDto
+  durationMinutes?: number;
+  totalQuestions?: number;
+  moduleId?: number | null;
+  moduleTitle?: string | null;
+  isUnlocked?: boolean;
+  attemptsCount?: number;
+  hasPassed?: boolean;
 }
 
 export interface TestAttempt {
@@ -72,4 +87,20 @@ export interface FinalExam {
   duration: number;
   unlocked: boolean;
   questions: QuizQuestion[];
+}
+
+export interface UserModuleProgress {
+  id: number;
+  userId: number;
+  moduleId: number;
+  moduleTitle: string;
+  courseId: number;
+  courseName: string;
+  enrollmentId: number | null;
+  isCompleted: boolean;
+  completedAt: string | null;
+  progressPercentage: number;
+  timeSpentMinutes: number;
+  lastAccessedAt: string | null;
+  createdAt: string;
 }

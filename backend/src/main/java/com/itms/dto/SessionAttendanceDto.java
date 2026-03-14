@@ -13,7 +13,12 @@ import java.util.List;
 public class SessionAttendanceDto {
     
     private Long sessionId;
+<<<<<<< HEAD
     private String courseCode;
+=======
+    private String sessionName;
+    private Integer sessionNumber;
+>>>>>>> origin/main
     private LocalDate date;
     private LocalTime timeStart;
     private LocalTime timeEnd;
@@ -37,7 +42,12 @@ public class SessionAttendanceDto {
     // Constructor for JPQL query projection
     public SessionAttendanceDto(
             Long sessionId,
+<<<<<<< HEAD
             String courseCode,
+=======
+            String sessionName,
+            Integer sessionNumber,
+>>>>>>> origin/main
             LocalDate date,
             LocalTime timeStart,
             LocalTime timeEnd,
@@ -48,7 +58,12 @@ public class SessionAttendanceDto {
             String markedBy
     ) {
         this.sessionId = sessionId;
+<<<<<<< HEAD
         this.courseCode = courseCode;
+=======
+        this.sessionName = sessionName;
+        this.sessionNumber = sessionNumber;
+>>>>>>> origin/main
         this.date = date;
         this.timeStart = timeStart;
         this.timeEnd = timeEnd;

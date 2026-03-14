@@ -1,27 +1,54 @@
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useNotificationStore } from '../../stores/notification.store';
+import { NoNotifications } from '../../components/common/EmptyState';
 import { mockNotifications } from '../../data/mockNotifications';
 
 export default function NotificationDetailPage() {
   const { notificationId } = useParams();
   const navigate = useNavigate();
-  
-  const notification = mockNotifications.find(n => n.id === Number(notificationId));
+  const { currentNotification, loadingDetail, getNotificationById, markAsRead } = useNotificationStore();
+
+  useEffect(() => {
+    const id = Number(notificationId);
+    if (id) {
+      getNotificationById(id).then(notification => {
+        // Fallback to mock data if not found in API
+        const notif = notification || mockNotifications.find(n => n.id === id);
+        if (notif && !notif.read) {
+          markAsRead(id);
+        }
+      });
+    }
+  }, [notificationId, getNotificationById, markAsRead]);
+
+  if (loadingDetail) {
+    return (
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-lg shadow p-8 text-center">
+            <div className="text-4xl mb-4">⏳</div>
+            <h2 className="text-xl font-bold mb-2">Đang tải thông báo...</h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const notification = currentNotification || mockNotifications.find(n => n.id === Number(notificationId));
+  const notifAny = notification as any;
 
   if (!notification) {
     return (
       <div className="p-6">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <div className="text-6xl mb-4">📭</div>
-            <h2 className="text-2xl font-bold mb-2">Không tìm thấy thông báo</h2>
-            <p className="text-gray-600 mb-6">Thông báo này có thể đã bị xóa hoặc không tồn tại</p>
-            <button
-              onClick={() => navigate('/employee/notifications')}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Quay lại danh sách
-            </button>
-          </div>
+          <NoNotifications />
+          <button
+            onClick={() => navigate('/employee/notifications')}
+            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Quay lại danh sách
+          </button>
         </div>
       </div>
     );
@@ -49,6 +76,24 @@ export default function NotificationDetailPage() {
     }
   };
 
+  // Helper to get detail content - handle both API and mock field names
+  const getDetailContent = () => {
+    return (notification as any).detailContent || (notification as any).detail_content || '';
+  };
+
+  // Helper to format date - handle both string and Date objects
+  const formatDate = (date: string | Date) => {
+    if (!date) return '';
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return d.toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-6">
@@ -70,11 +115,11 @@ export default function NotificationDetailPage() {
                 <h1 className="text-2xl font-bold mb-2">{notification.title}</h1>
                 <div className="flex items-center gap-4 text-sm">
                   <span className="flex items-center gap-1">
-                    📅 {new Date(notification.date).toLocaleDateString('vi-VN')}
+                    📅 {formatDate(notification.date)}
                   </span>
-                  {notification.relatedCourse && (
+                  {notifAny.relatedCourse && (
                     <span className="flex items-center gap-1">
-                      📚 {notification.relatedCourse}
+                      📚 {notifAny.relatedCourse}
                     </span>
                   )}
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -95,24 +140,22 @@ export default function NotificationDetailPage() {
             </div>
 
             {/* Detail Content */}
-            {notification.detailContent && (
+            {getDetailContent() && (
               <div className="prose max-w-none">
                 <div className="whitespace-pre-line text-gray-700 leading-relaxed">
-                  {notification.detailContent}
+                  {getDetailContent()}
                 </div>
               </div>
             )}
 
-            {/* Action Button */}
-            {notification.actionUrl && (
+            {/* Action Button - show if there's an action URL from backend */}
+            {notifAny.actionUrl && (
               <div className="mt-8 pt-6 border-t">
                 <button
-                  onClick={() => navigate(notification.actionUrl!)}
+                  onClick={() => navigate(notifAny.actionUrl)}
                   className="w-full sm:w-auto px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
-                  {notification.type === 'success' ? 'Xem chứng chỉ' :
-                   notification.type === 'warning' ? 'Đi đến khóa học' :
-                   'Xem chi tiết'}
+                  {notification.type === 'success' ? 'Xem chi tiết' : 'Xem nội dung liên quan'}
                 </button>
               </div>
             )}

@@ -48,7 +48,15 @@ export interface Course {
 }
 
 export const coursesApi = {
-// Get courses of current user
-   getMyCourses: () =>
-    axios.get<ApiResponse<Course[]>>("/courses/my")
+  // Get courses of current user
+  getMyCourses: () =>
+    axios.get<ApiResponse<Course[]>>("/courses/my"),
+
+  // Get course by ID
+  getCourseById: (courseId: number) =>
+    axios.get<ApiResponse<Course>>(`/courses/${courseId}`),
+
+  // Get course modules
+  getCourseModules: (courseId: number) =>
+    axios.get<ApiResponse<any[]>>(`/courses/${courseId}/modules`),
 };

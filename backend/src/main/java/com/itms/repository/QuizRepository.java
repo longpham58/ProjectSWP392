@@ -1,7 +1,5 @@
 package com.itms.repository;
 
-import com.itms.dto.DeadlineDto;
-import com.itms.dto.RecentActivityDto;
 import com.itms.entity.Quiz;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,28 +11,43 @@ import java.util.List;
 @Repository
 public interface QuizRepository extends JpaRepository<Quiz, Integer> {
 
+    // Find quizzes by course
+    List<Quiz> findByCourseId(Integer courseId);
+
+    // Find quizzes by course with specific quiz types (PRE_TEST, POST_TEST, ASSESSMENT, PRACTICE)
+    @Query("SELECT q FROM Quiz q WHERE q.course.id = :courseId AND q.quizType IN ('PRE_TEST', 'POST_TEST', 'ASSESSMENT', 'PRACTICE')")
+    List<Quiz> findByCourseIdAndQuizTypeIn(@Param("courseId") Integer courseId);
+
+    // Find quizzes by module
+    List<Quiz> findByModuleId(Integer moduleId);
+
+    // Find quizzes by module with specific quiz types (PRE_TEST, POST_TEST, ASSESSMENT, PRACTICE)
+    @Query("SELECT q FROM Quiz q WHERE q.module.id = :moduleId AND q.quizType IN ('PRE_TEST', 'POST_TEST', 'ASSESSMENT', 'PRACTICE')")
+    List<Quiz> findByModuleIdAndQuizTypeIn(@Param("moduleId") Integer moduleId);
+
     @Query("""
-    SELECT new com.itms.dto.DeadlineDto(
+    SELECT 
         q.id,
         q.title,
         c.name,
         q.dueDate,
         FUNCTION('TIMESTAMPDIFF', DAY, CURRENT_DATE, q.dueDate),
-        null,
         q.quizType
-    )
     FROM Quiz q
     JOIN q.course c
     WHERE q.isActive = true
     AND q.dueDate IS NOT NULL
     AND c.id IN (
+<<<<<<< HEAD
 <<<<<<< Updated upstream
         SELECT s.course.id
 =======
         SELECT e.session.course.id
 >>>>>>> Stashed changes
+=======
+        SELECT e.course.id
+>>>>>>> origin/main
         FROM Enrollment e
-        JOIN e.session s
         WHERE e.user.id = :userId
     )
     AND NOT EXISTS (
@@ -46,7 +59,7 @@ public interface QuizRepository extends JpaRepository<Quiz, Integer> {
     )
     ORDER BY q.dueDate ASC
 """)
-    List<DeadlineDto> findPendingQuizDeadlines(@Param("userId") Integer userId);
+    List<Object[]> findPendingQuizDeadlines(@Param("userId") Integer userId);
 
     /**
      * Count quizzes completed (passed) today by the employee.

@@ -34,6 +34,7 @@ public class CourseModuleDto {
         private Integer displayOrder;
         private Boolean isRequired;
         private Boolean isDownloadable;
+        private java.time.LocalDateTime createdAt;
 
         public static MaterialDto from(Material m) {
             MaterialDto dto = new MaterialDto();
@@ -46,6 +47,7 @@ public class CourseModuleDto {
             dto.setDisplayOrder(m.getDisplayOrder());
             dto.setIsRequired(m.getIsRequired());
             dto.setIsDownloadable(m.getIsDownloadable());
+            dto.setCreatedAt(m.getCreatedAt());
             return dto;
         }
     }

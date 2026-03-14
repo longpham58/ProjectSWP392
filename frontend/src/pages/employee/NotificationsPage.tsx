@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { mockNotifications, type Notification } from '../../data/mockNotifications';
+import { useEffect, useState } from 'react';
+import { useNotificationStore } from '../../stores/notification.store';
 import NotificationCard from '../../components/employee/NotificationCard';
 import { NoNotifications } from '../../components/common/EmptyState';
 import { useToast } from '../../components/common/Toast';
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const { notifications, loading, unreadCount, fetchNotifications, markAsRead, markAllAsRead, deleteNotification } = useNotificationStore();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,30 +13,28 @@ export default function NotificationsPage() {
   const itemsPerPage = 10;
   const { showToast } = useToast();
 
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
   const handleMarkAsRead = (id: number) => {
-    setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
+    markAsRead(id);
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notif => ({ ...notif, read: true }))
-    );
+    markAllAsRead();
     showToast('Đã đánh dấu tất cả thông báo là đã đọc', 'success');
   };
 
   const handleDeleteNotification = (id: number) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    deleteNotification(id);
     showToast('Đã xóa thông báo', 'success');
   };
 
   const handleDeleteAll = () => {
     if (window.confirm('Bạn có chắc muốn xóa tất cả thông báo đã đọc?')) {
-      setNotifications(prev => prev.filter(n => !n.read));
-      showToast('Đã xóa tất cả thông báo đã đọc', 'success');
+      // For now, we don't have a bulk delete API, so we'll just show a message
+      showToast('Tính năng đang được phát triển', 'info');
     }
   };
 
@@ -66,13 +64,23 @@ export default function NotificationsPage() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedNotifications = filteredNotifications.slice(startIndex, startIndex + itemsPerPage);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
   const readCount = notifications.filter(n => n.read).length;
 
   // Count by type
   const infoCount = notifications.filter(n => n.type === 'info').length;
   const warningCount = notifications.filter(n => n.type === 'warning').length;
   const successCount = notifications.filter(n => n.type === 'success').length;
+
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-4xl mb-4">⏳</div>
+          <h2 className="text-xl font-bold mb-2">Đang tải thông báo...</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6">

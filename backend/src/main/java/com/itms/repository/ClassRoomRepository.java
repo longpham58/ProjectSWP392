@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+<<<<<<< HEAD
 
 @Repository
 public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
@@ -48,4 +49,31 @@ public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
      */
     @Query("SELECT cr FROM ClassRoom cr JOIN ClassMember cm ON cm.classRoom = cr WHERE cm.user.id = :userId AND cm.status = 'ACTIVE'")
     List<ClassRoom> findByUserId(@Param("userId") Integer userId);
+=======
+import java.util.Optional;
+
+@Repository
+public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
+    
+    /**
+     * Find classroom by class code
+     */
+    Optional<ClassRoom> findByClassCode(String classCode);
+    
+    /**
+     * Find all classrooms for a specific course
+     */
+    List<ClassRoom> findByCourseId(Integer courseId);
+    
+    /**
+     * Find all classrooms assigned to a specific trainer
+     */
+    List<ClassRoom> findByTrainerId(Integer trainerId);
+    
+    /**
+     * Find all active classrooms
+     */
+    @Query("SELECT c FROM ClassRoom c WHERE c.status = 'ACTIVE'")
+    List<ClassRoom> findAllActive();
+>>>>>>> origin/main
 }

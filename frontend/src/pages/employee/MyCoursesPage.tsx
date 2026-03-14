@@ -1,25 +1,25 @@
 import { useState, useEffect } from 'react';
-import { mockCourses } from '../../data/mockCourses';
 import CourseCard from '../../components/employee/CourseCard';
 import { CourseCardSkeleton } from '../../components/common/LoadingSpinner';
 import { NoCoursesFound } from '../../components/common/EmptyState';
+import { useCourseStore } from '../../stores/course.store';
+import { useAuthStore } from '../../stores/auth.store';
 
 type SortOption = 'newest' | 'oldest' | 'progress' | 'name';
 type ViewMode = 'grid' | 'list';
 
 export default function MyCoursesPage() {
-  const [courses] = useState(mockCourses);
+  const { courses, fetchMyCourses, loading } = useCourseStore();
+  const { user } = useAuthStore();
   const [filter, setFilter] = useState<'all' | 'ACTIVE' | 'DRAFT' | 'ARCHIVED'>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
-  // Simulate loading
+  // Fetch courses from API
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
+    fetchMyCourses(user?.id);
+  }, [fetchMyCourses, user]);
 
   // Filter courses
   let filteredCourses = courses.filter(course => {
@@ -178,7 +178,7 @@ export default function MyCoursesPage() {
       </div>
 
       {/* Course Grid/List */}
-      {isLoading ? (
+      {loading ? (
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
           <CourseCardSkeleton />
           <CourseCardSkeleton />
