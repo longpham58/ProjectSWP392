@@ -58,22 +58,38 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     );
 
     /**
-     * Find all sessions for courses taught by a specific trainer, ordered by date
+     * Find all sessions for a specific trainer, ordered by date
      */
-    @Query("SELECT s FROM Session s WHERE s.course.trainer.id = :trainerId ORDER BY s.date ASC, s.sessionNumber ASC")
+    @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId ORDER BY s.date ASC")
     List<Session> findByCourseTrainerIdOrderByDateAsc(@Param("trainerId") Integer trainerId);
 
     /**
-     * Find all sessions for courses taught by a specific trainer, ordered by date (alias)
+     * Find all sessions for a specific trainer, ordered by date (alias)
      */
-    @Query("SELECT s FROM Session s WHERE s.course.trainer.id = :trainerId ORDER BY s.date ASC, s.sessionNumber ASC")
+    @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId ORDER BY s.date ASC")
     List<Session> findByTrainerIdOrderByDateAsc(@Param("trainerId") Integer trainerId);
 
     /**
-     * Find all sessions for courses taught by a specific trainer
+     * Find all sessions for a specific trainer
      */
-    @Query("SELECT s FROM Session s WHERE s.course.trainer.id = :trainerId")
+    @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId")
     List<Session> findByTrainerId(@Param("trainerId") Integer trainerId);
+
+    /**
+     * Calculate session number dynamically by counting previous sessions in the same class
+     */
+    @Query("""
+        SELECT COUNT(s2) + 1
+        FROM Session s2
+        WHERE s2.classRoom.id = :classId
+        AND (s2.date < :sessionDate 
+             OR (s2.date = :sessionDate AND s2.timeStart < :timeStart))
+    """)
+    Integer getSessionNumber(
+        @Param("classId") Integer classId,
+        @Param("sessionDate") java.time.LocalDate sessionDate,
+        @Param("timeStart") java.time.LocalTime timeStart
+    );
 
     /**
      * Find all sessions for a user (through enrollments), ordered by date
