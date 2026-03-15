@@ -2,18 +2,19 @@ package com.itms.repository;
 
 import com.itms.entity.Attendance;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Repository
-public interface AttendanceRepository extends JpaRepository<Attendance, Integer> {
+public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     
-    @Query("SELECT a FROM Attendance a JOIN FETCH a.enrollment e JOIN FETCH e.course c WHERE e.user.id = :userId AND c.id = :courseId")
+    @Query("SELECT a FROM Attendance a JOIN FETCH a.enrollment e JOIN FETCH e.session s JOIN FETCH s.course c WHERE e.user.id = :userId AND c.id = :courseId")
     List<Attendance> findByUserIdAndCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
 
     @Query(value = """
@@ -22,7 +23,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
             SELECT CAST(s.date AS DATE) AS activity_date
             FROM Attendance a
             JOIN Enrollment e ON a.enrollment_id = e.id
-            JOIN Session s ON e.course_id = s.course_id
+            JOIN Session s ON e.session_id = s.id
             WHERE e.user_id = :userId
             AND a.attended = 1
 
@@ -44,7 +45,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
         SELECT COUNT(*)
         FROM Attendance a
         JOIN Enrollment e ON a.enrollment_id = e.id
-        JOIN Session s ON e.course_id = s.course_id
+        JOIN Session s ON e.session_id = s.id
         WHERE e.user_id = :userId
         AND a.attended = 1
         AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
@@ -58,7 +59,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
         SELECT COALESCE(SUM(a.duration_minutes), 0)
         FROM Attendance a
         JOIN Enrollment e ON a.enrollment_id = e.id
-        JOIN Session s ON e.course_id = s.course_id
+        JOIN Session s ON e.session_id = s.id
         WHERE e.user_id = :userId
         AND a.attended = 1
         AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
@@ -77,7 +78,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
             s.date         AS time
         FROM Attendance a
         JOIN Enrollment e ON a.enrollment_id = e.id
-        JOIN Session s ON e.course_id = s.course_id
+        JOIN Session s ON e.session_id = s.id
         JOIN Course c ON s.course_id = c.id
         WHERE e.user_id = :userId
         AND a.attended = 1
@@ -86,37 +87,22 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
     List<Object[]> findRecentSessionActivities(@Param("userId") Integer userId);
 
     /**
-     * Find attendance record by enrollment ID
+     * Update attendance for a user and session
      */
-    Optional<Attendance> findByEnrollmentId(Integer enrollmentId);
-
-    /**
-     * Find all enrollments for a session (for trainer to mark attendance)
-     */
-    @Query("""
-        SELECT a FROM Attendance a
-        JOIN a.enrollment e
-        JOIN e.user u
-        WHERE e.session.id = :sessionId
-        ORDER BY u.fullName ASC
-    """)
-    List<Attendance> findBySessionId(@Param("sessionId") Long sessionId);
-
-    /**
-     * Count attended students in a session
-     */
-    @Query("""
-        SELECT COUNT(a) FROM Attendance a
-        WHERE a.enrollment.session.id = :sessionId AND a.attended = true
-    """)
-    Integer countAttendedBySessionId(@Param("sessionId") Long sessionId);
-
-    /**
-     * Count absent students in a session
-     */
-    @Query("""
-        SELECT COUNT(a) FROM Attendance a
-        WHERE a.enrollment.session.id = :sessionId AND a.attended = false
-    """)
-    Integer countAbsentBySessionId(@Param("sessionId") Long sessionId);
+    @Modifying
+    @Transactional
+    @Query(value = """
+        UPDATE Attendance 
+        SET attended = :attended, notes = :notes
+        WHERE enrollment_id IN (
+            SELECT id FROM Enrollment 
+            WHERE user_id = :userId AND session_id = :sessionId
+        )
+    """, nativeQuery = true)
+    void updateAttendanceForUserAndSession(
+        @Param("userId") Integer userId, 
+        @Param("sessionId") Integer sessionId, 
+        @Param("attended") Boolean attended,
+        @Param("notes") String notes
+    );
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTrainerNotificationStore } from '../../../../stores/trainerNotification.store';
-import { trainerNotificationApi } from '../../../../api/trainerNotification.api';
+import * as trainerApi from '../../../../api/notification-trainer.api';
 
 interface CreateNotificationModalProps {
   onClose: () => void;
@@ -20,24 +20,23 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClo
 
   // Fetch courses when component mounts
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchClasses = async () => {
       setLoadingCourses(true);
       try {
-        console.log('🔍 Fetching trainer courses...');
-        const response = await trainerNotificationApi.getTrainerCourses();
+        console.log('🔍 Fetching trainer classes...');
+        const response = await trainerApi.getTrainerClasses();
         console.log('✅ Full API response:', response);
-        console.log('📚 Response.data:', response.data);
-        console.log('📚 Available classes:', response.data);
+        console.log('📚 Available classes:', response);
         
-        if (response.data && Array.isArray(response.data)) {
-          console.log('✅ Setting available classes:', response.data);
-          setAvailableClasses(response.data);
+        if (response && Array.isArray(response)) {
+          console.log('✅ Setting available classes:', response);
+          setAvailableClasses(response);
         } else {
-          console.warn('⚠️ Response.data is not an array:', response.data);
+          console.warn('⚠️ Response is not an array:', response);
           setAvailableClasses([]);
         }
       } catch (err: any) {
-        console.error('❌ Failed to fetch courses:', err);
+        console.error('❌ Failed to fetch classes:', err);
         console.error('❌ Error response:', err.response);
         console.error('❌ Error message:', err.message);
         // Fallback to empty array
@@ -47,7 +46,7 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClo
       }
     };
 
-    fetchCourses();
+    fetchClasses();
   }, []);
 
   const toggleClass = (classCode: string) => {
@@ -94,6 +93,7 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClo
       await createNotification({
         title,
         message: content,
+        type: 'GENERAL',
         priority,
         recipientType: recipient,
         classCodes: recipient === 'STUDENTS' ? selectedClasses : undefined,
@@ -101,8 +101,10 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClo
       });
       alert('Đã gửi thông báo thành công!');
       onClose();
-    } catch (err) {
-      alert('Gửi thông báo thất bại!');
+    } catch (err: any) {
+      console.error('❌ Error sending notification:', err);
+      console.error('❌ Error response:', err.response);
+      alert('Gửi thông báo thất bại! ' + (err.response?.data?.message || err.message));
     }
   };
 
@@ -113,9 +115,20 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClo
     }
 
     try {
+      console.log('💾 Saving draft with data:', {
+        title,
+        message: content,
+        type: 'GENERAL',
+        priority,
+        recipientType: recipient,
+        classCodes: recipient === 'STUDENTS' ? selectedClasses : undefined,
+        isDraft: true
+      });
+      
       await createNotification({
         title,
         message: content,
+        type: 'GENERAL',
         priority,
         recipientType: recipient,
         classCodes: recipient === 'STUDENTS' ? selectedClasses : undefined,
@@ -123,8 +136,10 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClo
       });
       alert('Đã lưu nháp thành công!');
       onClose();
-    } catch (err) {
-      alert('Lưu nháp thất bại!');
+    } catch (err: any) {
+      console.error('❌ Error saving draft:', err);
+      console.error('❌ Error response:', err.response);
+      alert('Lưu nháp thất bại! ' + (err.response?.data?.message || err.message));
     }
   };
 

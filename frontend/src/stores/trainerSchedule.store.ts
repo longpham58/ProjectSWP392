@@ -1,78 +1,57 @@
 import { create } from 'zustand';
-import { 
-  TrainerScheduleDto, 
-  CourseOption,
-  trainerScheduleApi 
-} from '../api/trainerSchedule.api';
+import { TrainerScheduleDto, getTrainerSchedule } from '../api/trainerSchedule.api';
 
 interface TrainerScheduleState {
-  // State
   schedule: TrainerScheduleDto[];
-  selectedSession: TrainerScheduleDto | null;
-  courses: CourseOption[];
   loading: boolean;
   error: string | null;
-
+  
   // Actions
   fetchSchedule: () => Promise<void>;
-  fetchSessionById: (id: number) => Promise<void>;
-  fetchCourses: () => Promise<void>;
   clearError: () => void;
-  setSelectedSession: (session: TrainerScheduleDto | null) => void;
 }
 
 export const useTrainerScheduleStore = create<TrainerScheduleState>((set, get) => ({
-  // Initial state
   schedule: [],
-  selectedSession: null,
-  courses: [],
   loading: false,
   error: null,
 
-  // Actions
   fetchSchedule: async () => {
     set({ loading: true, error: null });
     try {
-      const schedule = await trainerScheduleApi.getTrainerSchedule();
-      set({ schedule, loading: false });
-    } catch (error: any) {
-      console.error('Error fetching trainer schedule:', error);
+      const schedule = await getTrainerSchedule();
+      
+      // Calculate slot for each session based on time
+      const scheduleWithSlots = schedule.map(session => {
+        const timeStart = session.timeStart;
+        let slot = 1;
+        
+        if (timeStart) {
+          const hour = parseInt(timeStart.split(':')[0]);
+          if (hour >= 7 && hour < 9) slot = 1;
+          else if (hour >= 9 && hour < 11) slot = 2;
+          else if (hour >= 11 && hour < 13) slot = 3;
+          else if (hour >= 13 && hour < 15) slot = 4;
+          else if (hour >= 15 && hour < 17) slot = 5;
+          else if (hour >= 17 && hour < 19) slot = 6;
+        }
+        
+        return {
+          ...session,
+          slot,
+          dayOfWeek: session.date ? new Date(session.date).getDay() : 0
+        };
+      });
+      
+      set({ schedule: scheduleWithSlots, loading: false });
+    } catch (error) {
+      console.error('Failed to fetch trainer schedule:', error);
       set({ 
-        error: error.response?.data?.message || 'Failed to fetch schedule',
+        error: 'Không thể tải lịch giảng dạy. Vui lòng thử lại sau.', 
         loading: false 
       });
     }
   },
 
-  fetchSessionById: async (id: number) => {
-    set({ loading: true, error: null });
-    try {
-      const session = await trainerScheduleApi.getSessionById(id);
-      set({ selectedSession: session, loading: false });
-    } catch (error: any) {
-      console.error('Error fetching session:', error);
-      set({ 
-        error: error.response?.data?.message || 'Failed to fetch session',
-        loading: false 
-      });
-    }
-  },
-
-  fetchCourses: async () => {
-    try {
-      const courses = await trainerScheduleApi.getTrainerCourses();
-      set({ courses });
-    } catch (error: any) {
-      console.error('Error fetching courses:', error);
-      set({ 
-        error: error.response?.data?.message || 'Failed to fetch courses'
-      });
-    }
-  },
-
-  clearError: () => set({ error: null }),
-
-  setSelectedSession: (session: TrainerScheduleDto | null) => {
-    set({ selectedSession: session });
-  }
+  clearError: () => set({ error: null })
 }));

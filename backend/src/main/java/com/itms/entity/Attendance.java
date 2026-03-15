@@ -14,13 +14,12 @@ public class Attendance {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @OneToOne
     @JoinColumn(name = "enrollment_id", nullable = false, unique = true)
     private Enrollment enrollment;
 
-    @Column(nullable = false)
     private Boolean attended = false;
 
     @Column(name = "check_in_time")
@@ -32,7 +31,7 @@ public class Attendance {
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
 
-    @Column(name = "completion_status", nullable = false)
+    @Column(name = "completion_status")
     private String completionStatus = "IN_PROGRESS";
 
     @Column(name = "completion_date")
@@ -45,7 +44,7 @@ public class Attendance {
     @JoinColumn(name = "marked_by")
     private User markedBy;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")

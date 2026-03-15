@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -16,11 +17,7 @@ public class CourseSchedule {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    /* =========================
-       Relationships
-    ========================= */
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
@@ -34,16 +31,8 @@ public class CourseSchedule {
     @JoinColumn(name = "trainer_id")
     private User trainer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
-    private User createdBy;
-
-    /* =========================
-       Schedule Info
-    ========================= */
-
-    @Column(name = "day_of_week", nullable = false, length = 3)
-    private String dayOfWeek; // MON, TUE, WED, THU, FRI, SAT, SUN
+    @Column(name = "day_of_week", nullable = false, length = 10)
+    private String dayOfWeek;
 
     @Column(name = "time_start", nullable = false)
     private LocalTime timeStart;
@@ -51,23 +40,15 @@ public class CourseSchedule {
     @Column(name = "time_end", nullable = false)
     private LocalTime timeEnd;
 
-    /* =========================
-       Location
-    ========================= */
-
-    @Column(length = 255)
+    @Column(name = "location", length = 200)
     private String location;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "location_type", nullable = false)
-    private LocationType locationType = LocationType.OFFLINE;
+    @Column(name = "location_type", length = 20)
+    private LocationType locationType;
 
     @Column(name = "meeting_link", length = 500)
     private String meetingLink;
-
-    /* =========================
-       Audit
-    ========================= */
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -75,13 +56,10 @@ public class CourseSchedule {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
+    private List<Session> sessions;
 }

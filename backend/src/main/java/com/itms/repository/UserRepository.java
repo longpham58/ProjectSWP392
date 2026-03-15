@@ -28,12 +28,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 """)
     Optional<User> findByUsernameWithRole(@Param("username") String username);
 
-    // Find users by role name or code
-    @Query("""
-    SELECT DISTINCT u FROM User u
-    JOIN u.userRole ur
-    JOIN ur.role r
-    WHERE r.roleName = :roleName OR r.roleCode = :roleCode
-""")
-    List<User> findByRoleNameOrCode(@Param("roleName") String roleName, @Param("roleCode") String roleCode);
+    @Query("SELECT u FROM User u JOIN u.userRole ur JOIN ur.role r WHERE r.roleName = :roleName")
+    List<User> findByRoleName(@Param("roleName") String roleName);
 }

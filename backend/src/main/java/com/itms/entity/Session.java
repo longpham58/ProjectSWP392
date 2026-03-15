@@ -30,7 +30,7 @@ public class Session {
     private Course course;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_id", nullable = false)
+    @JoinColumn(name = "class_id")
     private ClassRoom classRoom;
 
     @ManyToOne(fetch = FetchType.LAZY)

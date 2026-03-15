@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTrainerNotificationStore } from '../../../stores/trainerNotification.store';
-import { TrainerNotificationRequest } from '../../../api/trainerNotification.api';
+import type { NotificationRequest } from '../../../api/notification-trainer.api';
 import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import CreateNotificationModal from './modals/CreateNotificationModal';
 
@@ -91,8 +91,10 @@ const NotificationSectionNew: React.FC = () => {
     }
   };
 
-  const formatTime = (dateString: string) => {
+  const formatTime = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Không rõ';
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'Không rõ';
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);

@@ -14,11 +14,7 @@ public class ClassMember {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    /* =========================
-       Relationships
-    ========================= */
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id", nullable = false)
@@ -28,27 +24,16 @@ public class ClassMember {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "joined_at")
+    private LocalDateTime joinedAt;
+
+    @Column(name = "status", length = 20)
+    private String status;
+
+    @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
+    private String notes;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "added_by")
     private User addedBy;
-
-    /* =========================
-       Member Info
-    ========================= */
-
-    @Column(name = "joined_at", nullable = false)
-    private LocalDateTime joinedAt;
-
-    @Column(nullable = false, length = 20)
-    private String status = "ACTIVE"; // ACTIVE, DROPPED, COMPLETED
-
-    @Column(length = 500)
-    private String notes;
-
-    @PrePersist
-    protected void onCreate() {
-        if (joinedAt == null) {
-            joinedAt = LocalDateTime.now();
-        }
-    }
 }

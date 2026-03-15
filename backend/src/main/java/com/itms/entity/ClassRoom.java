@@ -1,8 +1,7 @@
 package com.itms.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,24 +9,44 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "ClassRoom")
 public class ClassRoom {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    /* =========================
-       Relationships
-    ========================= */
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
+    @Column(name = "class_code", nullable = false, unique = true, length = 20)
+    private String classCode;
+
+    @Column(name = "class_name", nullable = false, length = 200)
+    private String className;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "trainer_id")
     private User trainer;
+
+    @Column(name = "max_students")
+    private Integer maxStudents;
+
+    @Column(name = "status", length = 20)
+    private String status;
+
+    @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
+    private String notes;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
@@ -37,52 +56,12 @@ public class ClassRoom {
     @JoinColumn(name = "updated_by")
     private User updatedBy;
 
-    /* =========================
-       Class Info
-    ========================= */
+    @OneToMany(mappedBy = "classRoom", cascade = CascadeType.ALL)
+    private List<ClassMember> classMembers;
 
-    @Column(name = "class_code", nullable = false, unique = true, length = 50)
-    private String classCode;
+    @OneToMany(mappedBy = "classRoom", cascade = CascadeType.ALL)
+    private List<CourseSchedule> courseSchedules;
 
-    @Column(name = "class_name", length = 255)
-    private String className;
-
-    @Column(name = "max_students", nullable = false)
-    private Integer maxStudents = 30;
-
-    @Column(nullable = false, length = 20)
-    private String status = "ACTIVE"; // ACTIVE, INACTIVE, COMPLETED, CANCELLED
-
-    @Column(columnDefinition = "NVARCHAR(MAX)")
-    private String notes;
-
-    /* =========================
-       Audit
-    ========================= */
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    /* =========================
-       Collections
-    ========================= */
-
-    @OneToMany(mappedBy = "classRoom")
+    @OneToMany(mappedBy = "classRoom", cascade = CascadeType.ALL)
     private List<Session> sessions;
-
-    @OneToMany(mappedBy = "classRoom")
-    private List<CourseSchedule> schedules;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }
