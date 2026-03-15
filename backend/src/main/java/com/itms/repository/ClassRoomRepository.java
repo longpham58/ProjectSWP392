@@ -13,6 +13,12 @@ import java.util.Optional;
 public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
     
     /**
+     * Find classroom by class code (with course eagerly loaded)
+     */
+    @Query("SELECT c FROM ClassRoom c JOIN FETCH c.course WHERE c.classCode = :classCode")
+    Optional<ClassRoom> findByClassCodeWithCourse(@Param("classCode") String classCode);
+    
+    /**
      * Find classroom by class code
      */
     Optional<ClassRoom> findByClassCode(String classCode);
@@ -22,6 +28,12 @@ public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
      */
     List<ClassRoom> findByCourseId(Integer courseId);
     
+    /**
+     * Find all classrooms assigned to a specific trainer (with course eagerly loaded)
+     */
+    @Query("SELECT c FROM ClassRoom c JOIN FETCH c.course WHERE c.trainer.id = :trainerId")
+    List<ClassRoom> findByTrainerIdWithCourse(@Param("trainerId") Integer trainerId);
+
     /**
      * Find all classrooms assigned to a specific trainer
      */

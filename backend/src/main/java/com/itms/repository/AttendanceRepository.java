@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
@@ -105,4 +106,9 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         @Param("attended") Boolean attended,
         @Param("notes") String notes
     );
+
+    /**
+     * Find attendance by enrollment id
+     */
+    Optional<Attendance> findByEnrollmentId(Integer enrollmentId);
 }
