@@ -1,5 +1,6 @@
 package com.itms.config;
 
+import com.itms.common.LocationType;
 import com.itms.entity.*;
 import com.itms.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Component
 @RequiredArgsConstructor
@@ -17,7 +19,7 @@ public class DataSeeder {
     private final PasswordEncoder passwordEncoder;
 
     // Set to true to reset and reseed data every time the app starts
-    private static final boolean RESET_DATA = false;
+    private static final boolean RESET_DATA = true;
 
     @Bean
     CommandLineRunner seedData(
@@ -262,6 +264,39 @@ public class DataSeeder {
             createClassMember(classMemberRepository, pythonClass1, emp3, admin);
             createClassMember(classMemberRepository, pythonClass1, emp5, admin);
 
+            // =========================
+            // Seed CourseSchedules (recurring weekly schedule per class)
+            // =========================
+            createCourseSchedule(courseScheduleRepository, javaCourse, javaClass1, trainer,
+                    "MON", LocalTime.of(8, 0), LocalTime.of(10, 0), "Phòng 101", admin);
+            createCourseSchedule(courseScheduleRepository, javaCourse, javaClass1, trainer,
+                    "WED", LocalTime.of(8, 0), LocalTime.of(10, 0), "Phòng 101", admin);
+
+            createCourseSchedule(courseScheduleRepository, javaCourse, javaClass2, trainer,
+                    "TUE", LocalTime.of(13, 0), LocalTime.of(15, 0), "Phòng 102", admin);
+            createCourseSchedule(courseScheduleRepository, javaCourse, javaClass2, trainer,
+                    "THU", LocalTime.of(13, 0), LocalTime.of(15, 0), "Phòng 102", admin);
+
+            createCourseSchedule(courseScheduleRepository, springCourse, springClass1, trainer2,
+                    "TUE", LocalTime.of(8, 0), LocalTime.of(10, 0), "Phòng 201", admin);
+            createCourseSchedule(courseScheduleRepository, springCourse, springClass1, trainer2,
+                    "FRI", LocalTime.of(8, 0), LocalTime.of(10, 0), "Phòng 201", admin);
+
+            createCourseSchedule(courseScheduleRepository, reactCourse, reactClass1, trainer3,
+                    "WED", LocalTime.of(13, 0), LocalTime.of(15, 0), "Phòng 301", admin);
+            createCourseSchedule(courseScheduleRepository, reactCourse, reactClass1, trainer3,
+                    "SAT", LocalTime.of(8, 0), LocalTime.of(10, 0), "Phòng 301", admin);
+
+            createCourseSchedule(courseScheduleRepository, sqlCourse, sqlClass1, trainer4,
+                    "MON", LocalTime.of(13, 0), LocalTime.of(15, 0), "Phòng 401", admin);
+            createCourseSchedule(courseScheduleRepository, sqlCourse, sqlClass1, trainer4,
+                    "THU", LocalTime.of(8, 0), LocalTime.of(10, 0), "Phòng 401", admin);
+
+            createCourseSchedule(courseScheduleRepository, pythonCourse, pythonClass1, trainer5,
+                    "WED", LocalTime.of(8, 0), LocalTime.of(10, 0), "Phòng 501", admin);
+            createCourseSchedule(courseScheduleRepository, pythonCourse, pythonClass1, trainer5,
+                    "FRI", LocalTime.of(13, 0), LocalTime.of(15, 0), "Phòng 501", admin);
+
             System.out.println("✅ ITMS seed data completed successfully");
         };
     }
@@ -415,6 +450,37 @@ public class DataSeeder {
             
             repo.save(classMember);
         }
+    }
+
+    private void createCourseSchedule(
+            CourseScheduleRepository repo,
+            Course course,
+            ClassRoom classRoom,
+            User trainer,
+            String dayOfWeek,
+            LocalTime timeStart,
+            LocalTime timeEnd,
+            String location,
+            User createdBy
+    ) {
+        // Avoid duplicates
+        boolean exists = repo.findByClassRoomId(classRoom.getId()).stream()
+                .anyMatch(cs -> cs.getDayOfWeek().equalsIgnoreCase(dayOfWeek)
+                        && cs.getTimeStart().equals(timeStart));
+        if (exists) return;
+
+        CourseSchedule schedule = new CourseSchedule();
+        schedule.setCourse(course);
+        schedule.setClassRoom(classRoom);
+        schedule.setTrainer(trainer);
+        schedule.setDayOfWeek(dayOfWeek);
+        schedule.setTimeStart(timeStart);
+        schedule.setTimeEnd(timeEnd);
+        schedule.setLocation(location);
+        schedule.setLocationType(LocationType.OFFLINE);
+        schedule.setCreatedAt(LocalDateTime.now());
+        schedule.setCreatedBy(createdBy);
+        repo.save(schedule);
     }
 
 }
