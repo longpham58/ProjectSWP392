@@ -38,16 +38,15 @@ public class CourseScheduleDto {
         String status = session.getStatus() != null ? 
             session.getStatus().name() : "SCHEDULED";
         
-        // Format title as "{courseCode}-M{sessionNumber}" (e.g., "ITMS001-M01")
+        // Format title as "{courseCode}-Session{id}" (e.g., "ITMS001-Session1")
         String courseCode = session.getCourse() != null && session.getCourse().getCode() != null ?
             session.getCourse().getCode() : "COURSE";
-        String sessionNum = String.format("M%02d", session.getSessionNumber() != null ? session.getSessionNumber() : 1);
-        String title = courseCode + "-" + sessionNum;
+        String title = courseCode + "-Session" + session.getId();
 
         return CourseScheduleDto.builder()
                 .id(session.getId())
                 .courseId(session.getCourse().getId())
-                .sessionNumber(session.getSessionNumber())
+                .sessionNumber(session.getId().intValue()) // Use session ID as session number
                 .title(title)
                 .date(session.getDate() != null ? session.getDate().toString() : null)
                 .time(session.getTimeStart() != null ? session.getTimeStart().toString() : null)

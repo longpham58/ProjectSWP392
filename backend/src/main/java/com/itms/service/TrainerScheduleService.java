@@ -30,16 +30,25 @@ public class TrainerScheduleService {
      * Convert Session entity to TrainerScheduleDto
      */
     private TrainerScheduleDto convertToDto(Session session) {
-        // Calculate session number dynamically
-        Integer sessionNumber = sessionRepository.getSessionNumber(
-                session.getClassRoom().getId(),
-                session.getDate(),
-                session.getTimeStart()
-        );
+        // Calculate session number dynamically - use session ID as fallback
+        Integer sessionNumber = 1;
+        try {
+            if (session.getClassRoom() != null) {
+                sessionNumber = sessionRepository.getSessionNumber(
+                        session.getClassRoom().getId(),
+                        session.getDate(),
+                        session.getTimeStart()
+                );
+            }
+        } catch (Exception e) {
+            // Fallback to session ID if calculation fails
+            sessionNumber = session.getId().intValue();
+        }
 
         return TrainerScheduleDto.builder()
                 .sessionId(session.getId())
-                .sessionNumber(sessionNumber != null ? sessionNumber : 0)
+                .sessionName("Session " + session.getId())
+                .sessionNumber(sessionNumber != null ? sessionNumber : session.getId().intValue())
                 .date(session.getDate())
                 .timeStart(session.getTimeStart())
                 .timeEnd(session.getTimeEnd())
