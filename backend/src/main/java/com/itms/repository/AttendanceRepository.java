@@ -8,26 +8,18 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
     
     @Query("SELECT a FROM Attendance a JOIN FETCH a.enrollment e JOIN FETCH e.session s JOIN FETCH s.course c WHERE e.user.id = :userId AND c.id = :courseId")
     List<Attendance> findByUserIdAndCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
->>>>>>> Stashed changes
 
     /**
      * Find attendance by enrollment
      */
     Optional<Attendance> findByEnrollmentId(Integer enrollmentId);
-=======
-    
-    @Query("SELECT a FROM Attendance a JOIN FETCH a.enrollment e JOIN FETCH e.course c WHERE e.user.id = :userId AND c.id = :courseId")
-    List<Attendance> findByUserIdAndCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
->>>>>>> origin/main
 
     @Query(value = """
         SELECT DISTINCT activity_date
@@ -35,7 +27,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
             SELECT CAST(s.date AS DATE) AS activity_date
             FROM Attendance a
             JOIN Enrollment e ON a.enrollment_id = e.id
-            JOIN Session s ON e.course_id = s.course_id
+            JOIN Session s ON e.session_id = s.id
             WHERE e.user_id = :userId
             AND a.attended = 1
 
@@ -57,7 +49,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         SELECT COUNT(*)
         FROM Attendance a
         JOIN Enrollment e ON a.enrollment_id = e.id
-        JOIN Session s ON e.course_id = s.course_id
+        JOIN Session s ON e.session_id = s.id
         WHERE e.user_id = :userId
         AND a.attended = 1
         AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
@@ -71,7 +63,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         SELECT COALESCE(SUM(a.duration_minutes), 0)
         FROM Attendance a
         JOIN Enrollment e ON a.enrollment_id = e.id
-        JOIN Session s ON e.course_id = s.course_id
+        JOIN Session s ON e.session_id = s.id
         WHERE e.user_id = :userId
         AND a.attended = 1
         AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
@@ -90,7 +82,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
             s.date         AS time
         FROM Attendance a
         JOIN Enrollment e ON a.enrollment_id = e.id
-        JOIN Session s ON e.course_id = s.course_id
+        JOIN Session s ON e.session_id = s.id
         JOIN Course c ON s.course_id = c.id
         WHERE e.user_id = :userId
         AND a.attended = 1

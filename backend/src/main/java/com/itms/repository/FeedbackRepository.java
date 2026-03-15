@@ -2,11 +2,8 @@ package com.itms.repository;
 
 import com.itms.entity.Feedback;
 import org.springframework.data.jpa.repository.JpaRepository;
-<<<<<<< HEAD
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-=======
->>>>>>> origin/main
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,7 +13,6 @@ import java.util.Optional;
 public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 
     /**
-<<<<<<< HEAD
      * Find all feedback for a specific session
      */
     List<Feedback> findBySessionId(Integer sessionId);
@@ -69,19 +65,4 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
      */
     @Query("SELECT CASE WHEN COUNT(f) > 0 THEN true ELSE false END FROM Feedback f WHERE f.user.id = :userId AND f.session.course.id = :courseId")
     boolean existsByUserIdAndEnrollmentCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
-=======
-     * Find all feedback for a specific course
-     */
-    List<Feedback> findByEnrollmentCourseId(Integer courseId);
-
-    /**
-     * Find feedback by user and course
-     */
-    Optional<Feedback> findByUserIdAndEnrollmentCourseId(Integer userId, Integer courseId);
-
-    /**
-     * Check if user has already submitted feedback for a course
-     */
-    boolean existsByUserIdAndEnrollmentCourseId(Integer userId, Integer courseId);
->>>>>>> origin/main
 }

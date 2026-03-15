@@ -16,7 +16,7 @@ import java.util.List;
 )
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class User {
@@ -46,17 +46,9 @@ public class User {
     @Column(length = 20)
     private String phone;
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
-
-
->>>>>>> Stashed changes
-=======
     @Column(name = "address", length = 500)
     private String address;
 
->>>>>>> origin/main
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 

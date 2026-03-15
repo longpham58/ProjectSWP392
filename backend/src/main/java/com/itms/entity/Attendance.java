@@ -1,15 +1,7 @@
 package com.itms.entity;
 
 import jakarta.persistence.*;
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
 import lombok.*;
->>>>>>> Stashed changes
-=======
-import lombok.Getter;
-import lombok.Setter;
->>>>>>> origin/main
 
 import java.time.LocalDateTime;
 
@@ -17,6 +9,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table(name = "Attendance")
+@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 public class Attendance {
 
     @Id
@@ -35,13 +30,9 @@ public class Attendance {
 
     private Integer durationMinutes;
 
-<<<<<<< Updated upstream
-    private String completionStatus = "IN_PROGRESS";
-=======
     @Enumerated(EnumType.STRING)
     @Column(name = "completion_status", nullable = false, length = 20)
     private CompletionStatus completionStatus = CompletionStatus.IN_PROGRESS;
->>>>>>> Stashed changes
 
     private LocalDateTime completionDate;
 
@@ -52,10 +43,7 @@ public class Attendance {
     @JoinColumn(name = "marked_by")
     private User markedBy;
 
-<<<<<<< Updated upstream
-=======
     @Column(name = "created_at")
->>>>>>> Stashed changes
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

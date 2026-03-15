@@ -6,10 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-<<<<<<< HEAD
-import java.time.LocalDate;
-=======
->>>>>>> origin/main
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,11 +30,7 @@ public class QuizDto {
     private Boolean randomizeQuestions;
     private Boolean showCorrectAnswers;
     private Boolean isActive;
-<<<<<<< HEAD
-    private LocalDate dueDate;
-=======
     private LocalDateTime dueDate;
->>>>>>> origin/main
     private Boolean isFinalExam;
     private List<QuizQuestionDto> questions;
     private Boolean isUnlocked;
@@ -47,4 +39,3 @@ public class QuizDto {
     private List<Integer> requiredModuleIds;
     private List<String> requiredModuleTitles;
 }
-

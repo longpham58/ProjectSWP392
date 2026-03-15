@@ -14,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "Course")
 public class Course {
@@ -61,24 +61,12 @@ public class Course {
     @Column(name = "max_attempts")
     private Integer maxAttempts;
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
     @Column(name = "start_date")
     private LocalDate startDate;
 
     @Column(name = "end_date")
     private LocalDate endDate;
 
->>>>>>> Stashed changes
-=======
-    @Column(name = "start_date")
-    private java.time.LocalDate startDate;
-
-    @Column(name = "end_date")
-    private java.time.LocalDate endDate;
-
->>>>>>> origin/main
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private CourseStatus status;
@@ -89,11 +77,6 @@ public class Course {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> origin/main
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
     private User createdBy;
@@ -102,10 +85,6 @@ public class Course {
     @JoinColumn(name = "updated_by")
     private User updatedBy;
 
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
->>>>>>> origin/main
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
     private List<Material> materials;
 

@@ -1,17 +1,11 @@
 package com.itms.entity;
 
 import jakarta.persistence.*;
-<<<<<<< HEAD
 import lombok.*;
-=======
-import lombok.Getter;
-import lombok.Setter;
->>>>>>> origin/main
 
 import java.time.LocalDateTime;
 
 @Entity
-<<<<<<< HEAD
 @Table(
     name = "ClassMember",
     uniqueConstraints = {
@@ -21,13 +15,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-=======
-@Getter
-@Setter
-@Table(name = "ClassMember")
->>>>>>> origin/main
 public class ClassMember {
 
     @Id
@@ -45,24 +34,15 @@ public class ClassMember {
     @Column(name = "joined_at")
     private LocalDateTime joinedAt;
 
-<<<<<<< HEAD
     @Column(nullable = false, length = 20)
     private String status = "ACTIVE";
-=======
-    @Column(name = "status", length = 20)
-    private String status;
 
     @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
     private String notes;
->>>>>>> origin/main
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "added_by")
     private User addedBy;
-<<<<<<< HEAD
-
-    @Column(length = 500)
-    private String notes;
 
     @PrePersist
     protected void onCreate() {
@@ -73,6 +53,4 @@ public class ClassMember {
             status = "ACTIVE";
         }
     }
-=======
->>>>>>> origin/main
 }
