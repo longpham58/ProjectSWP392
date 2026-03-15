@@ -102,4 +102,23 @@ public class FeedbackService {
                 .submittedAt(feedback.getSubmittedAt())
                 .build();
     }
+
+    /**
+     * Get feedback for trainer's courses
+     */
+    public List<FeedbackDto> getFeedbackForTrainer(Integer trainerId) {
+        List<Feedback> feedbacks = feedbackRepository.findByTrainerId(trainerId);
+        return feedbacks.stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Reply to feedback - Not implemented (database schema doesn't support trainer replies)
+     */
+    @Transactional
+    public void replyToFeedback(Long feedbackId, String reply) {
+        // TODO: This functionality requires database schema changes to add trainer_reply and replied_at columns
+        throw new RuntimeException("Trainer reply functionality not yet implemented - requires database schema update");
+    }
 }

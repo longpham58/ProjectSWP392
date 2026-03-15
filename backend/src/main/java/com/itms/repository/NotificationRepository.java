@@ -10,6 +10,5 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, Integer> {
 
     List<Notification> findByUserIdOrderBySentDateDesc(Integer userId);
-    List<Notification> findBySenderIdOrderBySentDateDesc(Integer senderId);
 
 }

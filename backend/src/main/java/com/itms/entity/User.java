@@ -46,8 +46,7 @@ public class User {
     @Column(length = 20)
     private String phone;
 
-    /** Schema ITMS chuẩn không có cột address. Nếu bảng có cột address thì đổi thành @Column(name = "address", length = 500). */
-    @Transient
+    @Column(name = "address", length = 500)
     private String address;
 
     @Column(name = "avatar_url", length = 500)
