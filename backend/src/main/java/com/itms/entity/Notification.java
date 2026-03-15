@@ -48,6 +48,14 @@ public class Notification {
     @Enumerated(EnumType.STRING)
     @Column(name = "reference_type")
     private ReferenceType referenceType;
+    
+    // Recipient type: STUDENTS, HR, etc.
+    @Column(name = "recipient_type", length = 50)
+    private String recipientType;
+    
+    // Class codes (comma-separated or JSON)
+    @Column(name = "class_codes", columnDefinition = "NVARCHAR(MAX)")
+    private String classCodes;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -65,17 +73,31 @@ public class Notification {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
-    @Column(name = "detail_content")
+    @Column(name = "detail_content", columnDefinition = "NVARCHAR(MAX)")
     private String detailContent;
     
-    // To track if this is a sent item for the sender
-    @Column(name = "is_sent_copy")
-    private Boolean isSentCopy = false;
+    // To track if this is a draft notification
+    @Column(name = "is_draft")
+    private Boolean isDraft = false;
+    
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+    
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @PrePersist
     public void prePersist() {
         if (sentDate == null) {
             sentDate = LocalDateTime.now();
         }
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+    
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }
