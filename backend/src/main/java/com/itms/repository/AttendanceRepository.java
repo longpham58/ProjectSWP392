@@ -2,9 +2,11 @@ package com.itms.repository;
 
 import com.itms.entity.Attendance;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -89,4 +91,24 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         ORDER BY s.date DESC
     """, nativeQuery = true)
     List<Object[]> findRecentSessionActivities(@Param("userId") Integer userId);
+
+    /**
+     * Update attendance for a user and session
+     */
+    @Modifying
+    @Transactional
+    @Query(value = """
+        UPDATE Attendance 
+        SET attended = :attended, notes = :notes
+        WHERE enrollment_id IN (
+            SELECT id FROM Enrollment 
+            WHERE user_id = :userId AND session_id = :sessionId
+        )
+    """, nativeQuery = true)
+    void updateAttendanceForUserAndSession(
+        @Param("userId") Integer userId, 
+        @Param("sessionId") Integer sessionId, 
+        @Param("attended") Boolean attended,
+        @Param("notes") String notes
+    );
 }

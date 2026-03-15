@@ -10,5 +10,11 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, Integer> {
 
     List<Notification> findByUserIdOrderBySentDateDesc(Integer userId);
+    
+    // Find notifications by user and draft status
+    List<Notification> findByUserIdAndIsDraftOrderBySentDateDesc(Integer userId, Boolean isDraft);
+    
+    // Find notifications sent by a specific sender
+    List<Notification> findBySenderIdAndIsDraftOrderBySentDateDesc(Integer senderId, Boolean isDraft);
 
 }

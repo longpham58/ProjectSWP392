@@ -54,6 +54,8 @@ public class CourseService {
         return sessions.stream()
                 .map(session -> TrainerScheduleDto.builder()
                         .sessionId(session.getId())
+                        .sessionName("Session " + session.getId()) // Generate session name from ID
+                        .sessionNumber(session.getId().intValue()) // Use session ID as session number
                         .date(session.getDate())
                         .timeStart(session.getTimeStart())
                         .timeEnd(session.getTimeEnd())
@@ -66,6 +68,6 @@ public class CourseService {
                         .dayOfWeek(session.getDate().getDayOfWeek() == DayOfWeek.SUNDAY ? 0 : 
                                    session.getDate().getDayOfWeek().getValue())
                         .build())
-                .toList();
+                .collect(Collectors.toList());
     }
 }

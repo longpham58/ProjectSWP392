@@ -20,32 +20,11 @@ public interface ClassMemberRepository extends JpaRepository<ClassMember, Intege
     /**
      * Find all class members by class ID
      */
-    List<ClassMember> findByClassRoomId(Integer classId);
-
+    boolean existsByClassRoomIdAndUserId(Integer classRoomId, Integer userId);
+    
     /**
-     * Find class member by class and user
+     * Find all members in a class by class code
      */
-    Optional<ClassMember> findByClassRoomIdAndUserId(Integer classId, Integer userId);
-
-    /**
-     * Check if user is a member of a class
-     */
-    boolean existsByClassRoomIdAndUserId(Integer classId, Integer userId);
-
-    /**
-     * Find active class members for a user
-     */
-    @Query("SELECT cm FROM ClassMember cm WHERE cm.user.id = :userId AND cm.status = 'ACTIVE'")
-    List<ClassMember> findActiveByUserId(@Param("userId") Integer userId);
-
-    /**
-     * Find active class members for a class
-     */
-    @Query("SELECT cm FROM ClassMember cm WHERE cm.classRoom.id = :classId AND cm.status = 'ACTIVE'")
-    List<ClassMember> findActiveByClassRoomId(@Param("classId") Integer classId);
-
-    /**
-     * Count members in a class
-     */
-    Integer countByClassRoomId(Integer classId);
+    @Query("SELECT cm FROM ClassMember cm WHERE cm.classRoom.classCode = :classCode AND cm.status = 'ACTIVE'")
+    List<ClassMember> findByClassRoomClassCode(@Param("classCode") String classCode);
 }

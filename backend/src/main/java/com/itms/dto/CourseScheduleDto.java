@@ -37,11 +37,23 @@ public class CourseScheduleDto {
         String status = session.getStatus() != null ? 
             session.getStatus().name() : "SCHEDULED";
         
+<<<<<<< HEAD
+=======
+        // Format title as "{courseCode}-Session{id}" (e.g., "ITMS001-Session1")
+        String courseCode = session.getCourse() != null && session.getCourse().getCode() != null ?
+            session.getCourse().getCode() : "COURSE";
+        String title = courseCode + "-Session" + session.getId();
+>>>>>>> 18dda540e61fd652941508eb561615ece98277b4
 
         return CourseScheduleDto.builder()
                 .id(session.getId())
                 .courseId(session.getCourse().getId())
+<<<<<<< HEAD
                 .title(session.getClass().getName())
+=======
+                .sessionNumber(session.getId().intValue()) // Use session ID as session number
+                .title(title)
+>>>>>>> 18dda540e61fd652941508eb561615ece98277b4
                 .date(session.getDate() != null ? session.getDate().toString() : null)
                 .time(session.getTimeStart() != null ? session.getTimeStart().toString() : null)
                 .slot(slot)

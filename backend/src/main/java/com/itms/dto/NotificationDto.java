@@ -17,11 +17,20 @@ public class NotificationDto {
     private String message;
     private LocalDateTime date;
     private Boolean read;
-
-    // mapped from backend type/priority
-    private String type; // info | warning | success
-
+    private String type;
     private ReferenceType referenceType;
     private Integer referenceId;
     private String detail_content;
+
+    // Extra fields for trainer notification UI
+    private String priority;
+    private Boolean isRead;
+    private Boolean isDraft;
+    private LocalDateTime sentDate;
+    private LocalDateTime createdAt;
+    private String category;
+    private String sender;
+    private java.util.List<String> recipients;
+    private String recipientType;
+    private String classCodes;
 }
