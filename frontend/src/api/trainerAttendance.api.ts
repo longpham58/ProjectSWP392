@@ -1,59 +1,51 @@
-import axios from 'axios';
+import api from '../lib/axios';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8080/api';
+export interface StudentAttendanceDto {
+  userId: number;
+  fullName: string;
+  email: string;
+  attended: boolean | null;
+  notes?: string;
+}
 
-export interface SessionAttendanceDto {
-  sessionId: number;
-  studentName: string;
-  studentId: number;
+export interface ClassAttendanceDto {
+  classCode: string;
+  className: string;
   date: string;
-  timeStart: string;
-  timeEnd: string;
-  location: string;
-  status: string;
-  attended: boolean;
-  completionStatus: string;
-  markedBy?: string;
-  notes?: string;
+  students: StudentAttendanceDto[];
 }
 
-export interface AttendanceUpdateRequest {
-  studentId: number;
-  attended: boolean;
-  notes?: string;
-}
-
-export interface ApiResponse<T> {
+interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
 }
 
-/**
- * Get attendance for a specific session
- */
-export const getSessionAttendance = async (sessionId: number): Promise<SessionAttendanceDto[]> => {
-  const response = await axios.get<ApiResponse<SessionAttendanceDto[]>>(
-    `${API_BASE_URL}/trainer/attendance/session/${sessionId}`
+// Get classes that have schedule today
+export const getTodayClasses = async (): Promise<ClassAttendanceDto[]> => {
+  const response = await api.get<ApiResponse<ClassAttendanceDto[]>>(
+    '/trainer/attendance/today-classes'
   );
   return response.data.data;
 };
 
-/**
- * Update attendance for students in a session
- */
-export const updateSessionAttendance = async (
-  sessionId: number,
-  attendanceUpdates: AttendanceUpdateRequest[]
-): Promise<void> => {
-  await axios.post<ApiResponse<string>>(
-    `${API_BASE_URL}/trainer/attendance/session/${sessionId}`,
-    attendanceUpdates
+export const getClassAttendance = async (
+  classCode: string,
+  date: string
+): Promise<ClassAttendanceDto> => {
+  const response = await api.get<ApiResponse<ClassAttendanceDto>>(
+    `/trainer/attendance/class/${classCode}`,
+    { params: { date } }
   );
+  return response.data.data;
 };
 
-// Export as trainerAttendanceApi object for easier importing
-export const trainerAttendanceApi = {
-  getSessionAttendance,
-  updateSessionAttendance
+export const saveClassAttendance = async (
+  classCode: string,
+  date: string,
+  updates: StudentAttendanceDto[]
+): Promise<void> => {
+  await api.post(`/trainer/attendance/class/${classCode}`, { students: updates }, {
+    params: { date }
+  });
 };

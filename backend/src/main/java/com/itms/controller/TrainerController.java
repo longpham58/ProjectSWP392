@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,7 @@ public class TrainerController {
     private final FeedbackService feedbackService;
     private final NotificationService notificationService;
     private final ClassRoomService classRoomService;
+    private final TrainerAttendanceService trainerAttendanceService;
 
     /**
      * Get trainer's schedule
@@ -65,7 +67,7 @@ public class TrainerController {
     }
 
     /**
-     * Get attendance for a specific session
+     * Get attendance for a specific session (old endpoint - kept for compatibility)
      */
     @GetMapping("/attendance/session/{sessionId}")
     public ResponseEntity<ResponseDto<List<SessionAttendanceDto>>> getSessionAttendance(
@@ -78,7 +80,52 @@ public class TrainerController {
     }
 
     /**
-     * Update attendance for students in a session
+     * Get classes that have schedule today (for attendance)
+     */
+    @GetMapping("/attendance/today-classes")
+    public ResponseEntity<ResponseDto<List<ClassAttendanceDto>>> getTodayClasses(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<ClassAttendanceDto> classes = trainerAttendanceService.getTodayClasses(userDetails.getId());
+        return ResponseEntity.ok(ResponseDto.success(classes, "Lấy danh sách lớp hôm nay thành công"));
+    }
+
+    /**
+     * Get attendance for a class on a specific date
+     */
+    @GetMapping("/attendance/class/{classCode}")
+    public ResponseEntity<ResponseDto<ClassAttendanceDto>> getClassAttendance(
+            @PathVariable String classCode,
+            @RequestParam(required = false) String date,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        LocalDate attendanceDate = (date != null && !date.isEmpty())
+                ? LocalDate.parse(date)
+                : LocalDate.now();
+
+        ClassAttendanceDto result = trainerAttendanceService.getClassAttendance(classCode, attendanceDate);
+        return ResponseEntity.ok(ResponseDto.success(result, "Lấy danh sách điểm danh thành công"));
+    }
+
+    /**
+     * Save attendance for a class on a specific date
+     */
+    @PostMapping("/attendance/class/{classCode}")
+    public ResponseEntity<ResponseDto<String>> saveClassAttendance(
+            @PathVariable String classCode,
+            @RequestParam(required = false) String date,
+            @RequestBody SaveAttendanceRequest body,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        LocalDate attendanceDate = (date != null && !date.isEmpty())
+                ? LocalDate.parse(date)
+                : LocalDate.now();
+
+        trainerAttendanceService.saveClassAttendance(classCode, attendanceDate, body.getStudents(), userDetails.getId());
+        return ResponseEntity.ok(ResponseDto.success("", "Lưu điểm danh thành công"));
+    }
+
+    /**
+     * Update attendance for students in a session (old endpoint)
      */
     @PostMapping("/attendance/session/{sessionId}")
     public ResponseEntity<ResponseDto<String>> updateAttendance(
@@ -262,6 +309,30 @@ public class TrainerController {
         public void setClassCodes(List<String> classCodes) { this.classCodes = classCodes; }
         public Boolean getIsDraft() { return isDraft; }
         public void setIsDraft(Boolean isDraft) { this.isDraft = isDraft; }
+    }
+
+    public static class SaveAttendanceRequest {
+        private List<StudentAttendanceItem> students;
+        public List<StudentAttendanceItem> getStudents() { return students; }
+        public void setStudents(List<StudentAttendanceItem> s) { this.students = s; }
+    }
+
+    public static class StudentAttendanceItem {
+        private Integer userId;
+        private String fullName;
+        private String email;
+        private Boolean attended;
+        private String notes;
+        public Integer getUserId() { return userId; }
+        public void setUserId(Integer userId) { this.userId = userId; }
+        public String getFullName() { return fullName; }
+        public void setFullName(String fullName) { this.fullName = fullName; }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public Boolean getAttended() { return attended; }
+        public void setAttended(Boolean attended) { this.attended = attended; }
+        public String getNotes() { return notes; }
+        public void setNotes(String notes) { this.notes = notes; }
     }
 
     public static class SimpleCourseDto {

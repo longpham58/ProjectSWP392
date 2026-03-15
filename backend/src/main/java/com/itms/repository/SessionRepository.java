@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SessionRepository extends JpaRepository<Session, Long> {
@@ -129,4 +130,11 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
         ORDER BY u.fullName ASC
     """)
     List<SessionAttendanceDto> getSessionAttendanceForSession(@Param("sessionId") Long sessionId);
+
+    /**
+     * Find session by class room id and date
+     */
+    @Query("SELECT s FROM Session s WHERE s.classRoom.id = :classRoomId AND s.date = :date")
+    Optional<Session> findByClassRoomIdAndDate(@Param("classRoomId") Integer classRoomId,
+                                               @Param("date") java.time.LocalDate date);
 }
