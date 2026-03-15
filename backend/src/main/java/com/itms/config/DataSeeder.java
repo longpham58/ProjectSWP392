@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -634,9 +635,11 @@ public class DataSeeder {
     private void createEnrollmentWithAttendance(EnrollmentRepository enrollmentRepo, User user, Session session) {
         // Check if enrollment already exists
         try {
-            Enrollment existing = enrollmentRepo.findByUserIdAndSessionId(user.getId(), session.getId().intValue());
-            if (existing != null) {
-                System.out.println("⏭️ Enrollment already exists for " + user.getFullName() + " in session " + session.getId());
+            Optional<Enrollment> existing =
+                    enrollmentRepo.findByUserIdAndSessionId(user.getId(), session.getId().intValue());
+
+            if (existing.isPresent()) {
+                System.out.println("⏭️ Enrollment already exists");
                 return;
             }
         } catch (Exception e) {

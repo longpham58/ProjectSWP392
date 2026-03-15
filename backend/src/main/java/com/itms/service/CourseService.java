@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,11 +38,6 @@ public class CourseService {
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + id));
     }
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> origin/main
     /**
      * Get courses assigned to a trainer
      */
@@ -60,11 +54,6 @@ public class CourseService {
         return sessions.stream()
                 .map(session -> TrainerScheduleDto.builder()
                         .sessionId(session.getId())
-<<<<<<< HEAD
-=======
-                        .sessionName(session.getSessionName())
-                        .sessionNumber(session.getSessionNumber())
->>>>>>> origin/main
                         .date(session.getDate())
                         .timeStart(session.getTimeStart())
                         .timeEnd(session.getTimeEnd())
@@ -79,9 +68,4 @@ public class CourseService {
                         .build())
                 .toList();
     }
-
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
->>>>>>> origin/main
 }

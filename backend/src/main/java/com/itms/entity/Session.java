@@ -3,8 +3,7 @@ package com.itms.entity;
 import com.itms.common.LocationType;
 import com.itms.common.SessionStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,6 +14,9 @@ import java.util.List;
 @Getter
 @Setter
 @Table(name = "Session")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Session {
 
     @Id
@@ -53,11 +55,7 @@ public class Session {
        Session Info
     ========================= */
 
-    @Column(name = "session_name")
-    private String sessionName;
 
-    @Column(name = "session_number")
-    private Integer sessionNumber;
 
     @Column(nullable = false)
     private LocalDate date;
