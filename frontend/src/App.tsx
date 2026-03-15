@@ -25,6 +25,7 @@ import EmployeeLayout from "./layouts/EmployeeLayout";
 import EmployeePage from "./pages/employee/EmployeePage";
 import CertificatesPage from "./pages/employee/CertificatesPage";
 import MyCoursesPage from "./pages/employee/MyCoursesPage";
+import MyClassesPage from "./pages/employee/MyClassesPage";
 import SchedulePage from "./pages/employee/SchedulePage";
 import EmployeeNotificationsPage from "./pages/employee/NotificationsPage";
 import ProfilePage from "./pages/employee/ProfilePage";
@@ -35,6 +36,8 @@ import FinalExamResultPage from "./pages/employee/FinalExamResultPage";
 import NotificationDetailPage from "./pages/employee/NotificationDetailPage";
 
 import TrainerDashboard from "./pages/trainer/TrainerDashboard";
+
+import HRLayout from "./layouts/HRLayout";
 
 function App() {
   const { user, initialized, fetchMe } = useAuthStore();
@@ -138,6 +141,7 @@ function App() {
             <Route index element={<EmployeePage />} />
             <Route path="certificates" element={<CertificatesPage />} />
             <Route path="my-courses" element={<MyCoursesPage />} />
+            <Route path="my-classes" element={<MyClassesPage />} />
             <Route path="course/:courseId" element={<CourseDetailPage />} />
             <Route path="quiz/:quizId" element={<QuizPage />} />
             <Route path="final-exam/:courseId" element={<FinalExamPage />} />
@@ -159,6 +163,8 @@ function App() {
             }
           />
 
+         
+
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -178,6 +184,8 @@ function getHomeByRole(role: string): string {
       return "/employee";
     case "TRAINER":
       return "/trainer";
+    case "HR":
+      return "/hr";
     default:
       return "/";
   }

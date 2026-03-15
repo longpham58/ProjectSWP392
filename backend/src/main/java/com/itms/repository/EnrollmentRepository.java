@@ -53,12 +53,8 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
         SELECT COUNT(*)
         FROM Quiz q
         JOIN Course c ON q.course_id = c.id
-<<<<<<< HEAD
-        JOIN Enrollment e ON e.session_id IN (SELECT id FROM Session WHERE course_id = c.id)
-=======
         JOIN Session s ON s.course_id = c.id
         JOIN Enrollment e ON e.session_id = s.id
->>>>>>> 18dda540e61fd652941508eb561615ece98277b4
         WHERE e.user_id = :userId
         AND e.status IN ('APPROVED', 'COMPLETED')
         AND q.is_active = 1
@@ -103,13 +99,13 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     Integer countCompletedEnrollmentsByUserId(@Param("userId") Integer userId);
 
     /**
-<<<<<<< HEAD
+
      * Count enrollments by user and status.
      */
     @Query("SELECT COUNT(e) FROM Enrollment e WHERE e.user.id = :userId AND e.status = :status")
     Integer countEnrollmentsByUserIdAndStatus(@Param("userId") Integer userId, @Param("status") String status);
-}
-=======
+
+/**
      * Find enrollments by course code
      */
     @Query("SELECT e FROM Enrollment e JOIN e.session s JOIN s.course c WHERE c.code = :courseCode")
@@ -121,4 +117,4 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     @Query("SELECT e FROM Enrollment e JOIN e.session s JOIN s.classRoom cr WHERE cr.classCode = :classCode")
     List<Enrollment> findBySessionClassCode(@Param("classCode") String classCode);
 }
->>>>>>> 18dda540e61fd652941508eb561615ece98277b4
+

@@ -23,10 +23,10 @@ public class CourseService {
 
 
     /**
-     * Get courses for a user with enrollment info (returns CourseDto)
+     * Get courses for a user through ClassMember -> ClassRoom -> Course
      */
     public List<CourseDto> getCourseDtosByUserId(Integer userId) {
-        return courseRepository.findCoursesByUserId(userId)
+        return courseRepository.findCoursesByUserIdThroughClassMember(userId)
                 .stream()
                 .map(CourseDto::fromEntity)
                 .toList();

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Table(name = "Notification")
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Notification {
@@ -59,12 +59,6 @@ public class Notification {
     @Column(name = "class_codes", columnDefinition = "NVARCHAR(MAX)")
     private String classCodes;
 
-    @Column(name = "recipient_type", length = 50)
-    private String recipientType;
-
-    @Column(name = "class_codes", columnDefinition = "NVARCHAR(MAX)")
-    private String classCodes;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private NotificationPriority priority = NotificationPriority.NORMAL;
@@ -83,13 +77,6 @@ public class Notification {
 
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
-
-    @Column(name = "detail_content", columnDefinition = "NVARCHAR(MAX)")
-    private String detailContent;
-    
-    // To track if this is a draft notification
-    @Column(name = "is_draft")
-    private Boolean isDraft = false;
     
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -105,13 +92,10 @@ public class Notification {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
-<<<<<<< HEAD
-=======
     }
     
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
->>>>>>> 18dda540e61fd652941508eb561615ece98277b4
     }
 }

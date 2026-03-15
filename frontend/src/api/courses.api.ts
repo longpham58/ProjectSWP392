@@ -47,10 +47,28 @@ export interface Course {
   feedbacks: Feedback[];
 }
 
+export interface EmployeeClass {
+  classId: number;
+  classCode: string;
+  className: string;
+  courseName: string;
+  courseCode: string;
+  trainerName: string;
+  maxStudents: number;
+  currentStudents: number;
+  status: string;
+  notes: string;
+  joinedAt: string;
+}
+
 export const coursesApi = {
   // Get courses of current user
   getMyCourses: () =>
     axios.get<ApiResponse<Course[]>>("/courses/my"),
+
+  // Get classes of current user
+  getMyClasses: () =>
+    axios.get<ApiResponse<EmployeeClass[]>>("/employee/dashboard/classes"),
 
   // Get course by ID
   getCourseById: (courseId: number) =>

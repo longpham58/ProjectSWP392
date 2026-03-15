@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/stores/auth.store";
-import { HRDashboardPage } from "@/pages/hr/HRDashboard";
+import { useAuthStore } from "../stores/auth.store";
+import { HRDashboardPage } from "../pages/hr/HRDashboard";
 
 export default function HRLayout() {
   const { user, logout } = useAuthStore();

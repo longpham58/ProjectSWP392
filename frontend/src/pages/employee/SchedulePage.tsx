@@ -4,8 +4,63 @@ import { CourseSchedule } from '../../api/session.api';
 
 export default function SchedulePage() {
   const { schedule, scheduleLoading, scheduleError, fetchCourseSchedule } = useSessionStore();
-  const [selectedWeek, setSelectedWeek] = useState('2026-W10');
+  const [selectedWeek, setSelectedWeek] = useState(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const week = getWeekNumber(now);
+    return `${year}-W${week.toString().padStart(2, '0')}`;
+  });
   const [viewMode, setViewMode] = useState<'week' | 'list'>('week');
+
+  // Helper function to get week number
+  function getWeekNumber(date: Date): number {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  }
+
+  // Get current week string
+  const getCurrentWeek = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const week = getWeekNumber(now);
+    return `${year}-W${week.toString().padStart(2, '0')}`;
+  };
+
+  // Navigate to previous week
+  const goToPreviousWeek = () => {
+    const [year, weekStr] = selectedWeek.split('-W');
+    let yearNum = parseInt(year);
+    let weekNum = parseInt(weekStr);
+    
+    if (weekNum === 1) {
+      yearNum--;
+      weekNum = 52;
+    } else {
+      weekNum--;
+    }
+    setSelectedWeek(`${yearNum}-W${weekNum.toString().padStart(2, '0')}`);
+  };
+
+  // Navigate to next week
+  const goToNextWeek = () => {
+    const [year, weekStr] = selectedWeek.split('-W');
+    let yearNum = parseInt(year);
+    let weekNum = parseInt(weekStr);
+    
+    if (weekNum === 52) {
+      yearNum++;
+      weekNum = 1;
+    } else {
+      weekNum++;
+    }
+    setSelectedWeek(`${yearNum}-W${weekNum.toString().padStart(2, '0')}`);
+  };
+
+  // Go to current week (today)
+  const goToToday = () => {
+    setSelectedWeek(getCurrentWeek());
+  };
 
   // Fetch schedule from store
   useEffect(() => {
@@ -102,7 +157,11 @@ export default function SchedulePage() {
 
           {/* Week Selector */}
           <div className="flex items-center gap-4 bg-white rounded-lg p-4 shadow">
-            <button className="p-2 hover:bg-gray-100 rounded">
+            <button 
+              onClick={goToPreviousWeek}
+              className="p-2 hover:bg-gray-100 rounded transition-colors"
+              title="Tuần trước"
+            >
               ←
             </button>
             <input
@@ -111,10 +170,17 @@ export default function SchedulePage() {
               onChange={(e) => setSelectedWeek(e.target.value)}
               className="px-4 py-2 border rounded-lg"
             />
-            <button className="p-2 hover:bg-gray-100 rounded">
+            <button 
+              onClick={goToNextWeek}
+              className="p-2 hover:bg-gray-100 rounded transition-colors"
+              title="Tuần sau"
+            >
               →
             </button>
-            <button className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button 
+              onClick={goToToday} 
+              className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
               Hôm nay
             </button>
           </div>

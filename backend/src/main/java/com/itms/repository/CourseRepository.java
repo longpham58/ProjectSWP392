@@ -19,6 +19,12 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     List<Course> findCoursesByUserId(@Param("userId") Integer userId);
 
     /**
+     * Find all courses that a user is a member of through ClassMember -> ClassRoom
+     */
+    @Query("SELECT DISTINCT c FROM Course c JOIN ClassRoom cr ON cr.course = c JOIN ClassMember cm ON cm.classRoom = cr WHERE cm.user.id = :userId AND cm.status = 'ACTIVE'")
+    List<Course> findCoursesByUserIdThroughClassMember(@Param("userId") Integer userId);
+
+    /**
      * Find courses by trainer ID using the trainer relationship
      */
     @Query("SELECT c FROM Course c WHERE c.trainer.id = :trainerId")

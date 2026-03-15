@@ -20,6 +20,7 @@ export const useSessionStore = create<SessionState>((set) => ({
     set({ scheduleLoading: true, scheduleError: null });
     try {
       const res = await sessionApi.getCourseSchedule();
+      console.log('fetchCourseSchedule API response:', res.data);
       if (res.data.data) {
         set({ schedule: res.data.data, scheduleLoading: false });
       } else {

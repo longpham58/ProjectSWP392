@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Header, HrBrand } from '@/components/Header';
+import { Header, HrBrand } from '../../components/u';
 import { CourseManagePage } from './component/CourseManage';
 import { SchedulePage } from './component/Schedule';
 import { NotificationPage } from './component/Notification';

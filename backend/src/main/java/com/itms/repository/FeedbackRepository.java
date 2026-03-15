@@ -12,26 +12,12 @@ import java.util.Optional;
 @Repository
 public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 
-    /**
-     * Find all feedback for a specific session
-     */
-    @Query("SELECT f FROM Feedback f JOIN f.enrollment e JOIN e.session s WHERE s.course.id = :courseId")
-    List<Feedback> findByEnrollmentCourseId(@Param("courseId") Integer courseId);
 
-    /**
-     * Find feedback by enrollment and session (unique constraint)
-     */
-<<<<<<< HEAD
-    Optional<Feedback> findByEnrollmentIdAndSessionId(Integer enrollmentId, Integer sessionId);
-=======
-    @Query("SELECT f FROM Feedback f JOIN f.enrollment e JOIN e.session s WHERE f.user.id = :userId AND s.course.id = :courseId")
-    Optional<Feedback> findByUserIdAndEnrollmentCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
->>>>>>> 18dda540e61fd652941508eb561615ece98277b4
 
     /**
      * Find feedback by user and session
      */
-<<<<<<< HEAD
+
     Optional<Feedback> findByUserIdAndSessionId(Integer userId, Integer sessionId);
 
     /**
@@ -70,9 +56,7 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     /**
      * Check if user has already submitted feedback for a course (through session)
      */
-    @Query("SELECT CASE WHEN COUNT(f) > 0 THEN true ELSE false END FROM Feedback f WHERE f.user.id = :userId AND f.session.course.id = :courseId")
-    boolean existsByUserIdAndEnrollmentCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
-=======
+
     @Query("SELECT COUNT(f) > 0 FROM Feedback f JOIN f.enrollment e JOIN e.session s WHERE f.user.id = :userId AND s.course.id = :courseId")
     boolean existsByUserIdAndEnrollmentCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
 
@@ -81,5 +65,5 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
      */
     @Query("SELECT f FROM Feedback f JOIN f.enrollment e JOIN e.session s JOIN s.course c WHERE c.trainer.id = :trainerId")
     List<Feedback> findByTrainerId(@Param("trainerId") Integer trainerId);
->>>>>>> 18dda540e61fd652941508eb561615ece98277b4
+
 }

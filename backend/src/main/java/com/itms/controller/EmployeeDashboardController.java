@@ -1,11 +1,13 @@
 package com.itms.controller;
 
 import com.itms.dto.DeadlineDto;
+import com.itms.dto.EmployeeClassDto;
 import com.itms.dto.RecentActivityDto;
 import com.itms.dto.TodayProgressDto;
 import com.itms.dto.UserProfileStatsDto;
 import com.itms.dto.common.ResponseDto;
 import com.itms.security.CustomUserDetails;
+import com.itms.service.ClassRoomService;
 import com.itms.service.EmployeeDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ import java.util.List;
 public class EmployeeDashboardController {
 
     private final EmployeeDashboardService dashboardService;
+    private final ClassRoomService classRoomService;
     // 2️⃣ Upcoming deadlines
     @GetMapping("/deadlines")
     public ResponseEntity<ResponseDto<List<DeadlineDto>>> getDeadlines(
@@ -68,6 +71,18 @@ public class EmployeeDashboardController {
         UserProfileStatsDto stats = dashboardService.getProfileStats(userId);
 
         return ResponseEntity.ok(ResponseDto.success(stats, "Profile stats loaded"));
+    }
+    
+    // 6️⃣ My Classes - Get classes the employee is enrolled in
+    @GetMapping("/classes")
+    public ResponseEntity<ResponseDto<List<EmployeeClassDto>>> getMyClasses(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+
+        Integer userId = userDetails.getUser().getId();
+
+        List<EmployeeClassDto> classes = classRoomService.getClassesByUserId(userId);
+
+        return ResponseEntity.ok(ResponseDto.success(classes, "My classes loaded"));
     }
 
 }
