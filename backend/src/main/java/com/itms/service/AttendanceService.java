@@ -1,5 +1,6 @@
 package com.itms.service;
 
+import com.itms.controller.TrainerController;
 import com.itms.dto.SessionAttendanceDto;
 import com.itms.entity.CourseModule;
 import com.itms.repository.AttendanceRepository;
@@ -63,5 +64,26 @@ public class AttendanceService {
         summary.setRemainingSessions((int) sessions.stream().filter(s -> !Boolean.TRUE.equals(s.getAttended())).count());
         
         return summary;
+    }
+
+    /**
+     * Get attendance for a specific session (for trainers)
+     */
+    public List<SessionAttendanceDto> getSessionAttendance(Long sessionId) {
+        return sessionRepository.getSessionAttendanceForSession(sessionId);
+    }
+
+    /**
+     * Update attendance for students in a session (for trainers)
+     */
+    public void updateAttendance(Long sessionId, List<TrainerController.AttendanceUpdateRequest> attendanceUpdates) {
+        for (TrainerController.AttendanceUpdateRequest update : attendanceUpdates) {
+            attendanceRepository.updateAttendanceForUserAndSession(
+                update.getStudentId(), 
+                sessionId.intValue(), 
+                update.getAttended(),
+                update.getNotes()
+            );
+        }
     }
 }
