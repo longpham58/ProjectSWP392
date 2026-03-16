@@ -11,8 +11,12 @@ function HomeRedirect() {
 
     if (user.roles.includes("ADMIN")) {
       navigate("/admin", { replace: true });
+    } else if (user.roles.includes("HR")) {
+      navigate("/hr", { replace: true });
     } else if (user.roles.includes("EMPLOYEE")) {
       navigate("/employee", { replace: true });
+    } else if (user.roles.includes("TRAINER")) {
+      navigate("/trainer", { replace: true });
     }
   }, [user]);
 

@@ -11,7 +11,5 @@ public enum NotificationType {
     CERTIFICATE,
     FEEDBACK,
     ANNOUNCEMENT,
-    SYSTEM,
-    GENERAL,  // Keep for backward compatibility
-    ALERT     // Keep for backward compatibility
+    SYSTEM
 }

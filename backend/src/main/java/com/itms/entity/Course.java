@@ -1,6 +1,5 @@
 package com.itms.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.itms.common.CourseStatus;
 import com.itms.common.Level;
 import jakarta.persistence.*;
@@ -61,10 +60,11 @@ public class Course {
     @Column(name = "max_attempts")
     private Integer maxAttempts;
 
-    @Column(name = "start_date")
+    // Current DB in use does not expose start_date/end_date columns.
+    @Transient
     private java.time.LocalDate startDate;
 
-    @Column(name = "end_date")
+    @Transient
     private java.time.LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
@@ -90,4 +90,17 @@ public class Course {
 
     @OneToMany(mappedBy = "course")
     private List<Session> sessions;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.status == null) {
+            this.status = CourseStatus.DRAFT;
+        }
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

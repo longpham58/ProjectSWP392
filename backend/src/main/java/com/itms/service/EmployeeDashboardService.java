@@ -145,25 +145,21 @@ public class EmployeeDashboardService {
         switch (type != null ? type.toUpperCase() : "LESSON") {
             case "QUIZ":
             case "QUIZ_COMPLETE":
-                activity.setIcon("✅");
                 activity.setColor("green");
                 break;
             case "COURSE":
             case "ENROLLMENT":
             case "JOIN_COURSE":
-                activity.setIcon("📚");
                 activity.setColor("blue");
                 break;
             case "CERTIFICATE":
             case "CERT_COMPLETE":
-                activity.setIcon("🏆");
                 activity.setColor("purple");
                 break;
             case "LESSON":
             case "SESSION":
             case "ATTENDANCE":
             default:
-                activity.setIcon("📖");
                 activity.setColor("teal");
                 break;
         }

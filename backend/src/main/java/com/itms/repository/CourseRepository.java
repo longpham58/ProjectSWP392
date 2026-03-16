@@ -12,6 +12,14 @@ import java.util.Optional;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Integer> {
 
+    Optional<Course> findByCode(String code);
+
+    Optional<Course> findByCodeIgnoreCase(String code);
+
+    /** Maximum course id (for identity reseed after delete). Returns null if no courses. */
+    @Query("SELECT MAX(c.id) FROM Course c")
+    Integer findMaxId();
+
     /**
      * Find all courses that a user is enrolled in
      */

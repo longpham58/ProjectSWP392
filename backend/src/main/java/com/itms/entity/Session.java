@@ -29,29 +29,30 @@ public class Session {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_id")
+    @Transient
     private ClassRoom classRoom;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_id")
+    @Transient
     private CourseSchedule schedule;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trainer_id")
+    @Transient
     private User trainer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
+    @Transient
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by")
+    @Transient
     private User updatedBy;
 
     /* =========================
        Session Info
     ========================= */
+
+    @Column(name = "session_name", length = 255)
+    private String sessionName;
+
+    @Column(name = "session_number")
+    private Integer sessionNumber;
 
     @Column(nullable = false)
     private LocalDate date;
@@ -75,7 +76,8 @@ public class Session {
     @Column(name = "meeting_link")
     private String meetingLink;
 
-    @Column(name = "meeting_password")
+    // Keep this field in domain model but do not map to DB to avoid schema drift issues.
+    @Transient
     private String meetingPassword;
 
     /* =========================
@@ -113,4 +115,28 @@ public class Session {
 
     @OneToMany(mappedBy = "session")
     private List<Feedback> feedbacks;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        if (this.locationType == null) {
+            this.locationType = LocationType.OFFLINE;
+        }
+        if (this.status == null) {
+            this.status = SessionStatus.SCHEDULED;
+        }
+        if (this.maxCapacity == null || this.maxCapacity <= 0) {
+            this.maxCapacity = 100;
+        }
+        if (this.currentEnrolled == null || this.currentEnrolled < 0) {
+            this.currentEnrolled = 0;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

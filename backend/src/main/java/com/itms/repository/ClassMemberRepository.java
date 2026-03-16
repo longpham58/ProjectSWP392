@@ -29,6 +29,6 @@ public interface ClassMemberRepository extends JpaRepository<ClassMember, Intege
     /**
      * Find all members in a class by class code
      */
-    @Query("SELECT cm FROM ClassMember cm WHERE cm.classRoom.classCode = :classCode AND cm.status = 'ACTIVE'")
+    @Query("SELECT cm FROM ClassMember cm JOIN FETCH cm.user WHERE cm.classRoom.classCode = :classCode AND cm.status = 'ACTIVE'")
     List<ClassMember> findByClassRoomClassCode(@Param("classCode") String classCode);
 }

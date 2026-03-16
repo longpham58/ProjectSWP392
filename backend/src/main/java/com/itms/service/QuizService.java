@@ -296,18 +296,15 @@ public class QuizService {
         status.put("totalModules", totalModules);
         status.put("unlockedQuizCount", unlockedQuizCount);
         
-        // Calculate test passing requirements
-        // Default values if no quizzes exist
-        BigDecimal testPassingScore;
-        Integer testMaxAttempts = 3;
-        
+        // Calculate test passing requirements (assign once so effectively final for lambda)
+        final BigDecimal testPassingScore;
+        final Integer testMaxAttempts;
         if (!quizzes.isEmpty()) {
             testPassingScore = quizzes.stream()
                 .map(Quiz::getPassingScore)
                 .filter(ps -> ps != null)
                 .max(BigDecimal::compareTo)
                 .orElse(BigDecimal.valueOf(70));
-            
             testMaxAttempts = quizzes.stream()
                 .map(Quiz::getMaxAttempts)
                 .filter(ma -> ma != null)
@@ -315,6 +312,7 @@ public class QuizService {
                 .orElse(3);
         } else {
             testPassingScore = BigDecimal.valueOf(70);
+            testMaxAttempts = 3;
         }
 
         status.put("testPassingScore", testPassingScore);

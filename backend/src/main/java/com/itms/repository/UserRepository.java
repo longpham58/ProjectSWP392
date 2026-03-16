@@ -28,6 +28,40 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 """)
     Optional<User> findByUsernameWithRole(@Param("username") String username);
 
-    @Query("SELECT u FROM User u JOIN u.userRole ur JOIN ur.role r WHERE r.roleName = :roleName")
+    /** All users with roles and department eagerly loaded (for HR employee list). */
+    @Query("""
+        SELECT DISTINCT u FROM User u
+        LEFT JOIN FETCH u.userRole ur
+        LEFT JOIN FETCH ur.role
+        LEFT JOIN FETCH u.department
+        ORDER BY u.id
+        """)
+    List<User> findAllWithRolesAndDepartment();
+
+    /** Active users that have an active TRAINER role (for HR dropdown and stats). */
+    @Query("""
+        SELECT DISTINCT u FROM User u
+        JOIN u.userRole ur
+        JOIN ur.role r
+        WHERE LOWER(r.roleCode) = 'trainer'
+        AND (ur.isActive = true OR ur.isActive IS NULL)
+        AND (u.isActive = true OR u.isActive IS NULL)
+        ORDER BY u.fullName
+        """)
+    List<User> findAllActiveTrainers();
+
+    /** Count active users with the given role code (e.g. TRAINER). */
+    @Query("""
+        SELECT COUNT(DISTINCT u) FROM User u
+        JOIN u.userRole ur
+        JOIN ur.role r
+        WHERE LOWER(r.roleCode) = LOWER(:roleCode)
+        AND (ur.isActive = true OR ur.isActive IS NULL)
+        AND (u.isActive = true OR u.isActive IS NULL)
+        """)
+    long countActiveUsersByRoleCode(@Param("roleCode") String roleCode);
+
+    /** Users that have the given role name (e.g. "Human Resources" for HR). */
+    @Query("SELECT DISTINCT u FROM User u JOIN u.userRole ur JOIN ur.role r WHERE r.roleName = :roleName")
     List<User> findByRoleName(@Param("roleName") String roleName);
 }
