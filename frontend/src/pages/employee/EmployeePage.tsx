@@ -1,5 +1,4 @@
 import { useAuthStore } from '../../stores/auth.store';
-import { mockNotifications } from '../../data/mockNotifications';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useCourseStore } from '../../stores/course.store';
@@ -28,7 +27,7 @@ export default function EmployeePage() {
           fetchMyCourses(user?.id),
           fetchNotifications(),
           fetchCertificates(user?.id || 0),
-          fetchStreak(user?.id || 0),
+          fetchStreak(),
           fetchDashboardData()
         ]);
         console.log(courses);
@@ -44,12 +43,12 @@ export default function EmployeePage() {
     }
   }, [user?.id]);
 
-  // Mock data - in real app, this would come from API
+  // Get courses from API store
   const myCourses = courses;
   const ongoingCourses = courses.filter(c => c.status === "ACTIVE");
   const completedCourses = courses.filter(c => c.status === "ARCHIVED");
   const unreadNotifications = notifications.filter(n => !n.read);
-  const learningStreak = streak?.currentStreak ?? 0;
+  const learningStreak = streak ?? 0;
   const milestone = 10;
   const progress = Math.min((learningStreak / milestone) * 100, 100);
   const daysRemaining = Math.max(milestone - learningStreak, 0);
@@ -226,10 +225,10 @@ export default function EmployeePage() {
           ) : (
             <div className="space-y-3">
 
-              {/* Lessons */}
+              {/* Sessions */}
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600">Bài học hoàn thành</span>
+                  <span className="text-gray-600">Buổi học tham gia</span>
                   <span className="font-medium">
                     {progressData.lessonsCompleted}/{progressData.lessonsTarget}
                   </span>
@@ -246,7 +245,7 @@ export default function EmployeePage() {
               {/* Study Time */}
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600">Thời gian học</span>
+                  <span className="text-gray-600">Giờ học</span>
                   <span className="font-medium">
                     {progressData.studyHours}h/{progressData.studyTarget}h
                   </span>
@@ -263,7 +262,7 @@ export default function EmployeePage() {
               {/* Quiz */}
               <div>
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600">Quiz hoàn thành</span>
+                  <span className="text-gray-600">Bài kiểm tra</span>
                   <span className="font-medium">
                     {progressData.quizzesCompleted}/{progressData.quizzesTarget}
                   </span>
@@ -371,22 +370,28 @@ export default function EmployeePage() {
                 <div 
                   key={deadline.id}
                   className={`border-l-4 pl-4 py-2 rounded hover:bg-gray-50 cursor-pointer transition-colors ${
-                    deadline.priority === 'high' ? 'border-red-500' : 'border-yellow-500'
+                    deadline.priority === 'high' ? 'border-red-500' : 
+                    deadline.type === 'SESSION' ? 'border-blue-500' : 'border-yellow-500'
                   }`}
                 >
                   <div className="flex justify-between items-start mb-1">
-                    <div className="font-medium text-sm">{deadline.title}</div>
+                    <div className="font-medium text-sm">
+                      {deadline.type === 'SESSION' ? '📅 ' : '📝 '}{deadline.title}
+                    </div>
                     <span className={`text-xs px-2 py-1 rounded ${
                       deadline.daysLeft <= 3 ? 'bg-red-100 text-red-700' :
                       deadline.daysLeft <= 7 ? 'bg-yellow-100 text-yellow-700' :
                       'bg-green-100 text-green-700'
                     }`}>
-                      {deadline.daysLeft} ngày
+                      {deadline.daysLeft === 0 ? 'Hôm nay' : 
+                       deadline.daysLeft === 1 ? 'Ngày mai' :
+                       `${deadline.daysLeft} ngày`}
                     </span>
                   </div>
                   <div className="text-xs text-gray-600">{deadline.course}</div>
                   <div className="text-xs text-gray-500 mt-1">
-                    Hạn: {new Date(deadline.dueDate).toLocaleDateString('vi-VN')}
+                    {deadline.type === 'SESSION' ? 'Lịch học: ' : 'Hạn: '} 
+                    {new Date(deadline.dueDate).toLocaleDateString('vi-VN')}
                   </div>
                 </div>
               ))}

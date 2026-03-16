@@ -4,8 +4,79 @@ import type { CourseSchedule } from '../../api/session.api';
 
 export default function SchedulePage() {
   const { schedule, scheduleLoading, scheduleError, fetchCourseSchedule } = useSessionStore();
-  const [selectedWeek, setSelectedWeek] = useState('2026-W10');
+  const [selectedWeek, setSelectedWeek] = useState(() => {
+    // Initialize with current week in format "YYYY-Www"
+    const now = new Date();
+    const year = now.getFullYear();
+    const week = getWeekNumber(now);
+    return `${year}-W${week.toString().padStart(2, '0')}`;
+  });
+  const [filterMode, setFilterMode] = useState<'week' | 'today'>('week');
   const [viewMode, setViewMode] = useState<'week' | 'list'>('week');
+
+  // Get week dates from selected week string
+  const getWeekDates = (weekString: string): { start: Date; end: Date } | null => {
+    const match = weekString.match(/^(\d{4})-W(\d{2})$/);
+    if (!match) return null;
+    
+    const year = parseInt(match[1]);
+    const weekNum = parseInt(match[2]);
+    
+    // Find the first day of the week (Monday)
+    const jan1 = new Date(year, 0, 1);
+    const days = (weekNum - 1) * 7;
+    const weekStart = new Date(jan1);
+    weekStart.setDate(jan1.getDate() + days - jan1.getDay() + 1);
+    
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    
+    return { start: weekStart, end: weekEnd };
+  };
+
+  // Helper function to get week number
+  function getWeekNumber(date: Date): number {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  }
+
+  // Navigate to previous week
+  const goToPrevWeek = () => {
+    const weekDates = getWeekDates(selectedWeek);
+    if (!weekDates) return;
+    
+    const prevWeekStart = new Date(weekDates.start);
+    prevWeekStart.setDate(prevWeekStart.getDate() - 7);
+    const year = prevWeekStart.getFullYear();
+    const week = getWeekNumber(prevWeekStart);
+    setSelectedWeek(`${year}-W${week.toString().padStart(2, '0')}`);
+    setFilterMode('week');
+  };
+
+  // Navigate to next week
+  const goToNextWeek = () => {
+    const weekDates = getWeekDates(selectedWeek);
+    if (!weekDates) return;
+    
+    const nextWeekStart = new Date(weekDates.start);
+    nextWeekStart.setDate(nextWeekStart.getDate() + 7);
+    const year = nextWeekStart.getFullYear();
+    const week = getWeekNumber(nextWeekStart);
+    setSelectedWeek(`${year}-W${week.toString().padStart(2, '0')}`);
+    setFilterMode('week');
+  };
+
+  // Go to today's week
+  const goToToday = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const week = getWeekNumber(now);
+    setSelectedWeek(`${year}-W${week.toString().padStart(2, '0')}`);
+    setFilterMode('today');
+  };
 
   useEffect(() => {
     fetchCourseSchedule();
@@ -30,12 +101,35 @@ export default function SchedulePage() {
     { slot: 4, label: 'Slot 4', time: '13:00 - 15:00' },
   ];
 
-  // Memoize schedule if needed
-  const memoSchedule: CourseSchedule[] = useMemo(() => {
-    return schedule.map((item, index) => {
+  // Memoize schedule with filtering based on filterMode
+  const filteredAndMemoizedSchedule = useMemo(() => {
+    let filteredSchedule = schedule;
+    
+    // Apply filter based on filterMode
+    if (filterMode === 'week') {
+      const weekDates = getWeekDates(selectedWeek);
+      if (weekDates) {
+        filteredSchedule = schedule.filter(item => {
+          const itemDate = new Date(item.date);
+          return itemDate >= weekDates.start && itemDate <= weekDates.end;
+        });
+      }
+    } else if (filterMode === 'today') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      filteredSchedule = schedule.filter(item => {
+        const itemDate = new Date(item.date);
+        return itemDate >= today && itemDate < tomorrow;
+      });
+    }
+    
+    return filteredSchedule.map((item, index) => {
       const dateObj = new Date(item.date);
       const dayOfWeek = Number.isNaN(dateObj.getTime()) ? 1 : dateObj.getDay();
-      const time = `${item.startTime} - ${item.endTime}`;
+      const time = item.time || '';
       let slot = 1;
       if (time === '07:00 - 09:00') slot = 1;
       else if (time === '09:00 - 11:00') slot = 2;
@@ -49,10 +143,10 @@ export default function SchedulePage() {
         dayOfWeek,
       } as CourseSchedule;
     });
-  }, [schedule]);
+  }, [schedule, filterMode, selectedWeek]);
 
   const getSessionForSlot = (dayOfWeek: number, slotNumber: number) => {
-    return memoSchedule.find(
+    return filteredAndMemoizedSchedule.find(
       s => s.dayOfWeek === dayOfWeek && s.slot === slotNumber
     );
   };
@@ -122,19 +216,25 @@ export default function SchedulePage() {
 
           {/* Week Selector */}
           <div className="flex items-center gap-4 bg-white rounded-lg p-4 shadow">
-            <button className="p-2 hover:bg-gray-100 rounded">
+            <button onClick={goToPrevWeek} className="p-2 hover:bg-gray-100 rounded">
               ←
             </button>
             <input
               type="week"
               value={selectedWeek}
-              onChange={(e) => setSelectedWeek(e.target.value)}
+              onChange={(e) => {
+                setSelectedWeek(e.target.value);
+                setFilterMode('week');
+              }}
               className="px-4 py-2 border rounded-lg"
             />
-            <button className="p-2 hover:bg-gray-100 rounded">
+            <button onClick={goToNextWeek} className="p-2 hover:bg-gray-100 rounded">
               →
             </button>
-            <button className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button 
+              onClick={goToToday} 
+              className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
               Hôm nay
             </button>
           </div>
@@ -162,16 +262,16 @@ export default function SchedulePage() {
         )}
 
         {/* Empty State */}
-        {!scheduleLoading && !scheduleError && schedule.length === 0 && (
+        {!scheduleLoading && !scheduleError && filteredAndMemoizedSchedule.length === 0 && (
           <div className="bg-white rounded-xl shadow-lg p-12 text-center">
             <div className="text-6xl mb-4">📅</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Chưa có lịch học</h3>
-            <p className="text-gray-600">Bạn chưa có lịch học nào. Hãy đăng ký khóa học để xem lịch học.</p>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">{filterMode === 'today' ? 'Hôm nay không có lịch học' : 'Không có lịch học trong tuần này'}</h3>
+            <p className="text-gray-600">{filterMode === 'today' ? 'Bạn không có lịch học nào hôm nay.' : 'Bạn không có lịch học nào trong tuần này.'}</p>
           </div>
         )}
 
         {/* Week View */}
-        {!scheduleLoading && !scheduleError && schedule.length > 0 && viewMode === 'week' && (
+        {!scheduleLoading && !scheduleError && filteredAndMemoizedSchedule.length > 0 && viewMode === 'week' && (
           <div className="bg-white rounded-xl shadow-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -221,9 +321,9 @@ export default function SchedulePage() {
         )}
 
         {/* List View */}
-        {!scheduleLoading && !scheduleError && schedule.length > 0 && viewMode === 'list' && (
+        {!scheduleLoading && !scheduleError && filteredAndMemoizedSchedule.length > 0 && viewMode === 'list' && (
           <div className="space-y-4">
-            {schedule.map(session => (
+            {filteredAndMemoizedSchedule.map(session => (
               <div key={session.id} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
@@ -265,7 +365,7 @@ export default function SchedulePage() {
         )}
 
         {/* Legend */}
-        {!scheduleLoading && !scheduleError && schedule.length > 0 && (
+        {!scheduleLoading && !scheduleError && filteredAndMemoizedSchedule.length > 0 && (
           <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
             <h3 className="font-semibold mb-4">Chú thích:</h3>
             <div className="flex flex-wrap gap-4">

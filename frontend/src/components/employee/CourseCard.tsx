@@ -27,6 +27,13 @@ export default function CourseCard({ course, viewMode = 'grid' }: CourseCardProp
     }
   };
 
+  // Use session-based progress if available, otherwise fallback to old progress
+  const progressValue = (course as any).progressPercentage ?? course.progress ?? 0;
+  const totalSessions = (course as any).totalSessions ?? 0;
+  const attendedSessions = (course as any).attendedSessions ?? 0;
+  const className = (course as any).className ?? '';
+  const classCode = (course as any).classCode ?? '';
+
   if (viewMode === 'list') {
     return (
       <div className="border rounded-lg p-4 hover:shadow-lg transition-all duration-300 bg-white animate-fade-in flex gap-4">
@@ -46,8 +53,8 @@ export default function CourseCard({ course, viewMode = 'grid' }: CourseCardProp
               <span>{course.instructor}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="font-medium">Thời lượng:</span>
-              <span>{course.duration}</span>
+              <span className="font-medium">Lớp:</span>
+              <span>{className || 'N/A'}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="font-medium">Thời gian:</span>
@@ -55,17 +62,17 @@ export default function CourseCard({ course, viewMode = 'grid' }: CourseCardProp
             </div>
           </div>
 
-          {(course as any).progress !== undefined && (
+          {totalSessions > 0 && (
             <div className="flex items-center gap-4">
               <div className="flex-1">
                 <div className="flex justify-between text-sm mb-1">
-                  <span>Tiến độ</span>
-                  <span>{(course as any).progress}%</span>
+                  <span>Buổi học: {attendedSessions}/{totalSessions}</span>
+                  <span>{progressValue}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-600 h-2 rounded-full transition-all"
-                    style={{ width: `${(course as any).progress}%` }}
+                    style={{ width: `${progressValue}%` }}
                   />
                 </div>
               </div>
@@ -99,26 +106,25 @@ export default function CourseCard({ course, viewMode = 'grid' }: CourseCardProp
           <span>{course.instructor}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-medium">Thời lượng:</span>
-          <span>{course.duration}</span>
+          <span className="font-medium">Lớp:</span>
+          <span>{className || 'N/A'} {classCode ? `(${classCode})` : ''}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="font-medium">Thời gian:</span>
           <span>{course.startDate ? new Date(course.startDate).toLocaleDateString('vi-VN') : 'N/A'} - {course.endDate ? new Date(course.endDate).toLocaleDateString('vi-VN') : 'N/A'}</span>
-
         </div>
       </div>
 
-      {(course as any).progress !== undefined && (
+      {totalSessions > 0 && (
         <div className="mb-4">
           <div className="flex justify-between text-sm mb-1">
-            <span>Tiến độ</span>
-            <span>{(course as any).progress}%</span>
+            <span>Buổi học: {attendedSessions}/{totalSessions}</span>
+            <span>{progressValue}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-blue-600 h-2 rounded-full transition-all"
-              style={{ width: `${(course as any).progress}%` }}
+              style={{ width: `${progressValue}%` }}
             />
           </div>
         </div>

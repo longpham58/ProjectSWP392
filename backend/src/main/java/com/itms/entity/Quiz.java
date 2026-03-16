@@ -36,20 +36,18 @@ public class Quiz {
     @Column(columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
-    @Column(name = "quiz_type", nullable = false)
+    @Column(name = "quiz_type", nullable = false, length = 20)
     private String quizType;
     // PRE_TEST, POST_TEST, ASSESSMENT, PRACTICE
 
     @Column(name = "total_questions", nullable = false)
     private Integer totalQuestions;
 
-    @Column(name = "total_marks", nullable = false)
+    @Column(name = "total_marks", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal totalMarks;
 
-    @Column(name = "passing_score", nullable = false)
+    @Column(name = "passing_score", nullable = false, columnDefinition = "DECIMAL(10,2)")
     private BigDecimal passingScore;
-
-
 
     @Column(name = "duration_minutes", nullable = false)
     private Integer durationMinutes;
@@ -66,9 +64,13 @@ public class Quiz {
     @Column(name = "is_active")
     private Boolean isActive;
 
-    // ✅ Add due date
+    // Add due date
     @Column(name = "due_date")
     private LocalDateTime dueDate;
+
+    // Is this a final exam quiz?
+    @Column(name = "is_final_exam")
+    private Boolean isFinalExam;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -81,10 +83,6 @@ public class Quiz {
     @JoinColumn(name = "created_by")
     private User createdBy;
 
-    // Is this a final exam quiz?
-    @Column(name = "is_final_exam")
-    private Boolean isFinalExam;
-    
     // Quiz questions
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<QuizQuestion> questions;

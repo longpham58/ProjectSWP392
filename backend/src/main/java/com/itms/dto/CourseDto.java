@@ -37,6 +37,13 @@ public class CourseDto {
     private String endDate;
     private List<MaterialDto> materials;
     private List<FeedbackDto> feedbacks;
+    
+    // Attendance/Progress info based on session attendance
+    private Integer totalSessions;
+    private Integer attendedSessions;
+    private Integer progressPercentage;
+    private String className;
+    private String classCode;
 
     /**
      * Inner class for MaterialDto

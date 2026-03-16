@@ -3,13 +3,14 @@ package com.itms.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "QuizQuestion")
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class QuizQuestion {
@@ -52,15 +53,15 @@ public class QuizQuestion {
     // =============================
     // Answer
     // =============================
-    @Column(name = "correct_answer", nullable = false)
+    @Column(name = "correct_answer", nullable = false, length = 500)
     private String correctAnswer;
     // Example: A, B, C, D or 0,1,2,3 depending on your system
 
     // =============================
     // Marks
     // =============================
-    @Column(name = "marks")
-    private Integer marks;
+    @Column(name = "marks", columnDefinition = "DECIMAL(10,2)")
+    private BigDecimal marks;
 
     @Column(name = "explanation", columnDefinition = "NVARCHAR(MAX)")
     private String explanation;

@@ -182,13 +182,26 @@ export default function CourseDetailPage() {
     return { status: 'in-progress', text: `Lần ${attemptsCount}/${test?.maxAttempts || 3}`, color: 'bg-yellow-100 text-yellow-700' };
   };
 
+  // Use session-based progress if available, otherwise fallback to module-based
+  const sessionProgress = course?.progressPercentage ?? null;
+  const totalSessions = course?.totalSessions ?? 0;
+  const attendedSessions = course?.attendedSessions ?? 0;
+  const displayProgress = sessionProgress !== null ? sessionProgress : courseProgress;
+  
+  // For display, prefer session-based info if available
+  const progressLabel = sessionProgress !== null 
+    ? `Buổi học: ${attendedSessions}/${totalSessions}` 
+    : 'Tiến độ';
+
   const currentCourse = course || {
     id: Number(courseId),
     title: 'Course',
     description: '',
     instructor: '',
     duration: '',
-    progress: courseProgress
+    progress: displayProgress,
+    className: '',
+    classCode: ''
   };
 
   return (
@@ -210,12 +223,12 @@ export default function CourseDetailPage() {
               <span className="ml-2 font-medium">{currentCourse.instructor}</span>
             </div>
             <div>
-              <span className="opacity-75">Thời lượng:</span>
-              <span className="ml-2 font-medium">{currentCourse.duration}</span>
+              <span className="opacity-75">Lớp:</span>
+              <span className="ml-2 font-medium">{currentCourse.className || 'N/A'} {currentCourse.classCode ? `(${currentCourse.classCode})` : ''}</span>
             </div>
             <div>
-              <span className="opacity-75">Tiến độ:</span>
-              <span className="ml-2 font-medium">{courseProgress}%</span>
+              <span className="opacity-75">{progressLabel}:</span>
+              <span className="ml-2 font-medium">{displayProgress}%</span>
             </div>
           </div>
         </div>
@@ -628,13 +641,13 @@ export default function CourseDetailPage() {
             
             <div className="mb-8">
               <div className="flex justify-between text-sm mb-2">
-                <span>Tiến độ tổng thể</span>
-                <span className="font-medium">{courseProgress}%</span>
+                <span>Tiến độ tổng thể {sessionProgress !== null ? `(Buổi học: ${attendedSessions}/${totalSessions})` : ''}</span>
+                <span className="font-medium">{displayProgress}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
                 <div 
                   className="bg-blue-600 h-3 rounded-full transition-all"
-                  style={{ width: `${courseProgress}%` }}
+                  style={{ width: `${displayProgress}%` }}
                 />
               </div>
             </div>

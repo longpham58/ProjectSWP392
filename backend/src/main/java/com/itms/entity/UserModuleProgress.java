@@ -3,13 +3,14 @@ package com.itms.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "UserModuleProgress")
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class UserModuleProgress {
@@ -33,19 +34,22 @@ public class UserModuleProgress {
     @JoinColumn(name = "enrollment_id")
     private Enrollment enrollment;
 
-    @Column(name = "is_completed")
-    private Boolean isCompleted;
+    @Column(name = "is_completed", nullable = false)
+    private Boolean isCompleted = false;
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
 
-    @Column(name = "time_spent_minutes")
-    private Integer timeSpentMinutes;
+    @Column(name = "progress_percentage", nullable = false, columnDefinition = "DECIMAL(10,2)")
+    private BigDecimal progressPercentage = BigDecimal.ZERO;
+
+    @Column(name = "time_spent_minutes", nullable = false)
+    private Integer timeSpentMinutes = 0;
 
     @Column(name = "last_accessed_at")
     private LocalDateTime lastAccessedAt;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
@@ -59,6 +63,9 @@ public class UserModuleProgress {
         }
         if (timeSpentMinutes == null) {
             timeSpentMinutes = 0;
+        }
+        if (progressPercentage == null) {
+            progressPercentage = BigDecimal.ZERO;
         }
     }
 

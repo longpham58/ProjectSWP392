@@ -5,12 +5,13 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "QuizAttempt")
 @Getter
 @Setter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class QuizAttempt {
@@ -37,12 +38,13 @@ public class QuizAttempt {
     @Column(name = "attempt_number")
     private Integer attemptNumber;
 
+    @Column(columnDefinition = "DECIMAL(10,2)")
     private BigDecimal score;
 
-    @Column(name = "total_marks")
+    @Column(name = "total_marks", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal totalMarks;
 
-    @Column(name = "obtained_marks")
+    @Column(name = "obtained_marks", columnDefinition = "DECIMAL(10,2)")
     private BigDecimal obtainedMarks;
 
     private Boolean passed;
@@ -56,10 +58,12 @@ public class QuizAttempt {
     @Column(name = "time_taken_minutes")
     private Integer timeTakenMinutes;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String status;
-    // IN_PROGRESS, SUBMITTED, GRADED, ABANDONED
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "quizAttempt", cascade = CascadeType.ALL)
+    private List<QuizAnswer> answers;
 }

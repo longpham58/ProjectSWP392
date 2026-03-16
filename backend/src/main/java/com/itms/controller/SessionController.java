@@ -2,6 +2,7 @@ package com.itms.controller;
 
 import com.itms.dto.CourseScheduleDto;
 import com.itms.dto.common.ResponseDto;
+import com.itms.entity.Session;
 import com.itms.security.CustomUserDetails;
 import com.itms.service.SessionService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/sessions")
@@ -19,14 +21,18 @@ public class SessionController {
     private final SessionService sessionService;
 
     /**
-     * Get course schedule for the current user
+     * Get sessions for the current user based on their class memberships
      */
     @GetMapping("/schedule")
     public ResponseEntity<ResponseDto<List<CourseScheduleDto>>> getCourseSchedule(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         Integer userId = userDetails.getId();
-        List<CourseScheduleDto> schedule = sessionService.getCourseSchedule(userId);
+        List<Session> sessions = sessionService.getSessionsForUser(userId);
+        
+        List<CourseScheduleDto> schedule = sessions.stream()
+                .map(CourseScheduleDto::fromEntity)
+                .collect(Collectors.toList());
         
         return ResponseEntity.ok(
                 ResponseDto.success(schedule, "Lấy lịch học thành công")
@@ -34,7 +40,7 @@ public class SessionController {
     }
 
     /**
-     * Get course schedule for a specific course
+     * Get sessions for the current user filtered by course
      */
     @GetMapping("/schedule/course/{courseId}")
     public ResponseEntity<ResponseDto<List<CourseScheduleDto>>> getCourseScheduleByCourse(
@@ -42,7 +48,13 @@ public class SessionController {
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         Integer userId = userDetails.getId();
-        List<CourseScheduleDto> schedule = sessionService.getCourseScheduleByCourse(userId, courseId);
+        List<Session> sessions = sessionService.getSessionsForUser(userId);
+        
+        // Filter by courseId
+        List<CourseScheduleDto> schedule = sessions.stream()
+                .filter(s -> s.getCourse().getId().equals(courseId))
+                .map(CourseScheduleDto::fromEntity)
+                .collect(Collectors.toList());
         
         return ResponseEntity.ok(
                 ResponseDto.success(schedule, "Lấy lịch học thành công")

@@ -1,8 +1,6 @@
 import { create } from "zustand";
 import { coursesApi, Course, TrainerScheduleItem } from "../api/courses.api";
 import { moduleProgressApi } from "../api/moduleProgress.api";
-import { mockCourses } from "../data/mockCourses";
-import { mockCourseModules } from "../mocks/quiz.mock";
 
 interface CourseModule {
   id: number;
@@ -70,10 +68,10 @@ export const useCourseStore = create<CourseState>((set, get) => ({
     try {
       const res = await coursesApi.getMyCourses();
       
-      // Use API data if available, otherwise fall back to mock data (which has progress)
+      // Use API data only
       let courses = res.data.data && res.data.data.length > 0 
         ? res.data.data 
-        : [...mockCourses]; // Spread to create a copy
+        : [];
 
       // Fetch progress for each course if userId is provided
       if (userId && userId > 0 && courses.length > 0) {
@@ -113,9 +111,9 @@ export const useCourseStore = create<CourseState>((set, get) => ({
 
       set({ courses, loading: false });
     } catch (error: any) {
-      // On error, use mock data (which has progress)
+      // On error, set empty array
       set({
-        courses: [...mockCourses],
+        courses: [],
         error: error?.response?.data?.message || "Failed to fetch courses",
         loading: false
       });
@@ -132,8 +130,8 @@ export const useCourseStore = create<CourseState>((set, get) => ({
         coursesApi.getCourseModules(courseId),
       ]);
 
-      // Use API data if available, otherwise fall back to mock data
-      const currentCourse = courseRes.data.data || mockCourses.find(c => c.id === courseId) || null;
+      // Use API data only
+      const currentCourse = courseRes.data.data || null;
       
       // Convert API modules format to match our expected format
       let modules: CourseModule[] = [];
@@ -146,15 +144,8 @@ export const useCourseStore = create<CourseState>((set, get) => ({
           quizzes: m.quizzes || []
         }));
       } else {
-        // Use mock modules from quiz.mock.ts
-        modules = mockCourseModules.filter(m => m.courseId === courseId).map(m => ({
-          ...m,
-          // Convert documents/videos to materials array for compatibility
-          materials: [
-            ...(m.documents || []),
-            ...(m.videos || [])
-          ]
-        }));
+        // No modules from API
+        modules = [];
       }
 
       set({ 
@@ -163,19 +154,10 @@ export const useCourseStore = create<CourseState>((set, get) => ({
         loading: false 
       });
     } catch (error: any) {
-      // On error, use mock data
-      const mockCourse = mockCourses.find(c => c.id === courseId);
-      const mockModules = mockCourseModules.filter(m => m.courseId === courseId).map(m => ({
-        ...m,
-        materials: [
-          ...(m.documents || []),
-          ...(m.videos || [])
-        ]
-      }));
-      
+      // On error, set empty values
       set({
-        currentCourse: mockCourse || null,
-        modules: mockModules,
+        currentCourse: null,
+        modules: [],
         error: error?.response?.data?.message || "Failed to fetch course details",
         loading: false,
       });
@@ -241,21 +223,12 @@ export const useCourseStore = create<CourseState>((set, get) => ({
         }));
         set({ trainerModules: modules, trainerModulesLoading: false });
       } else {
-        // Fallback to mock data
-        console.log('API returned empty modules, using mock data');
-        const mockModules = mockCourseModules.filter(m => m.courseId === courseId).map(m => ({
-          ...m,
-          materials: [...(m.documents || []), ...(m.videos || [])]
-        }));
-        set({ trainerModules: mockModules, trainerModulesLoading: false });
+        // Empty modules from API
+        set({ trainerModules: [], trainerModulesLoading: false });
       }
     } catch (error: any) {
-      console.log('fetchTrainerModules API failed - using mock data');
-      const mockModules = mockCourseModules.filter(m => m.courseId === courseId).map(m => ({
-        ...m,
-        materials: [...(m.documents || []), ...(m.videos || [])]
-      }));
-      set({ trainerModules: mockModules, trainerModulesLoading: false, error: error.message });
+      console.log('fetchTrainerModules API failed - using empty list');
+      set({ trainerModules: [], trainerModulesLoading: false, error: error.message });
     }
   },
 

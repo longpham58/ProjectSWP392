@@ -21,6 +21,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     Integer findMaxId();
 
     /**
+<<<<<<< HEAD
      * Find all courses that a user is enrolled in (via session)
      */
     @Query("SELECT DISTINCT c FROM Course c JOIN Session s ON s.course = c JOIN Enrollment e ON e.session = s WHERE e.user.id = :userId")
@@ -36,4 +37,19 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
      * Find course by code
      */
     Optional<Course> findByCode(String code);
+=======
+     * Find all courses that a user is enrolled in via ClassMember
+     * Path: Course -> ClassRoom (course_id) -> ClassMember (class_id, user_id)
+     */
+    @Query("SELECT DISTINCT c FROM Course c JOIN ClassRoom cl ON cl.course = c JOIN ClassMember cm ON cm.classRoom = cl WHERE cm.user.id = :userId AND cm.status = 'ACTIVE'")
+    List<Course> findCoursesByUserId(@Param("userId") Integer userId);
+
+    List<Course> findByTrainerId(Integer trainerId);
+    
+    /** Count all courses */
+    long count();
+    
+    /** Count courses by status */
+    long countByStatus(com.itms.common.CourseStatus status);
+>>>>>>> admin-UI
 }

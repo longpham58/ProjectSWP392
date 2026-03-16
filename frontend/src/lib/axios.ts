@@ -9,6 +9,16 @@ const api = axios.create({
   },
 });
 
+// Endpoints that should not trigger redirect to login on 401
+const NO_AUTH_ENDPOINTS = [
+  "/auth/login",
+  "/auth/forgot-password",
+  "/auth/forgot-password/request-otp",
+  "/auth/reset-password",
+  "/auth/resend-otp",
+  "/auth/verify-otp"
+];
+
 /**
  * Optional: response interceptor
  * Useful for handling 401 / session expired globally
@@ -16,8 +26,11 @@ const api = axios.create({
 api.interceptors.response.use(
   res => res,
   err => {
-    const url: string = err.config?.url ?? '';
-    if (err.response?.status === 401 && !url.includes('/auth/me')) {
+    // Check if this is a no-auth endpoint that shouldn't trigger redirect
+    const url = err.config?.url || "";
+    const isNoAuthEndpoint = NO_AUTH_ENDPOINTS.some(endpoint => url.includes(endpoint));
+    
+    if (err.response?.status === 401 && !isNoAuthEndpoint) {
       window.location.href = "/login";
     }
     if (err.response?.status === 403) {

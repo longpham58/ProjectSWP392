@@ -1,12 +1,12 @@
 import { create } from "zustand";
-import { streakApi, LearningStreak } from "../api/streak.api";
+import { streakApi } from "../api/streak.api";
 
 interface StreakState {
-  streak: LearningStreak | null;
+  streak: number | null;
   loading: boolean;
   error: string | null;
 
-  fetchStreak: (userId: number) => Promise<void>;
+  fetchStreak: () => Promise<void>;
   clearStreak: () => void;
 }
 
@@ -15,14 +15,14 @@ export const useStreakStore = create<StreakState>((set) => ({
   loading: false,
   error: null,
 
-  fetchStreak: async (userId: number) => {
+  fetchStreak: async () => {
     set({ loading: true, error: null });
 
     try {
       const res = await streakApi.getUserStreak();
 
       set({
-        streak: res.data.data,
+        streak: res.data.data ?? 0,
         loading: false,
       });
     } catch (error: any) {

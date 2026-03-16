@@ -8,7 +8,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -44,6 +46,11 @@ public class DataSeeder {
             CourseModuleRepository courseModuleRepository
     ) {
         return args -> {
+            if (!RESET_DATA) {
+                System.out.println("⏭️ Data reset disabled. Skipping...");
+                return;
+            }
+
             // Reset data if enabled
             if (RESET_DATA) {
                 System.out.println("🔄 Resetting all data...");
@@ -300,6 +307,12 @@ public class DataSeeder {
                     "FRI", LocalTime.of(13, 0), LocalTime.of(15, 0), "Phòng 501", admin);
 
             System.out.println("✅ ITMS seed data completed successfully");
+            System.out.println("📊 Total courses: " + courseRepository.count());
+            System.out.println("🏫 Total classrooms: " + classRoomRepository.count());
+            System.out.println("📆 Total schedules: " + courseScheduleRepository.count());
+            System.out.println("📅 Total sessions: " + sessionRepository.count());
+            System.out.println("📝 Total enrollments: " + enrollmentRepository.count());
+
         };
     }
 

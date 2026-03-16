@@ -246,8 +246,7 @@ const ScheduleSection: React.FC = () => {
                             </div>
                             <div className="text-xs text-gray-700">{classItem.location}</div>
                           </div>
-                        ))
-                      )}
+                        )))}
                     </div>
                   );
                 })}

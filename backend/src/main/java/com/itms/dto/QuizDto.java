@@ -39,4 +39,3 @@ public class QuizDto {
     private List<Integer> requiredModuleIds;
     private List<String> requiredModuleTitles;
 }
-

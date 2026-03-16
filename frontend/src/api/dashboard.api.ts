@@ -8,11 +8,12 @@ export interface Deadline {
   dueDate: string;
   daysLeft: number;
   priority: "high" | "medium" | "low";
+  type?: string;
 }
 
 export interface RecentActivity {
   id: number;
-  type: "quiz" | "course" | "certificate" | "lesson";
+  type: "quiz" | "course" | "certificate" | "lesson" | "join_class";
   title: string;
   course: string;
   time: string;

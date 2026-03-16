@@ -8,12 +8,9 @@ export default function AdminLayout() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-  // Remove mock authentication data
-  localStorage.removeItem("mockUser");
-  localStorage.removeItem("rememberMe");
-
-  // Redirect to login
-  window.location.href = "/login"; // force reload
+ logout().then(() => {
+      navigate("/login");
+    });
 };
   const getNavClass: NavLinkProps["className"] = ({ isActive }) =>
     isActive ? "nav-btn active" : "nav-btn";

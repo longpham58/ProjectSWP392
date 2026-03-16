@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -13,16 +13,49 @@ import {
   Legend,
 } from "recharts";
 import CompletionTrend from "./components/CompletionTrend";
+import { adminApi, AdminDashboardStats } from "../../api/admin.api";
+
 type MonthlyData = {
   month: string;
   completion: number;
 };
 
 export default function AdminDashboard() {
-  
+  const [stats, setStats] = useState<AdminDashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  
- // 🔹 Completion Trend
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await adminApi.getDashboardStats();
+        if (res.data?.data) {
+          setStats(res.data.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  // Fallback KPIs if not loaded
+  const kpis = stats
+    ? [
+        { title: "Total Users", value: stats.totalUsers },
+        { title: "Active Users", value: stats.activeUsers },
+        { title: "Locked Accounts", value: stats.lockedAccounts },
+        { title: "Open Feedback", value: stats.openFeedback },
+      ]
+    : [
+        { title: "Total Users", value: 0 },
+        { title: "Active Users", value: 0 },
+        { title: "Locked Accounts", value: 0 },
+        { title: "Open Feedback", value: 0 },
+      ];
+
+  // 🔹 Completion Trend
   const monthlyData: MonthlyData[] = [
     { month: "Jan", completion: 65 },
     { month: "Feb", completion: 70 },
@@ -42,13 +75,6 @@ export default function AdminDashboard() {
 
   const COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#9333ea"];
 
-  const kpis = [
-    { title: "Total Users", value: 128 },
-    { title: "Active Users", value: 110 },
-    { title: "Locked Accounts", value: 5 },
-    { title: "Open Feedback", value: 12 },
-  ];
-
   const activities = [
     "HR created 'Advanced React' course",
     "12 employees enrolled in Compliance",
@@ -63,12 +89,18 @@ export default function AdminDashboard() {
       <h2 className="text-2xl font-bold mb-6">Admin Dashboard</h2>
       {/* KPI CARDS */}
       <div className="grid grid-cols-4 gap-6 mb-8">
-        {kpis.map((kpi) => (
-          <div key={kpi.title} className="bg-white p-6 rounded-2xl shadow">
-            <p className="text-gray-500 text-sm">{kpi.title}</p>
-            <h3 className="text-2xl font-bold mt-2">{kpi.value}</h3>
+        {loading ? (
+          <div className="col-span-4 text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
           </div>
-        ))}
+        ) : (
+          kpis.map((kpi) => (
+            <div key={kpi.title} className="bg-white p-6 rounded-2xl shadow">
+              <p className="text-gray-500 text-sm">{kpi.title}</p>
+              <h3 className="text-2xl font-bold mt-2">{kpi.value}</h3>
+            </div>
+          ))
+        )}
       </div>
 {/* TRAINING TREND - FULL WIDTH */}
 <div className="bg-white p-6 rounded-2xl shadow mb-8">

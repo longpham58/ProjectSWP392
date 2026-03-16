@@ -2,17 +2,19 @@ package com.itms.entity;
 
 import com.itms.common.LocationType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
 @Entity
+@Table(name = "CourseSchedule")
 @Getter
 @Setter
-@Table(name = "CourseSchedule")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CourseSchedule {
 
     @Id
@@ -40,12 +42,12 @@ public class CourseSchedule {
     @Column(name = "time_end", nullable = false)
     private LocalTime timeEnd;
 
-    @Column(name = "location", length = 200)
+    @Column(name = "location", length = 255)
     private String location;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "location_type", length = 20)
-    private LocationType locationType;
+    @Column(name = "location_type", nullable = false, length = 20)
+    private LocationType locationType = LocationType.OFFLINE;
 
     @Column(name = "meeting_link", length = 500)
     private String meetingLink;

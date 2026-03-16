@@ -243,6 +243,30 @@ body {
     line-height: 1.6;
 }
 
+.resend-otp {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.resend-timer {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.link-button {
+    background: none;
+    border: none;
+    color: #4fc3f7;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.link-button:hover {
+    color: #81d4fa;
+}
+
 .back-to-login {
     text-align: center;
     margin-top: 20px;

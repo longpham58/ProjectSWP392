@@ -28,4 +28,15 @@ public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
      */
     @Query("SELECT c FROM ClassRoom c LEFT JOIN FETCH c.course WHERE c.trainer.id = :trainerId")
     List<ClassRoom> findByTrainerIdWithCourse(@Param("trainerId") Integer trainerId);
+    
+    /**
+     * Find all classrooms for a course
+     */
+    @Query("SELECT c FROM ClassRoom c WHERE c.course.id = :courseId")
+    List<ClassRoom> findByCourseId(@Param("courseId") Integer courseId);
+    
+    /**
+     * Count all class rooms
+     */
+    long count();
 }

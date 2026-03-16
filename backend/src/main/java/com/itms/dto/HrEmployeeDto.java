@@ -16,4 +16,5 @@ public class HrEmployeeDto {
     private String email;
     private String role;
     private String status;
+    private String department;
 }

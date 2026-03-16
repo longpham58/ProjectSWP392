@@ -1,15 +1,22 @@
 package com.itms.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Table(
+    name = "ClassMember",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "UQ_ClassMember_ClassUser", columnNames = {"class_id", "user_id"})
+    }
+)
 @Getter
 @Setter
-@Table(name = "ClassMember")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ClassMember {
 
     @Id
@@ -27,8 +34,8 @@ public class ClassMember {
     @Column(name = "joined_at")
     private LocalDateTime joinedAt;
 
-    @Column(name = "status", length = 20)
-    private String status;
+    @Column(nullable = false, length = 20)
+    private String status = "ACTIVE";
 
     @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
     private String notes;
@@ -36,4 +43,14 @@ public class ClassMember {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "added_by")
     private User addedBy;
+
+    @PrePersist
+    protected void onCreate() {
+        if (joinedAt == null) {
+            joinedAt = LocalDateTime.now();
+        }
+        if (status == null) {
+            status = "ACTIVE";
+        }
+    }
 }

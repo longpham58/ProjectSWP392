@@ -73,10 +73,9 @@ public class Feedback {
     @Column(name = "would_recommend")
     private Boolean wouldRecommend;
 
-    @Column(name = "is_anonymous")
+    @Column(name = "is_anonymous", nullable = false)
     private Boolean isAnonymous = false;
 
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
-
 }

@@ -1,8 +1,7 @@
 package com.itms.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +9,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table(name = "Attendance")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Attendance {
 
     @Id
@@ -49,4 +51,8 @@ public class Attendance {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public enum CompletionStatus {
+        IN_PROGRESS, COMPLETED, FAILED, ABSENT
+    }
 }
