@@ -1,55 +1,92 @@
-import axios from 'axios';
+import api from '../lib/axios';
 
-const API_BASE_URL = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8080/api';
-
-export interface TrainerCourseDto {
+export interface CourseDto {
   id: number;
-  courseCode: string;
-  courseName: string;
-  description: string;
-  duration: number;
-  level: string;
-  status: string;
-  maxCapacity: number;
-  currentEnrolled: number;
-  startDate: string;
-  endDate: string;
-  trainerName: string;
-}
-
-export interface SimpleCourseDto {
   code: string;
   name: string;
+  description?: string;
+  durationHours?: number;
+  category?: string;
+  level?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
-export interface ApiResponse<T> {
+export interface MaterialDto {
+  id: number;
+  title: string;
+  description?: string;
+  type: string;
+  fileUrl?: string;
+  fileSize?: number;
+  displayOrder?: number;
+  createdAt?: string;
+}
+
+export interface ModuleDto {
+  id: number;
+  title: string;
+  description?: string;
+  displayOrder?: number;
+  materials: MaterialDto[];
+}
+
+interface ApiResponse<T> {
   success: boolean;
   message: string;
   data: T;
 }
 
-/**
- * Get trainer's courses
- */
-export const getTrainerCourses = async (): Promise<TrainerCourseDto[]> => {
-  const response = await axios.get<ApiResponse<TrainerCourseDto[]>>(
-    `${API_BASE_URL}/trainer/courses`
-  );
-  return response.data.data;
+export const getTrainerCourses = async (): Promise<CourseDto[]> => {
+  const res = await api.get<ApiResponse<CourseDto[]>>('/courses/my/trainer');
+  return res.data.data;
 };
 
-/**
- * Get trainer's courses in simple format
- */
-export const getTrainerCoursesSimple = async (): Promise<SimpleCourseDto[]> => {
-  const response = await axios.get<ApiResponse<SimpleCourseDto[]>>(
-    `${API_BASE_URL}/trainer/courses/simple`
-  );
-  return response.data.data;
+export const getCourseModules = async (courseId: number): Promise<ModuleDto[]> => {
+  const res = await api.get<ApiResponse<ModuleDto[]>>(`/courses/${courseId}/modules`);
+  return res.data.data;
 };
 
-// Export as trainerCourseApi object for easier importing
-export const trainerCourseApi = {
-  getTrainerCourses,
-  getTrainerCoursesSimple
+export const createModule = async (
+  courseId: number,
+  title: string,
+  description: string,
+  displayOrder: number
+): Promise<ModuleDto> => {
+  const res = await api.post<ApiResponse<ModuleDto>>(`/courses/${courseId}/modules`, {
+    title,
+    description,
+    displayOrder: String(displayOrder),
+  });
+  return res.data.data;
+};
+
+export const deleteModule = async (moduleId: number): Promise<void> => {
+  await api.delete(`/courses/modules/${moduleId}`);
+};
+
+export const deleteMaterial = async (materialId: number): Promise<void> => {
+  await api.delete(`/courses/materials/${materialId}`);
+};
+
+export const uploadMaterial = async (
+  moduleId: number,
+  file: File,
+  title?: string,
+  description?: string,
+  displayOrder?: number
+): Promise<MaterialDto> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (title) formData.append('title', title);
+  if (description) formData.append('description', description);
+  if (displayOrder !== undefined) formData.append('displayOrder', String(displayOrder));
+
+  const res = await api.post<ApiResponse<MaterialDto>>(
+    `/courses/modules/${moduleId}/upload`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+  return res.data.data;
 };

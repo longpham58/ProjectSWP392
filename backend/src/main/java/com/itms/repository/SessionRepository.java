@@ -43,10 +43,10 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
             m.fullName
         )
         FROM Session s
-        LEFT JOIN Enrollment e 
-               ON e.course.id = s.course.id 
+        LEFT JOIN Enrollment e
+               ON e.session.id = s.id
                AND e.user.id = :userId
-        LEFT JOIN Attendance a 
+        LEFT JOIN Attendance a
                ON a.enrollment.id = e.id
         LEFT JOIN User m
                ON m.id = a.markedBy.id
@@ -77,7 +77,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
         )
         FROM Session s
         LEFT JOIN Enrollment e
-               ON e.course.id = s.course.id
+               ON e.session.id = s.id
         LEFT JOIN Attendance a
                ON a.enrollment.id = e.id
         LEFT JOIN User m
@@ -124,13 +124,13 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     /**
      * Find all sessions for a user (through enrollments), ordered by date
      */
-    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.course = s.course WHERE e.user.id = :userId ORDER BY s.date ASC, s.sessionNumber ASC")
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session.id = s.id WHERE e.user.id = :userId ORDER BY s.date ASC, s.sessionNumber ASC")
     List<Session> findByUserIdOrderByDateAsc(@Param("userId") Integer userId);
 
     /**
      * Find all sessions for a user for a specific course
      */
-    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.course = s.course WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.sessionNumber ASC")
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session.id = s.id WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.sessionNumber ASC")
     List<Session> findByUserIdAndCourseIdOrderByDateAsc(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
 
     /**

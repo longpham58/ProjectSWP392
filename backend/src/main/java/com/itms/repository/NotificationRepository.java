@@ -13,16 +13,13 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     List<Notification> findByUserIdOrderBySentDateDesc(Integer userId);
 
-    /** Notifications for a user (recipient) by draft flag, newest first. */
     @Query("SELECT n FROM Notification n WHERE n.user.id = :userId AND n.isDraft = :isDraft ORDER BY n.sentDate DESC")
     List<Notification> findByUserIdAndIsDraftOrderBySentDateDesc(
             @Param("userId") Integer userId,
             @Param("isDraft") Boolean isDraft);
 
-    /** Notifications sent by a user (sender), by draft flag, newest first. */
     @Query("SELECT n FROM Notification n WHERE n.sender.id = :senderId AND n.isDraft = :isDraft ORDER BY n.sentDate DESC")
     List<Notification> findBySenderIdAndIsDraftOrderBySentDateDesc(
             @Param("senderId") Integer senderId,
             @Param("isDraft") Boolean isDraft);
-
 }

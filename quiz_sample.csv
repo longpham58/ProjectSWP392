@@ -1,0 +1,16 @@
+Quiz Title:,Kiểm tra kiến thức Java cơ bản
+Description:,Bài kiểm tra này bao gồm các câu hỏi về Java programming language
+Duration (minutes):,45
+Passing Score (%):,70
+,
+Question Text,Option A,Option B,Option C,Option D,Correct Answer (A/B/C/D),Marks,Explanation
+Java là gì?,Một ngôn ngữ lập trình,Một loại cà phê,Một hòn đảo,Một framework,A,2,Java là một ngôn ngữ lập trình hướng đối tượng được phát triển bởi Sun Microsystems
+Từ khóa nào được sử dụng để khai báo một lớp trong Java?,class,Class,CLASS,define,A,1,Từ khóa 'class' được sử dụng để khai báo một lớp trong Java
+Phương thức main trong Java có signature như thế nào?,public static void main(String[] args),public void main(String[] args),static void main(String[] args),public main(String[] args),A,2,Phương thức main phải có signature: public static void main(String[] args)
+Kiểu dữ liệu nào không phải là primitive type trong Java?,int,String,boolean,char,B,1,String là reference type không phải primitive type
+Từ khóa nào được sử dụng để kế thừa một lớp trong Java?,extends,implements,inherits,super,A,1,Từ khóa 'extends' được sử dụng để kế thừa một lớp
+Phương thức nào được gọi khi một đối tượng được tạo?,Constructor,Destructor,Initializer,Creator,A,2,Constructor được gọi tự động khi một đối tượng được tạo
+Access modifier nào cho phép truy cập từ bất kỳ đâu?,public,private,protected,default,A,1,Access modifier 'public' cho phép truy cập từ bất kỳ đâu
+Từ khóa nào được sử dụng để tạo một hằng số trong Java?,final,const,static,constant,A,1,Từ khóa 'final' được sử dụng để tạo hằng số
+Exception nào được ném khi chia cho 0 với số nguyên?,ArithmeticException,DivideByZeroException,MathException,NumberException,A,2,ArithmeticException được ném khi có lỗi toán học như chia cho 0
+Interface trong Java có thể chứa gì?,Abstract methods và constants,Concrete methods,Instance variables,Constructors,A,2,Interface chứa abstract methods và constants (final static variables)

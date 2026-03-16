@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Getter
@@ -19,7 +18,8 @@ public class ClassRoom {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
     private Course course;
 
     @Column(name = "class_code", nullable = false, unique = true, length = 20)
@@ -28,16 +28,17 @@ public class ClassRoom {
     @Column(name = "class_name", nullable = false, length = 200)
     private String className;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trainer_id")
     private User trainer;
 
-    @Transient
+    @Column(name = "max_students")
     private Integer maxStudents;
 
-    @Transient
+    @Column(name = "status", length = 20)
     private String status;
 
-    @Transient
+    @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
     private String notes;
 
     @Column(name = "created_at")
@@ -46,18 +47,11 @@ public class ClassRoom {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
     private User createdBy;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by")
     private User updatedBy;
-
-    @Transient
-    private List<ClassMember> classMembers;
-
-    @Transient
-    private List<CourseSchedule> courseSchedules;
-
-    @Transient
-    private List<Session> sessions;
 }

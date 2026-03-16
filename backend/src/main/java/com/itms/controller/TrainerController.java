@@ -1,6 +1,7 @@
 package com.itms.controller;
 
 import com.itms.dto.*;
+import com.itms.dto.CourseDto;
 import com.itms.dto.common.ResponseDto;
 import com.itms.entity.Course;
 import com.itms.security.CustomUserDetails;
@@ -44,11 +45,14 @@ public class TrainerController {
      * Get trainer's courses
      */
     @GetMapping("/courses")
-    public ResponseEntity<ResponseDto<List<Course>>> getCourses(
+    public ResponseEntity<ResponseDto<List<CourseDto>>> getCourses(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         Integer trainerId = userDetails.getId();
-        List<Course> courses = courseService.getCoursesByTrainerId(trainerId);
+        List<CourseDto> courses = courseService.getCoursesByTrainerId(trainerId)
+                .stream()
+                .map(CourseDto::fromEntity)
+                .toList();
         
         return ResponseEntity.ok(ResponseDto.success(courses, "Lấy danh sách khóa học thành công"));
     }
