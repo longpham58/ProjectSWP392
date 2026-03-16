@@ -18,8 +18,8 @@ public class DataSeeder {
 
     private final PasswordEncoder passwordEncoder;
 
-    // Set to true to reset and reseed data every time the app starts
-    private static final boolean RESET_DATA = true;
+    // Keep false to avoid wiping DB data on each backend restart.
+    private static final boolean RESET_DATA = false;
 
     @Bean
     CommandLineRunner seedData(

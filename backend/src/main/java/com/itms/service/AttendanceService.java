@@ -2,9 +2,7 @@ package com.itms.service;
 
 import com.itms.controller.TrainerController;
 import com.itms.dto.SessionAttendanceDto;
-import com.itms.entity.CourseModule;
 import com.itms.repository.AttendanceRepository;
-import com.itms.repository.CourseModuleRepository;
 import com.itms.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +15,6 @@ public class AttendanceService {
 
     private final SessionRepository sessionRepository;
     private final AttendanceRepository attendanceRepository;
-    private final CourseModuleRepository courseModuleRepository;
 
     /**
      * Get all sessions with attendance status for a user in a course

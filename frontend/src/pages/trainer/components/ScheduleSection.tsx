@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getTrainerSchedule, TrainerScheduleDto } from '../../../api/trainerSchedule.api';
+import { ScheduleClass, TIME_SLOTS } from '../../../data/mockTrainerData';
+import { getAllTrainerSchedules } from '../../../mocks/mockScheduleStorage';
 
 const ScheduleSection: React.FC = () => {
+  // State for API schedule
   const [currentWeekStart, setCurrentWeekStart] = useState(getWeekStart(new Date()));
   const [selectedClasses, setSelectedClasses] = useState<string[]>(['ALL']);
   const [schedule, setSchedule] = useState<TrainerScheduleDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewingClass, setViewingClass] = useState<TrainerScheduleDto | null>(null);
+  const [viewingClass, setViewingClass] = useState<TrainerScheduleDto | ScheduleClass | null>(null);
 
+  // Days of week
   const daysOfWeek = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
   const daysOfWeekFull = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
 
@@ -15,7 +19,7 @@ const ScheduleSection: React.FC = () => {
   function getWeekStart(date: Date): Date {
     const d = new Date(date);
     const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(d.setDate(diff));
   }
 
@@ -30,7 +34,9 @@ const ScheduleSection: React.FC = () => {
       const data = await getTrainerSchedule();
       setSchedule(data);
     } catch (error) {
-      console.error('Error loading schedule:', error);
+      // Fallback to mock data if API fails
+      const mock = getAllTrainerSchedules();
+      setSchedule(mock);
     } finally {
       setLoading(false);
     }
@@ -241,7 +247,7 @@ const ScheduleSection: React.FC = () => {
                             <div className="text-xs text-gray-700">{classItem.location}</div>
                           </div>
                         ))
-                      )}
+                      }
                     </div>
                   );
                 })}

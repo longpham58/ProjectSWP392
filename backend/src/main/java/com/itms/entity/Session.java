@@ -29,29 +29,30 @@ public class Session {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_id")
+    @Transient
     private ClassRoom classRoom;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_id")
+    @Transient
     private CourseSchedule schedule;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trainer_id")
+    @Transient
     private User trainer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
+    @Transient
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by")
+    @Transient
     private User updatedBy;
 
     /* =========================
        Session Info
     ========================= */
+
+    @Column(name = "session_name", length = 255)
+    private String sessionName;
+
+    @Column(name = "session_number")
+    private Integer sessionNumber;
 
     @Column(nullable = false)
     private LocalDate date;

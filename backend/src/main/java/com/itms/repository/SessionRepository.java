@@ -6,12 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Repository
 public interface SessionRepository extends JpaRepository<Session, Long> {
-
     /**
      * Find all sessions for a course, ordered by date and session number
      */
@@ -58,6 +58,35 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     );
 
     /**
+     * Get attendance list for a specific session (trainer view).
+     */
+    @Query("""
+        SELECT new com.itms.dto.SessionAttendanceDto(
+            s.id,
+            s.sessionName,
+            s.sessionNumber,
+            s.date,
+            s.timeStart,
+            s.timeEnd,
+            s.location,
+            s.status,
+            a.attended,
+            a.completionStatus,
+            m.fullName
+        )
+        FROM Session s
+        LEFT JOIN Enrollment e
+               ON e.course.id = s.course.id
+        LEFT JOIN Attendance a
+               ON a.enrollment.id = e.id
+        LEFT JOIN User m
+               ON m.id = a.markedBy.id
+        WHERE s.id = :sessionId
+        ORDER BY e.user.id ASC
+    """)
+    List<SessionAttendanceDto> getSessionAttendanceForSession(@Param("sessionId") Long sessionId);
+
+    /**
      * Find all sessions for a specific trainer, ordered by date
      */
     @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId ORDER BY s.date ASC")
@@ -102,4 +131,60 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
      */
     @Query("SELECT s FROM Session s JOIN Enrollment e ON e.course = s.course WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.sessionNumber ASC")
     List<Session> findByUserIdAndCourseIdOrderByDateAsc(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
+
+    /**
+     * Find all sessions, ordered by date and start time
+     */
+    List<Session> findAllByOrderByDateAscTimeStartAsc();
+
+    /**
+     * Check if there is a time conflict for a trainer on a specific date
+     */
+    @Query(value = """
+        SELECT CASE WHEN COUNT_BIG(s.id) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
+        FROM Session s
+        JOIN Course c ON c.id = s.course_id
+        JOIN [User] t ON t.id = c.trainer_id
+        WHERE LOWER(t.username) = LOWER(:trainerUsername)
+          AND CAST(s.date AS DATE) = CAST(:date AS DATE)
+          AND CAST(s.time_start AS TIME) < CAST(:endTime AS TIME)
+          AND CAST(s.time_end AS TIME) > CAST(:startTime AS TIME)
+          AND (:excludeId IS NULL OR s.id <> :excludeId)
+    """, nativeQuery = true)
+    boolean existsTrainerTimeConflict(
+            @Param("trainerUsername") String trainerUsername,
+            @Param("date") LocalDate date,
+            @Param("startTime") LocalTime startTime,
+            @Param("endTime") LocalTime endTime,
+            @Param("excludeId") Long excludeId
+    );
+
+    /**
+     * Check if there is a time conflict in a specific room on a specific date
+     */
+    @Query(value = """
+        SELECT CASE WHEN COUNT_BIG(s.id) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
+        FROM Session s
+        WHERE CAST(s.date AS DATE) = CAST(:date AS DATE)
+          AND LOWER(COALESCE(s.location, '')) = LOWER(COALESCE(:location, ''))
+          AND CAST(s.time_start AS TIME) < CAST(:endTime AS TIME)
+          AND CAST(s.time_end AS TIME) > CAST(:startTime AS TIME)
+          AND (:excludeId IS NULL OR s.id <> :excludeId)
+    """, nativeQuery = true)
+    boolean existsRoomTimeConflict(
+            @Param("date") LocalDate date,
+            @Param("location") String location,
+            @Param("startTime") LocalTime startTime,
+            @Param("endTime") LocalTime endTime,
+            @Param("excludeId") Long excludeId
+    );
+
+    @Query(value = """
+        SELECT CASE WHEN COUNT_BIG(s.id) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
+        FROM Session s
+        JOIN Course c ON c.id = s.course_id
+        JOIN [User] t ON t.id = c.trainer_id
+        WHERE LOWER(t.username) = LOWER(:trainerUsername)
+    """)
+    boolean existsByTrainerUsername(@Param("trainerUsername") String trainerUsername);
 }
