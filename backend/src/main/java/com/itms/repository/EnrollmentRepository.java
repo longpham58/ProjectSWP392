@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer> {
@@ -107,4 +108,11 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
      */
     @Query("SELECT e FROM Enrollment e JOIN e.session s JOIN s.classRoom cr WHERE cr.classCode = :classCode")
     List<Enrollment> findBySessionClassCode(@Param("classCode") String classCode);
+
+    /**
+     * Find enrollment by user id and session id
+     */
+    @Query("SELECT e FROM Enrollment e WHERE e.user.id = :userId AND e.session.id = :sessionId")
+    Optional<Enrollment> findByUserIdAndSessionId(@Param("userId") Integer userId,
+                                                   @Param("sessionId") Long sessionId);
 }

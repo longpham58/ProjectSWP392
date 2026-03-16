@@ -271,6 +271,8 @@ public class DataSeeder {
                     "MON", LocalTime.of(8, 0), LocalTime.of(10, 0), "Phòng 101", admin);
             createCourseSchedule(courseScheduleRepository, javaCourse, javaClass1, trainer,
                     "WED", LocalTime.of(8, 0), LocalTime.of(10, 0), "Phòng 101", admin);
+            createCourseSchedule(courseScheduleRepository, javaCourse, javaClass1, trainer,
+                    "SUN", LocalTime.of(8, 0), LocalTime.of(10, 0), "Phòng 101", admin);
 
             createCourseSchedule(courseScheduleRepository, javaCourse, javaClass2, trainer,
                     "TUE", LocalTime.of(13, 0), LocalTime.of(15, 0), "Phòng 102", admin);

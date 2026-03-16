@@ -6,9 +6,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import java.util.List;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SessionRepository extends JpaRepository<Session, Long> {
@@ -179,12 +180,10 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
             @Param("excludeId") Long excludeId
     );
 
-    @Query(value = """
-        SELECT CASE WHEN COUNT_BIG(s.id) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
-        FROM Session s
-        JOIN Course c ON c.id = s.course_id
-        JOIN [User] t ON t.id = c.trainer_id
-        WHERE LOWER(t.username) = LOWER(:trainerUsername)
-    """)
-    boolean existsByTrainerUsername(@Param("trainerUsername") String trainerUsername);
+    /**
+     * Find session by class room id and date
+     */
+    @Query("SELECT s FROM Session s WHERE s.classRoom.id = :classRoomId AND s.date = :date")
+    Optional<Session> findByClassRoomIdAndDate(@Param("classRoomId") Integer classRoomId,
+                                               @Param("date") java.time.LocalDate date);
 }
