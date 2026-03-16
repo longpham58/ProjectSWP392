@@ -29,19 +29,24 @@ public class Session {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id")
     private ClassRoom classRoom;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "schedule_id")
     private CourseSchedule schedule;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trainer_id")
     private User trainer;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
     private User createdBy;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by")
     private User updatedBy;
 
     /* =========================
@@ -76,8 +81,7 @@ public class Session {
     @Column(name = "meeting_link")
     private String meetingLink;
 
-    // Keep this field in domain model but do not map to DB to avoid schema drift issues.
-    @Transient
+    @Column(name = "meeting_password")
     private String meetingPassword;
 
     /* =========================

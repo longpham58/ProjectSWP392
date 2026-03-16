@@ -3,12 +3,21 @@ package com.itms.controller;
 import com.itms.dto.ModuleProgressDto;
 import com.itms.dto.QuizAttemptDto;
 import com.itms.dto.QuizDto;
+import com.itms.dto.QuizImportDto;
+import com.itms.dto.QuizQuestionImportDto;
 import com.itms.dto.common.ResponseDto;
+import com.itms.service.ExcelImportService;
 import com.itms.service.QuizService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +27,7 @@ import java.util.Map;
 public class QuizController {
 
     private final QuizService quizService;
+    private final ExcelImportService excelImportService;
 
     /**
      * Get all quizzes for a course
@@ -105,5 +115,182 @@ public class QuizController {
             @PathVariable Integer userId) {
         Map<String, Object> status = quizService.getCourseQuizStatus(courseId, userId);
         return ResponseEntity.ok(ResponseDto.success(status, "Course quiz status retrieved successfully"));
+    }
+
+    /**
+     * Parse Excel file without creating quiz (for preview)
+     */
+    @PostMapping("/parse-excel")
+    public ResponseEntity<ResponseDto<Map<String, Object>>> parseExcelFile(
+            @RequestParam("file") MultipartFile file) {
+        
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest()
+                .body(ResponseDto.fail("File is empty"));
+        }
+        
+        if (!file.getOriginalFilename().endsWith(".xlsx") && !file.getOriginalFilename().endsWith(".xls")) {
+            return ResponseEntity.badRequest()
+                .body(ResponseDto.fail("Only Excel files (.xlsx, .xls) are allowed"));
+        }
+        
+        try {
+            QuizImportDto parsedData = excelImportService.parseExcelFile(file);
+            
+            // Convert to the format expected by frontend
+            Map<String, Object> result = new HashMap<>();
+            result.put("title", parsedData.getQuizTitle());
+            result.put("description", parsedData.getDescription());
+            result.put("durationMinutes", parsedData.getDurationMinutes());
+            result.put("passingScore", parsedData.getPassingScore());
+            result.put("quizType", parsedData.getQuizType());
+            result.put("maxAttempts", parsedData.getMaxAttempts());
+            result.put("randomizeQuestions", parsedData.getRandomizeQuestions());
+            result.put("showCorrectAnswers", parsedData.getShowCorrectAnswers());
+            
+            // Convert questions
+            List<Map<String, Object>> questions = new ArrayList<>();
+            for (QuizQuestionImportDto q : parsedData.getQuestions()) {
+                Map<String, Object> question = new HashMap<>();
+                question.put("questionText", q.getQuestionText());
+                question.put("questionType", q.getQuestionType());
+                question.put("optionA", q.getOptionA());
+                question.put("optionB", q.getOptionB());
+                question.put("optionC", q.getOptionC());
+                question.put("optionD", q.getOptionD());
+                question.put("correctAnswer", q.getCorrectAnswer());
+                question.put("marks", q.getMarks());
+                question.put("explanation", q.getExplanation());
+                question.put("displayOrder", q.getDisplayOrder());
+                questions.add(question);
+            }
+            result.put("questions", questions);
+            
+            return ResponseEntity.ok(ResponseDto.success(result, "Excel file parsed successfully"));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ResponseDto.fail("Failed to parse Excel file: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Import quiz from Excel file
+     */
+    @PostMapping("/import")
+    public ResponseEntity<ResponseDto<QuizDto>> importQuizFromExcel(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("courseId") Integer courseId,
+            @RequestParam(value = "moduleId", required = false) Integer moduleId,
+            Authentication authentication) {
+        
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest()
+                .body(ResponseDto.fail("File is empty"));
+        }
+        
+        if (!file.getOriginalFilename().endsWith(".xlsx") && !file.getOriginalFilename().endsWith(".xls")) {
+            return ResponseEntity.badRequest()
+                .body(ResponseDto.fail("Only Excel files (.xlsx, .xls) are allowed"));
+        }
+        
+        try {
+            // Get user ID from authentication
+            Integer userId = Integer.parseInt(authentication.getName());
+            
+            QuizDto quiz = quizService.importQuizFromExcel(file, courseId, moduleId, userId);
+            return ResponseEntity.ok(ResponseDto.success(quiz, "Quiz imported successfully"));
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ResponseDto.fail("Failed to import quiz: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Get quizzes by module ID
+     */
+    @GetMapping("/module/{moduleId}")
+    public ResponseEntity<ResponseDto<List<QuizDto>>> getQuizzesByModule(
+            @PathVariable Integer moduleId) {
+        List<QuizDto> quizzes = quizService.getQuizzesByModule(moduleId);
+        return ResponseEntity.ok(ResponseDto.success(quizzes, "Quizzes retrieved successfully"));
+    }
+
+    /**
+     * Get quiz details with questions
+     */
+    @GetMapping("/{quizId}/details")
+    public ResponseEntity<ResponseDto<QuizDto>> getQuizDetails(
+            @PathVariable Integer quizId) {
+        QuizDto quiz = quizService.getQuizWithQuestions(quizId);
+        return ResponseEntity.ok(ResponseDto.success(quiz, "Quiz details retrieved successfully"));
+    }
+
+    /**
+     * Create new quiz manually
+     */
+    @PostMapping("/create")
+    public ResponseEntity<ResponseDto<QuizDto>> createQuiz(
+            @RequestBody Map<String, Object> request,
+            Authentication authentication) {
+        try {
+            Integer userId = Integer.parseInt(authentication.getName());
+            QuizDto quiz = quizService.createQuizManually(request, userId);
+            return ResponseEntity.ok(ResponseDto.success(quiz, "Quiz created successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ResponseDto.fail("Failed to create quiz: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Toggle quiz active status
+     */
+    @PatchMapping("/{quizId}/toggle-status")
+    public ResponseEntity<ResponseDto<QuizDto>> toggleQuizStatus(
+            @PathVariable Integer quizId) {
+        try {
+            QuizDto quiz = quizService.toggleQuizStatus(quizId);
+            return ResponseEntity.ok(ResponseDto.success(quiz, "Quiz status updated successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ResponseDto.fail("Failed to update quiz status: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Delete quiz
+     */
+    @DeleteMapping("/{quizId}")
+    public ResponseEntity<ResponseDto<Void>> deleteQuiz(@PathVariable Integer quizId) {
+        try {
+            quizService.deleteQuiz(quizId);
+            return ResponseEntity.ok(ResponseDto.success(null, "Quiz deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(ResponseDto.fail("Failed to delete quiz: " + e.getMessage()));
+        }
+    }
+
+    /**
+     * Download Excel template for quiz import
+     */
+    @GetMapping("/template")
+    public ResponseEntity<byte[]> downloadExcelTemplate() {
+        try {
+            byte[] template = excelImportService.generateExcelTemplate();
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", "quiz_template.xlsx");
+            
+            return ResponseEntity.ok()
+                .headers(headers)
+                .body(template);
+                
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
