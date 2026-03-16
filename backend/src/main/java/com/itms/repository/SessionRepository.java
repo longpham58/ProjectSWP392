@@ -47,10 +47,10 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
             m.fullName
         )
         FROM Session s
-        LEFT JOIN Enrollment e 
-               ON e.session.id = s.id 
+        LEFT JOIN Enrollment e
+               ON e.session.id = s.id
                AND e.user.id = :userId
-        LEFT JOIN Attendance a 
+        LEFT JOIN Attendance a
                ON a.enrollment.id = e.id
         LEFT JOIN User m
                ON m.id = a.markedBy.id
@@ -65,7 +65,36 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     /**
      * Find all sessions for courses taught by a specific trainer, ordered by date
      */
-    @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId ORDER BY s.date ASC, s.timeStart ASC")
+    @Query("""
+        SELECT new com.itms.dto.SessionAttendanceDto(
+            s.id,
+            s.sessionName,
+            s.sessionNumber,
+            s.date,
+            s.timeStart,
+            s.timeEnd,
+            s.location,
+            s.status,
+            a.attended,
+            a.completionStatus,
+            m.fullName
+        )
+        FROM Session s
+        LEFT JOIN Enrollment e
+               ON e.session.id = s.id
+        LEFT JOIN Attendance a
+               ON a.enrollment.id = e.id
+        LEFT JOIN User m
+               ON m.id = a.markedBy.id
+        WHERE s.id = :sessionId
+        ORDER BY e.user.id ASC
+    """)
+    List<SessionAttendanceDto> getSessionAttendanceForSession(@Param("sessionId") Long sessionId);
+
+    /**
+     * Find all sessions for a specific trainer, ordered by date
+     */
+    @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId ORDER BY s.date ASC")
     List<Session> findByCourseTrainerIdOrderByDateAsc(@Param("trainerId") Integer trainerId);
 
     /**
@@ -99,23 +128,13 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     /**
      * Find all sessions for a user (through enrollments), ordered by date
      */
-
-    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session.id = s.id WHERE e.user.id = :userId ORDER BY s.date ASC, s.id ASC")
-
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session.id = s.id WHERE e.user.id = :userId ORDER BY s.date ASC, s.sessionNumber ASC")
     List<Session> findByUserIdOrderByDateAsc(@Param("userId") Integer userId);
 
     /**
      * Find all sessions for a user for a specific course
      */
-
-
-    /**
-     * Find all sessions for a class
-     */
-    @Query("SELECT s FROM Session s WHERE s.classRoom.id = :classId ORDER BY s.date ASC, s.timeStart ASC")
-    List<Session> findByClassRoomIdOrderByDateAsc(@Param("classId") Integer classId);
-
-    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session.id = s.id WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.id ASC")
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session.id = s.id WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.sessionNumber ASC")
     List<Session> findByUserIdAndCourseIdOrderByDateAsc(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
 
     /**

@@ -1,14 +1,12 @@
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+import api from '../lib/axios';
 
 export interface TrainerScheduleDto {
   sessionId: number;
   sessionName?: string;
   sessionNumber: number;
-  date: string; // LocalDate as ISO string
-  timeStart: string; // LocalTime as string
-  timeEnd: string; // LocalTime as string
+  date: string;
+  timeStart: string;
+  timeEnd: string;
   location: string;
   locationType: 'ONLINE' | 'OFFLINE' | 'HYBRID';
   status: 'SCHEDULED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
@@ -29,28 +27,17 @@ export interface ApiResponse<T> {
   data: T;
 }
 
-/**
- * Get trainer's schedule
- */
 export const getTrainerSchedule = async (): Promise<TrainerScheduleDto[]> => {
-  const response = await axios.get<ApiResponse<TrainerScheduleDto[]>>(
-    `${API_BASE_URL}/trainer/schedule`
-  );
+  const response = await api.get<ApiResponse<TrainerScheduleDto[]>>('/trainer/schedule');
   return response.data.data;
 };
 
-/**
- * Get trainer's schedule for a specific date range
- */
 export const getTrainerScheduleByDateRange = async (
   startDate: string,
   endDate: string
 ): Promise<TrainerScheduleDto[]> => {
-  const response = await axios.get<ApiResponse<TrainerScheduleDto[]>>(
-    `${API_BASE_URL}/trainer/schedule`,
-    {
-      params: { startDate, endDate }
-    }
-  );
+  const response = await api.get<ApiResponse<TrainerScheduleDto[]>>('/trainer/schedule', {
+    params: { startDate, endDate }
+  });
   return response.data.data;
 };

@@ -21,7 +21,7 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     Integer findMaxId();
 
     /**
-     * Find all courses that a user is enrolled in
+     * Find all courses that a user is enrolled in (via session)
      */
     @Query("SELECT DISTINCT c FROM Course c JOIN Session s ON s.course = c JOIN Enrollment e ON e.session = s WHERE e.user.id = :userId")
     List<Course> findCoursesByUserId(@Param("userId") Integer userId);

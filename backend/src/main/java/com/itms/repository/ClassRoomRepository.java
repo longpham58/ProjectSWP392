@@ -11,20 +11,20 @@ import java.util.Optional;
 
 @Repository
 public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
-    
+
     /**
      * Find classroom by class code (with course eagerly loaded)
      */
-    @Query("SELECT c FROM ClassRoom c JOIN FETCH c.course WHERE c.classCode = :classCode")
+    @Query("SELECT c FROM ClassRoom c LEFT JOIN FETCH c.course WHERE c.classCode = :classCode")
     Optional<ClassRoom> findByClassCodeWithCourse(@Param("classCode") String classCode);
-    
+
     /**
      * Find classroom by class code
      */
     Optional<ClassRoom> findByClassCode(String classCode);
 
     /**
-     * Find all classrooms for a trainer (for attendance). Returns empty if trainer not mapped on ClassRoom.
+     * Find all classrooms for a trainer
      */
     @Query("SELECT c FROM ClassRoom c LEFT JOIN FETCH c.course WHERE c.trainer.id = :trainerId")
     List<ClassRoom> findByTrainerIdWithCourse(@Param("trainerId") Integer trainerId);

@@ -9,13 +9,20 @@ import com.itms.security.CustomUserDetails;
 import com.itms.service.CourseModuleService;
 import com.itms.service.CourseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/courses")
@@ -24,6 +31,9 @@ public class CourseController {
 
     private final CourseService courseService;
     private final CourseModuleService courseModuleService;
+
+    @Value("${upload.dir:uploads/materials}")
+    private String uploadDir;
 
     @GetMapping("/my")
     public ResponseEntity<ResponseDto<List<CourseDto>>> getMyCourses(
@@ -42,12 +52,14 @@ public class CourseController {
      * Get courses assigned to the current trainer
      */
     @GetMapping("/my/trainer")
-    public ResponseEntity<ResponseDto<List<Course>>> getMyTrainerCourses(
+    public ResponseEntity<ResponseDto<List<CourseDto>>> getMyTrainerCourses(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         int trainerId = userDetails.getId();
-
-        List<Course> courses = courseService.getCoursesByTrainerId(trainerId);
+        List<CourseDto> courses = courseService.getCoursesByTrainerId(trainerId)
+                .stream()
+                .map(CourseDto::fromEntity)
+                .toList();
 
         return ResponseEntity.ok(
                 ResponseDto.success(courses, "Trainer courses retrieved successfully")
@@ -158,5 +170,48 @@ public class CourseController {
         return ResponseEntity.ok(
                 ResponseDto.success(null, "Material deleted successfully")
         );
+    }
+
+    /**
+     * Upload a file to a module - saves file to disk and creates material record
+     */
+    @PostMapping("/modules/{moduleId}/upload")
+    public ResponseEntity<ResponseDto<CourseModuleDto.MaterialDto>> uploadMaterial(
+            @PathVariable int moduleId,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "title", required = false) String title,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam(value = "displayOrder", required = false) Integer displayOrder) {
+
+        try {
+            Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
+            Files.createDirectories(uploadPath);
+
+            String originalFilename = file.getOriginalFilename();
+            String ext = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf('.'))
+                    : "";
+            String storedFilename = UUID.randomUUID() + ext;
+            Path filePath = uploadPath.resolve(storedFilename);
+            Files.copy(file.getInputStream(), filePath);
+
+            String fileUrl = "/uploads/" + storedFilename;
+            String materialTitle = (title != null && !title.isBlank()) ? title : originalFilename;
+
+            // Detect type from extension
+            String type = "DOCUMENT";
+            if (ext.equalsIgnoreCase(".pdf")) type = "PDF";
+            else if (ext.equalsIgnoreCase(".mp4") || ext.equalsIgnoreCase(".avi")
+                    || ext.equalsIgnoreCase(".mov") || ext.equalsIgnoreCase(".mkv")) type = "VIDEO";
+
+            CourseModuleDto.MaterialDto material = courseModuleService.createMaterial(
+                    moduleId, materialTitle, description, type, fileUrl, file.getSize(), displayOrder);
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ResponseDto.success(material, "Material uploaded successfully"));
+
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to upload file: " + e.getMessage());
+        }
     }
 }
