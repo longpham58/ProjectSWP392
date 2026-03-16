@@ -137,11 +137,11 @@ public class NotificationService {
     }
 
     private NotificationType mapStringToNotificationType(String type) {
-        if (type == null) return NotificationType.GENERAL;
+        if (type == null) return NotificationType.ANNOUNCEMENT;
         try {
             return NotificationType.valueOf(type.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return NotificationType.GENERAL;
+            return NotificationType.ANNOUNCEMENT;
         }
     }
 
@@ -242,7 +242,7 @@ public class NotificationService {
                 .read(notification.getIsRead())
                 .isRead(notification.getIsRead())
                 .isDraft(notification.getIsDraft())
-                .type(notification.getType() != null ? notification.getType().name() : "GENERAL")
+                .type(notification.getType() != null ? notification.getType().name() : "ANNOUNCEMENT")
                 .priority(notification.getPriority() != null ? notification.getPriority().name() : "NORMAL")
                 .referenceType(notification.getReferenceType())
                 .referenceId(notification.getReferenceId())

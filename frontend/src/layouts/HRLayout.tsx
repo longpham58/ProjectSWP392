@@ -1,3 +1,4 @@
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../stores/auth.store";
 import { HRDashboardPage } from "../pages/hr/HRDashboard";

@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { authApi } from "../api";
 import type { UserInfo } from "../api";
 
+const AUTH_SESSION_HINT_KEY = "itms_has_session_hint";
+
 interface AuthState {
   user: UserInfo | null;
   loading: boolean;
@@ -52,6 +54,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     if (!otpRequired) {
       const me = await authApi.me();
+      localStorage.setItem(AUTH_SESSION_HINT_KEY, "1");
       set({ user: me.data.data,
         otpRequired: false });
     }
@@ -74,6 +77,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       await authApi.verifyOtp({ otp });
 
       const me = await authApi.me();
+      localStorage.setItem(AUTH_SESSION_HINT_KEY, "1");
       set({
         user: me.data.data,
         otpRequired: false
@@ -139,11 +143,19 @@ resetPassword: async (token: string, newPassword: string) => {
         set({ initialized: true });
         return;
       }
-      
-      // Try to fetch from API (will fail in mock mode, that's ok)
+
+      // Avoid unnecessary /auth/me call before any successful login.
+      const hasSessionHint = localStorage.getItem(AUTH_SESSION_HINT_KEY) === "1";
+      if (!hasSessionHint) {
+        set({ user: null, initialized: true });
+        return;
+      }
+
       const res = await authApi.me();
+      localStorage.setItem(AUTH_SESSION_HINT_KEY, "1");
       set({ user: res.data.data, initialized: true });
     } catch {
+      localStorage.removeItem(AUTH_SESSION_HINT_KEY);
       set({ user: null, initialized: true });
     }
   },

@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -65,7 +66,13 @@ public class UserService {
     ) {
         // 1️⃣ Get userId from session (set during login)
         HttpSession session = HttpRequest.getSession(false);
+        if (session == null) {
+            throw new AuthenticationCredentialsNotFoundException("OTP session expired");
+        }
         Integer userId = (Integer) session.getAttribute("OTP_USER_ID");
+        if (userId == null) {
+            throw new AuthenticationCredentialsNotFoundException("OTP session expired");
+        }
         // 2️⃣ Verify OTP for THAT user
         otpService.validateOtp(userId, request.getOtp());
 
@@ -121,15 +128,22 @@ public class UserService {
 
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("User is not authenticated");
+            throw new AuthenticationCredentialsNotFoundException("User is not authenticated");
         }
         Object principal = authentication.getPrincipal();
+        if (principal == null || "anonymousUser".equals(principal)) {
+            throw new AuthenticationCredentialsNotFoundException("User is not authenticated");
+        }
 
         User user;
 
         if (principal instanceof CustomUserDetails userDetails) {
             // 🔐 Normal username/password login
-            user = userRepository.findById(userDetails.getId())
+            Integer userId = userDetails.getId();
+            if (userId == null) {
+                throw new AuthenticationCredentialsNotFoundException("User is not authenticated");
+            }
+            user = userRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
         } else if (principal instanceof OAuth2User oauthUser) {
@@ -140,7 +154,7 @@ public class UserService {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
         } else {
-            throw new RuntimeException("Unsupported authentication principal");
+            throw new AuthenticationCredentialsNotFoundException("Unsupported authentication principal");
         }
 
         DepartmentDto departmentDto = null;

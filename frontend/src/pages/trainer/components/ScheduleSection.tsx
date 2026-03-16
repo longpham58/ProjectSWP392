@@ -1,95 +1,102 @@
-import React, { useState, useEffect } from 'react';
-import { useTrainerScheduleStore } from '../../../stores/trainerSchedule.store';
-import { TrainerScheduleDto } from '../../../api/trainerSchedule.api';
+import React, { useState, useEffect, useMemo } from 'react';
+import { getTrainerSchedule, TrainerScheduleDto } from '../../../api/trainerSchedule.api';
+import { ScheduleClass, TIME_SLOTS } from '../../../data/mockTrainerData';
+import { getAllTrainerSchedules } from '../../../mocks/mockScheduleStorage';
 
 const ScheduleSection: React.FC = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedClasses, setSelectedClasses] = useState<string[]>(['ALL']); // Default: show all
-  const [viewingClass, setViewingClass] = useState<TrainerScheduleDto | null>(null);
+  // State for API schedule
+  const [currentWeekStart, setCurrentWeekStart] = useState(getWeekStart(new Date()));
+  const [selectedClasses, setSelectedClasses] = useState<string[]>(['ALL']);
+  const [schedule, setSchedule] = useState<TrainerScheduleDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [viewingClass, setViewingClass] = useState<TrainerScheduleDto | ScheduleClass | null>(null);
 
-  // Use store (READ-ONLY)
-  const { 
-    schedule, 
-    loading, 
-    error, 
-    fetchSchedule, 
-    clearError
-  } = useTrainerScheduleStore();
+  // Days of week
+  const daysOfWeek = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+  const daysOfWeekFull = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
 
-  // Fetch schedule on component mount
+  // Get Monday of the week
+  function getWeekStart(date: Date): Date {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.setDate(diff));
+  }
+
+  // Load schedule data
   useEffect(() => {
-    fetchSchedule();
-  }, [fetchSchedule]);
+    loadSchedule();
+  }, []);
 
-  const daysOfWeek = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-  
-  // Define time slots with actual times (every hour from 07:00 to 17:00)
-  const timeSlots = [
-    { id: 1, label: '07:00' },
-    { id: 2, label: '08:00' },
-    { id: 3, label: '09:00' },
-    { id: 4, label: '10:00' },
-    { id: 5, label: '11:00' },
-    { id: 6, label: '12:00' },
-    { id: 7, label: '13:00' },
-    { id: 8, label: '14:00' },
-    { id: 9, label: '15:00' },
-    { id: 10, label: '16:00' },
-    { id: 11, label: '17:00' }
-  ];
+  const loadSchedule = async () => {
+    try {
+      setLoading(true);
+      const data = await getTrainerSchedule();
+      setSchedule(data);
+    } catch (error) {
+      // Fallback to mock data if API fails
+      const mock = getAllTrainerSchedules();
+      setSchedule(mock);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Navigate weeks
+  const goToPreviousWeek = () => {
+    const newDate = new Date(currentWeekStart);
+    newDate.setDate(newDate.getDate() - 7);
+    setCurrentWeekStart(newDate);
+  };
+
+  const goToNextWeek = () => {
+    const newDate = new Date(currentWeekStart);
+    newDate.setDate(newDate.getDate() + 7);
+    setCurrentWeekStart(newDate);
+  };
+
+  const goToToday = () => {
+    setCurrentWeekStart(getWeekStart(new Date()));
+  };
+
+  // Get dates for the current week
+  const getWeekDates = (): Date[] => {
+    const dates: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(currentWeekStart);
+      date.setDate(date.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
+  };
+
+  const weekDates = getWeekDates();
+  // Get classes for a specific date
+  const getClassesForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    
+    let filtered = schedule.filter(s => s.date === dateStr);
+    
+    if (!selectedClasses.includes('ALL')) {
+      filtered = filtered.filter(s => selectedClasses.includes(s.courseCode));
+    }
+    
+    return filtered;
+  };
+
+  // Format time from HH:mm:ss to HH:mm
+  const formatTime = (time: string): string => {
+    return time.substring(0, 5);
+  };
+
+  // Check if date is today
+  const isToday = (date: Date): boolean => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
 
   // Get unique course codes for filter
   const uniqueCourseCodes = Array.from(new Set(schedule.map(s => s.courseCode)));
-
-  // Calculate week dates based on selected date
-  const getWeekDates = (date: Date) => {
-    const current = new Date(date);
-    const dayOfWeek = current.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    const startOfWeek = new Date(current);
-    startOfWeek.setDate(current.getDate() - dayOfWeek); // Go to Sunday
-    
-    const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      const weekDate = new Date(startOfWeek);
-      weekDate.setDate(startOfWeek.getDate() + i);
-      weekDates.push(weekDate);
-    }
-    return weekDates;
-  };
-
-  const weekDates = getWeekDates(selectedDate);
-
-  // Format date as DD/MM
-  const formatDate = (date: Date) => {
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    return `${day}/${month}`;
-  };
-
-  // Get classes for a specific date
-  const getClassesForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
-    
-    let filteredSchedule = schedule.filter(s => {
-      // Compare dates
-      return s.date === dateStr;
-    });
-    
-    if (!selectedClasses.includes('ALL')) {
-      filteredSchedule = filteredSchedule.filter(s => selectedClasses.includes(s.courseCode));
-    }
-    
-    return filteredSchedule;
-  };
-
-  // Navigate to previous/next week
-  const navigateWeek = (direction: 'prev' | 'next') => {
-    const newDate = new Date(selectedDate);
-    newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
-    setSelectedDate(newDate);
-  };
-
-
 
   return (
     <div className="p-8">
@@ -102,105 +109,64 @@ const ScheduleSection: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Lịch Giảng Dạy</h1>
-              <p className="text-sm text-gray-600 mt-1">Xem lịch giảng dạy của bạn</p>
+              <p className="text-sm text-gray-600">Quản lý lịch giảng dạy của bạn</p>
             </div>
-          </div>
-          <div className="text-sm text-blue-600 bg-blue-50 px-4 py-2 rounded-lg">
-            📅 Chỉ xem - Liên hệ HR để thay đổi lịch
           </div>
         </div>
       </div>
 
-      {/* Error Display */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="text-red-600">⚠️</div>
-              <span className="text-red-800">{error}</span>
-            </div>
-            <button 
-              onClick={clearError}
-              className="text-red-600 hover:text-red-800"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Loading State */}
-      {loading && (
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <div className="flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-            <span className="ml-2 text-gray-600">Đang tải lịch học...</span>
-          </div>
-        </div>
-      )}
-
       {/* Week Navigation & Class Filter */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <div className="flex items-center gap-4">
-          {/* Week Navigation */}
-          <div className="flex-1">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Tuần</label>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => navigateWeek('prev')}
-                className="px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium"
-              >
-                ← Tuần trước
-              </button>
-              <div className="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-center">
-                <span className="font-semibold">
-                  {formatDate(weekDates[0])} - {formatDate(weekDates[6])}
-                </span>
-              </div>
-              <button
-                onClick={() => navigateWeek('next')}
-                className="px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition font-medium"
-              >
-                Tuần sau →
-              </button>
-              <button
-                onClick={() => setSelectedDate(new Date())}
-                className="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition font-medium"
-              >
-                Hôm nay
-              </button>
-            </div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={goToPreviousWeek}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition font-medium"
+            >
+              ← Tuần trước
+            </button>
+            <button
+              onClick={goToToday}
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition font-medium"
+            >
+              Hôm nay
+            </button>
+            <button
+              onClick={goToNextWeek}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition font-medium"
+            >
+              Tuần sau →
+            </button>
           </div>
           
-          {/* Class Filter */}
+          <div className="text-lg font-semibold text-gray-900">
+            {weekDates[0].toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })} - {weekDates[6].toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">Khóa học</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Lọc theo khóa học</label>
             <select
               multiple
               value={selectedClasses}
               onChange={(e) => {
                 const selected = Array.from(e.target.selectedOptions, option => option.value);
-                // If "ALL" is selected, only keep "ALL"
                 if (selected.includes('ALL') && !selectedClasses.includes('ALL')) {
                   setSelectedClasses(['ALL']);
-                } 
-                // If other options are selected while "ALL" is active, remove "ALL"
-                else if (selected.length > 1 && selectedClasses.includes('ALL')) {
+                } else if (selected.length > 1 && selectedClasses.includes('ALL')) {
                   setSelectedClasses(selected.filter(s => s !== 'ALL'));
-                }
-                // If nothing selected, default to "ALL"
-                else if (selected.length === 0) {
+                } else if (selected.length === 0) {
                   setSelectedClasses(['ALL']);
-                }
-                else {
+                } else {
                   setSelectedClasses(selected);
                 }
               }}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
             >
               <option value="ALL">Tất cả khóa học</option>
-              {uniqueCourseCodes.map(courseCode => (
-                <option key={courseCode} value={courseCode}>{courseCode}</option>
+              {uniqueCourseCodes.map(code => (
+                <option key={code} value={code}>{code}</option>
               ))}
             </select>
             <p className="text-xs text-gray-500 mt-1">
@@ -212,88 +178,84 @@ const ScheduleSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Schedule Grid - Vertical Time Slots */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <div className="min-w-full">
-            {/* Header Row - Days of Week with Dates */}
-            <div className="grid gap-0" style={{ gridTemplateColumns: '120px repeat(7, 1fr)' }}>
-              <div className="bg-blue-500 text-white p-4 font-semibold border-r border-blue-400">
-                Thời gian
-              </div>
-              {weekDates.map((date, index) => {
-                const isToday = date.toDateString() === new Date().toDateString();
-                return (
-                  <div 
-                    key={index} 
-                    className={`${isToday ? 'bg-blue-600' : 'bg-blue-500'} text-white p-4 font-semibold text-center border-r border-blue-400`}
-                  >
-                    <div className="text-sm">{daysOfWeek[index]}</div>
-                    <div className={`text-xs mt-1 ${isToday ? 'font-bold' : 'opacity-90'}`}>
-                      {formatDate(date)}
-                    </div>
-                    {isToday && (
-                      <div className="text-xs mt-1 bg-white text-blue-600 rounded px-2 py-0.5 inline-block">
-                        Hôm nay
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+      {/* Loading State */}
+      {loading && (
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <div className="text-gray-600">Đang tải lịch học...</div>
+        </div>
+      )}
 
-            {/* Time Slots - Vertical Layout */}
-            {timeSlots.map((timeSlot) => (
-              <div 
-                key={timeSlot.id}
-                className="grid gap-0 border-b border-gray-200"
-                style={{ gridTemplateColumns: '120px repeat(7, 1fr)' }}
-              >
-                {/* Time Label */}
-                <div className="bg-gray-50 p-4 border-r border-gray-200 flex flex-col justify-center">
-                  <div className="text-sm font-bold text-gray-800">{timeSlot.label}</div>
-                </div>
-
-                {/* Day Cells */}
-                {weekDates.map((date, dayIndex) => {
-                  const classesForDate = getClassesForDate(date);
-                  const classesForSlot = classesForDate.filter(c => c.slot === timeSlot.id);
-                  const isToday = date.toDateString() === new Date().toDateString();
-                  
+      {/* Schedule Grid */}
+      {!loading && (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <div className="min-w-[1200px]">
+              {/* Header Row with Dates */}
+              <div className="grid grid-cols-8 bg-blue-500 text-white">
+                <div className="p-4 border-r border-blue-400 font-semibold">Thời gian</div>
+                {weekDates.map((date, index) => {
+                  const today = isToday(date);
                   return (
-                    <div
-                      key={dayIndex}
-                      className={`relative min-h-[100px] border-r border-gray-200 p-2 ${isToday ? 'bg-blue-50' : 'bg-white'} hover:bg-gray-50 transition`}
+                    <div 
+                      key={index} 
+                      className={`p-4 border-r border-blue-400 font-semibold text-center ${today ? 'bg-blue-600' : ''}`}
                     >
-                      {/* Classes for this slot and date */}
-                      {classesForSlot.map((classItem, index) => (
-                        <div
-                          key={index}
-                          onClick={() => setViewingClass(classItem)}
-                          className="bg-cyan-400 rounded-lg p-2 shadow-md hover:shadow-lg hover:bg-cyan-500 transition cursor-pointer mb-1 text-center"
-                        >
-                          <div className="text-xs font-bold text-gray-900">{classItem.courseCode}</div>
-                          {classItem.classCode && (
-                            <div className="text-xs text-gray-800 mt-0.5">
-                              {classItem.classCode}
-                            </div>
-                          )}
-                          <div className="text-xs text-gray-800 mt-0.5">
-                            Buổi {classItem.sessionNumber}
-                          </div>
-                          <div className="text-xs text-gray-700 mt-0.5">
-                            {classItem.location}
-                          </div>
-                        </div>
-                      ))}
+                      <div>{daysOfWeek[index]}</div>
+                      <div className="text-sm font-normal mt-1">
+                        {date.getDate()}/{date.getMonth() + 1}
+                      </div>
                     </div>
                   );
                 })}
               </div>
-            ))}
+
+              {/* Day Columns with Sessions */}
+              <div className="grid grid-cols-8 min-h-[400px]">
+                {/* Time Column */}
+                <div className="border-r border-gray-200 bg-gray-50">
+                  <div className="p-3 text-sm text-gray-600 text-center">
+                    Các buổi học trong tuần
+                  </div>
+                </div>
+
+                {/* Day Columns */}
+                {weekDates.map((date, dayIndex) => {
+                  const classes = getClassesForDate(date);
+                  const today = isToday(date);
+                  
+                  return (
+                    <div 
+                      key={dayIndex} 
+                      className={`border-r border-gray-200 p-2 space-y-2 ${today ? 'bg-blue-50' : ''}`}
+                    >
+                      {classes.length === 0 ? (
+                        <div className="text-center text-gray-400 text-sm py-4">
+                          Không có lịch
+                        </div>
+                      ) : (
+                        classes.map((classItem, index) => (
+                          <div
+                            key={index}
+                            onClick={() => setViewingClass(classItem)}
+                            className="bg-cyan-400 rounded-lg p-3 shadow-md hover:shadow-lg hover:bg-cyan-500 transition cursor-pointer"
+                          >
+                            <div className="text-xs font-bold text-gray-900">{classItem.courseCode}</div>
+                            <div className="text-xs text-gray-800 mt-1">{classItem.classCode}</div>
+                            <div className="text-xs text-gray-700 mt-1">
+                              {formatTime(classItem.timeStart)} - {formatTime(classItem.timeEnd)}
+                            </div>
+                            <div className="text-xs text-gray-700">{classItem.location}</div>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Legend */}
       <div className="mt-6 bg-white rounded-lg shadow p-4">
@@ -301,6 +263,10 @@ const ScheduleSection: React.FC = () => {
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-cyan-400 rounded"></div>
             <span className="text-sm text-gray-700">Lớp học đã lên lịch</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-50 border-2 border-blue-500 rounded"></div>
+            <span className="text-sm text-gray-700">Hôm nay</span>
           </div>
         </div>
       </div>
@@ -316,12 +282,24 @@ const ScheduleSection: React.FC = () => {
   );
 };
 
-// Class Detail Modal Component (READ-ONLY)
+// Class Detail Modal Component
 const ClassDetailModal: React.FC<{
   classItem: TrainerScheduleDto;
   onClose: () => void;
 }> = ({ classItem, onClose }) => {
-  const daysOfWeek = ['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+  const formatTime = (time: string): string => {
+    return time.substring(0, 5);
+  };
+
+  const formatDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('vi-VN', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
   
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -332,9 +310,6 @@ const ClassDetailModal: React.FC<{
             <div className="text-white">
               <h2 className="text-2xl font-bold">{classItem.courseCode}</h2>
               <p className="text-cyan-100 mt-1">{classItem.courseName}</p>
-              {classItem.classCode && (
-                <p className="text-cyan-200 mt-1 text-sm">Lớp: {classItem.classCode}</p>
-              )}
             </div>
             <button 
               onClick={onClose}
@@ -349,64 +324,47 @@ const ClassDetailModal: React.FC<{
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gray-50 rounded-lg p-4">
-              <div className="text-sm text-gray-600 mb-1">Phiên học</div>
+              <div className="text-sm text-gray-600 mb-1">Mã lớp</div>
+              <div className="font-semibold text-gray-900">{classItem.classCode}</div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Phòng học</div>
+              <div className="font-semibold text-gray-900">{classItem.location}</div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Ngày học</div>
+              <div className="font-semibold text-gray-900">{formatDate(classItem.date)}</div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="text-sm text-gray-600 mb-1">Buổi học số</div>
               <div className="font-semibold text-gray-900">
                 Buổi {classItem.sessionNumber}
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="text-sm text-gray-600 mb-1">Địa điểm</div>
-              <div className="font-semibold text-gray-900">{classItem.location}</div>
-              {classItem.locationType === 'ONLINE' && classItem.meetingLink && (
-                <a 
-                  href={classItem.meetingLink} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:underline"
-                >
-                  Link meeting
-                </a>
-              )}
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="text-sm text-gray-600 mb-1">Ngày</div>
-              <div className="font-semibold text-gray-900">
-                {daysOfWeek[classItem.dayOfWeek]} - {classItem.date}
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="text-sm text-gray-600 mb-1">Slot</div>
-              <div className="font-semibold text-gray-900">
-                Slot {classItem.slot}
               </div>
             </div>
 
             <div className="bg-blue-50 rounded-lg p-4 col-span-2">
               <div className="text-sm text-blue-600 mb-1">Thời gian</div>
               <div className="font-semibold text-blue-900 text-lg">
-                {classItem.timeStart} - {classItem.timeEnd}
-              </div>
-              <div className="text-xs text-blue-600 mt-1">
-                Slot {classItem.slot}
+                {formatTime(classItem.timeStart)} - {formatTime(classItem.timeEnd)}
               </div>
             </div>
 
-            <div className="bg-green-50 rounded-lg p-4">
-              <div className="text-sm text-green-600 mb-1">Sức chứa</div>
-              <div className="font-semibold text-green-900">
-                {classItem.currentEnrolled}/{classItem.maxCapacity}
+            {classItem.locationType === 'ONLINE' && classItem.meetingLink && (
+              <div className="bg-green-50 rounded-lg p-4 col-span-2">
+                <div className="text-sm text-green-600 mb-1">Link học online</div>
+                <a 
+                  href={classItem.meetingLink} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline break-all"
+                >
+                  {classItem.meetingLink}
+                </a>
               </div>
-            </div>
-
-            <div className="bg-purple-50 rounded-lg p-4">
-              <div className="text-sm text-purple-600 mb-1">Trạng thái</div>
-              <div className="font-semibold text-purple-900">
-                {getStatusText(classItem.status)}
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Additional Info */}
@@ -421,20 +379,34 @@ const ClassDetailModal: React.FC<{
                 <span className="text-gray-600">Tên khóa học:</span>
                 <span className="font-medium text-gray-900">{classItem.courseName}</span>
               </div>
-              {classItem.classCode && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Mã lớp:</span>
-                  <span className="font-medium text-gray-900">{classItem.classCode}</span>
-                </div>
-              )}
               <div className="flex justify-between">
-                <span className="text-gray-600">Phiên số:</span>
-                <span className="font-medium text-gray-900">{classItem.sessionNumber}</span>
+                <span className="text-gray-600">Giảng viên:</span>
+                <span className="font-medium text-gray-900">{classItem.trainerName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Sĩ số:</span>
+                <span className="font-medium text-gray-900">
+                  {classItem.currentEnrolled} / {classItem.maxCapacity}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Trạng thái:</span>
+                <span className={`font-medium ${
+                  classItem.status === 'COMPLETED' ? 'text-green-600' :
+                  classItem.status === 'ONGOING' ? 'text-blue-600' :
+                  classItem.status === 'CANCELLED' ? 'text-red-600' :
+                  'text-gray-600'
+                }`}>
+                  {classItem.status === 'SCHEDULED' ? 'Đã lên lịch' :
+                   classItem.status === 'ONGOING' ? 'Đang diễn ra' :
+                   classItem.status === 'COMPLETED' ? 'Đã hoàn thành' :
+                   'Đã hủy'}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Actions - READ ONLY */}
+          {/* Actions */}
           <div className="flex gap-3 pt-4">
             <button
               onClick={onClose}
@@ -442,25 +414,20 @@ const ClassDetailModal: React.FC<{
             >
               Đóng
             </button>
-            <div className="flex-1 px-6 py-3 bg-blue-50 text-blue-700 rounded-lg text-center font-medium">
-              📞 Liên hệ HR để thay đổi
-            </div>
+            <button
+              onClick={() => {
+                // Navigate to attendance page with session ID
+                window.location.href = `/trainer/attendance?sessionId=${classItem.sessionId}`;
+              }}
+              className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition font-medium"
+            >
+              Điểm danh
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-// Helper function to get status text in Vietnamese
-const getStatusText = (status: string) => {
-  switch (status) {
-    case 'SCHEDULED': return 'Đã lên lịch';
-    case 'ONGOING': return 'Đang diễn ra';
-    case 'COMPLETED': return 'Đã hoàn thành';
-    case 'CANCELLED': return 'Đã hủy';
-    default: return status;
-  }
 };
 
 export default ScheduleSection;

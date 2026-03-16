@@ -111,4 +111,9 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         @Param("attended") Boolean attended,
         @Param("notes") String notes
     );
+
+    /**
+     * Find attendance by enrollment id
+     */
+    Optional<Attendance> findByEnrollmentId(Integer enrollmentId);
 }

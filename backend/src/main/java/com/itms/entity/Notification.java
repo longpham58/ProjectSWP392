@@ -1,5 +1,6 @@
 package com.itms.entity;
 
+
 import com.itms.common.NotificationPriority;
 import com.itms.common.NotificationType;
 import com.itms.common.ReferenceType;
@@ -41,33 +42,19 @@ public class Notification {
     @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String message;
 
-    @Column(name = "detail_content", columnDefinition = "NVARCHAR(MAX)")
-    private String detailContent;
-
     @Column(name = "reference_id")
     private Integer referenceId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "reference_type", length = 50)
+    @Column(name = "reference_type")
     private ReferenceType referenceType;
-    
-    // Recipient type: STUDENTS, HR, etc.
-    @Column(name = "recipient_type", length = 50)
-    private String recipientType;
-    
-    // Class codes (comma-separated or JSON)
-    @Column(name = "class_codes", columnDefinition = "NVARCHAR(MAX)")
-    private String classCodes;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
     private NotificationPriority priority = NotificationPriority.NORMAL;
 
     @Column(name = "is_read", nullable = false)
     private Boolean isRead = false;
-
-    @Column(name = "is_draft", nullable = false)
-    private Boolean isDraft = false;
 
     @Column(name = "read_at")
     private LocalDateTime readAt;
@@ -77,10 +64,26 @@ public class Notification {
 
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
+
+    @Column(name = "detail_content")
+    private String detailContent;
     
-    @Column(name = "created_at")
+    // To track if this is a sent item for the sender
+    @Column(name = "is_sent_copy")
+    private Boolean isSentCopy = false;
+
+    @Column(name = "recipient_type", length = 50)
+    private String recipientType;
+
+    @Column(name = "class_codes")
+    private String classCodes;
+
+    @Column(name = "is_draft", nullable = false)
+    private Boolean isDraft = false;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-    
+
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
@@ -92,8 +95,11 @@ public class Notification {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
         }
+        if (isDraft == null) {
+            isDraft = false;
+        }
     }
-    
+
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();

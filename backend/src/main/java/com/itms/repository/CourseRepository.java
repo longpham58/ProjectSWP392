@@ -12,26 +12,19 @@ import java.util.Optional;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Integer> {
 
+    Optional<Course> findByCode(String code);
+
+    Optional<Course> findByCodeIgnoreCase(String code);
+
+    /** Maximum course id (for identity reseed after delete). Returns null if no courses. */
+    @Query("SELECT MAX(c.id) FROM Course c")
+    Integer findMaxId();
+
     /**
-     * Find all courses that a user is enrolled in (through session enrollments)
+     * Find all courses that a user is enrolled in
      */
-    @Query("SELECT DISTINCT c FROM Course c JOIN Session s ON s.course = c JOIN Enrollment e ON e.session = s WHERE e.user.id = :userId")
+    @Query("SELECT DISTINCT c FROM Course c JOIN Enrollment e ON e.course = c WHERE e.user.id = :userId")
     List<Course> findCoursesByUserId(@Param("userId") Integer userId);
 
-    /**
-     * Find all courses that a user is a member of through ClassMember -> ClassRoom
-     */
-    @Query("SELECT DISTINCT c FROM Course c JOIN ClassRoom cr ON cr.course = c JOIN ClassMember cm ON cm.classRoom = cr WHERE cm.user.id = :userId AND cm.status = 'ACTIVE'")
-    List<Course> findCoursesByUserIdThroughClassMember(@Param("userId") Integer userId);
-
-    /**
-     * Find courses by trainer ID using the trainer relationship
-     */
-    @Query("SELECT c FROM Course c WHERE c.trainer.id = :trainerId")
-    List<Course> findByTrainerId(@Param("trainerId") Integer trainerId);
-
-    /**
-     * Find course by code
-     */
-    Optional<Course> findByCode(String code);
+    List<Course> findByTrainerId(Integer trainerId);
 }

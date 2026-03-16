@@ -62,6 +62,6 @@ public class CourseSchedule {
     @JoinColumn(name = "created_by")
     private User createdBy;
 
-    @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL)
+    @Transient
     private List<Session> sessions;
 }

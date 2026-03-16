@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../stores/auth.store';
-import NotificationSection from './components/NotificationSectionNew';
+import NotificationSection from './components/NotificationSection';
 import ScheduleSection from './components/ScheduleSection';
 import AttendanceSection from './components/AttendanceSection';
 import FeedbackSection from './components/FeedbackSection';
@@ -11,25 +9,14 @@ type ActiveSection = 'notification' | 'schedule' | 'attendance' | 'feedback' | '
 
 const TrainerDashboard: React.FC = () => {
   const [activeSection, setActiveSection] = useState<ActiveSection>('notification');
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const navigate = useNavigate();
-  const { logout, user } = useAuthStore();
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      // Call logout API
-      await logout();
-      
-      // Redirect to login page
-      navigate('/login', { replace: true });
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Still redirect even if API call fails
-      navigate('/login', { replace: true });
-    } finally {
-      setIsLoggingOut(false);
-    }
+  const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem('mockUser');
+    localStorage.removeItem('rememberMe');
+    
+    // Redirect to home page
+    window.location.href = '/';
   };
 
   const renderSection = () => {
@@ -123,22 +110,10 @@ const TrainerDashboard: React.FC = () => {
         {/* Logout Button */}
         <button
           onClick={handleLogout}
-          disabled={isLoggingOut}
-          className={`w-24 py-3 rounded-lg text-sm font-medium transition ${
-            isLoggingOut
-              ? 'bg-red-300 text-white cursor-not-allowed'
-              : 'bg-red-500 text-white hover:bg-red-600'
-          }`}
-          title={isLoggingOut ? 'Logging out...' : 'Logout'}
+          className="w-24 py-3 rounded-lg text-sm font-medium transition bg-red-500 text-white hover:bg-red-600"
+          title="Logout"
         >
-          {isLoggingOut ? (
-            <div className="flex items-center justify-center gap-1">
-              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>...</span>
-            </div>
-          ) : (
-            'Logout'
-          )}
+          Logout
         </button>
       </div>
 

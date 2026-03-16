@@ -27,8 +27,8 @@ spring:
           writetimeout: 5000
   datasource:
     url: jdbc:sqlserver://localhost:1433;databaseName=ITMS;encrypt=true;trustServerCertificate=true
-    username: sa
-    password: Tin10112003
+    username: appuser
+    password: App@123456
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
 
   jpa:

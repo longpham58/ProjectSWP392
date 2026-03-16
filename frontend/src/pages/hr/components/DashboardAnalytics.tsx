@@ -3,8 +3,12 @@ import { useDashboardStats } from '@/hooks/useDashboardStats';
 import { StatCard } from '@/components/ui';
 import '@/assets/styles/ui-components.css';
 
-export const DashboardAnalytics: React.FC = () => {
-  const { stats: s, loading } = useDashboardStats();
+type DashboardAnalyticsProps = {
+  refreshToken?: number;
+};
+
+export const DashboardAnalytics: React.FC<DashboardAnalyticsProps> = ({ refreshToken = 0 }) => {
+  const { stats: s, loading } = useDashboardStats(refreshToken);
 
   if (loading) {
     return (
@@ -15,6 +19,17 @@ export const DashboardAnalytics: React.FC = () => {
             <div className="hr-stat-label">Loading...</div>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (!s) {
+    return (
+      <div className="hr-stats">
+        <div className="hr-stat-card">
+          <div className="hr-stat-value">--</div>
+          <div className="hr-stat-label">Không tải được thống kê</div>
+        </div>
       </div>
     );
   }

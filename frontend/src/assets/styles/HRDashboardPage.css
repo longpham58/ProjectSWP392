@@ -1,13 +1,15 @@
 .hr-dashboard-wrap {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   background-color: #f5f7fa;
+  overflow: hidden;
 }
 
 .hr-dashboard {
   display: flex;
   flex: 1;
+  min-height: 0;
 }
 
 .hr-sidebar {
@@ -59,6 +61,7 @@
   padding: 24px;
   overflow-y: auto;
   min-width: 0;
+  min-height: 0;
 }
 
 .hr-sidebar-footer {
@@ -253,6 +256,28 @@
 
 .hr-table-wrap {
   overflow-x: auto;
+}
+
+.hr-sidebar::-webkit-scrollbar,
+.hr-main::-webkit-scrollbar {
+  width: 10px;
+}
+
+.hr-sidebar::-webkit-scrollbar-track,
+.hr-main::-webkit-scrollbar-track {
+  background: #eef2f7;
+  border-radius: 999px;
+}
+
+.hr-sidebar::-webkit-scrollbar-thumb,
+.hr-main::-webkit-scrollbar-thumb {
+  background: #c2ccda;
+  border-radius: 999px;
+}
+
+.hr-sidebar::-webkit-scrollbar-thumb:hover,
+.hr-main::-webkit-scrollbar-thumb:hover {
+  background: #9aa8bd;
 }
 
 .hr-table {

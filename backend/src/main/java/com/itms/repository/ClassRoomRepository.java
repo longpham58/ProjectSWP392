@@ -11,42 +11,21 @@ import java.util.Optional;
 
 @Repository
 public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
-
+    
+    /**
+     * Find classroom by class code (with course eagerly loaded)
+     */
+    @Query("SELECT c FROM ClassRoom c JOIN FETCH c.course WHERE c.classCode = :classCode")
+    Optional<ClassRoom> findByClassCodeWithCourse(@Param("classCode") String classCode);
+    
     /**
      * Find classroom by class code
      */
     Optional<ClassRoom> findByClassCode(String classCode);
-    
-    /**
-     * Find all classrooms for a specific course
-     */
-    List<ClassRoom> findByCourseId(Integer courseId);
-    
-    /**
-     * Find all classrooms assigned to a specific trainer
-     */
-    List<ClassRoom> findByTrainerId(Integer trainerId);
-    
-    /**
-     * Find all active classrooms
-     */
-    @Query("SELECT c FROM ClassRoom c WHERE c.status = 'ACTIVE'")
-    List<ClassRoom> findAllActive();
 
     /**
-     * Find active classes for a course
+     * Find all classrooms for a trainer (for attendance). Returns empty if trainer not mapped on ClassRoom.
      */
-    @Query("SELECT cr FROM ClassRoom cr WHERE cr.course.id = :courseId AND cr.status = 'ACTIVE'")
-    List<ClassRoom> findActiveByCourseId(@Param("courseId") Integer courseId);
-
-    /**
-     * Find classes by status
-     */
-    List<ClassRoom> findByStatus(String status);
-
-    /**
-     * Find classes that a user is a member of
-     */
-    @Query("SELECT cr FROM ClassRoom cr JOIN ClassMember cm ON cm.classRoom = cr WHERE cm.user.id = :userId AND cm.status = 'ACTIVE'")
-    List<ClassRoom> findByUserId(@Param("userId") Integer userId);
+    @Query("SELECT c FROM ClassRoom c LEFT JOIN FETCH c.course WHERE c.trainer.id = :trainerId")
+    List<ClassRoom> findByTrainerIdWithCourse(@Param("trainerId") Integer trainerId);
 }

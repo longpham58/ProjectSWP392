@@ -3,7 +3,8 @@ package com.itms.entity;
 import com.itms.common.LocationType;
 import com.itms.common.SessionStatus;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,9 +15,6 @@ import java.util.List;
 @Getter
 @Setter
 @Table(name = "Session")
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class Session {
 
     @Id
@@ -31,29 +29,30 @@ public class Session {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_id")
+    @Transient
     private ClassRoom classRoom;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "schedule_id")
+    @Transient
     private CourseSchedule schedule;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trainer_id")
+    @Transient
     private User trainer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
+    @Transient
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by")
+    @Transient
     private User updatedBy;
 
     /* =========================
        Session Info
     ========================= */
+
+    @Column(name = "session_name", length = 255)
+    private String sessionName;
+
+    @Column(name = "session_number")
+    private Integer sessionNumber;
 
     @Column(nullable = false)
     private LocalDate date;
@@ -68,17 +67,17 @@ public class Session {
        Location
     ========================= */
 
-    @Column(length = 255)
     private String location;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "location_type", length = 20)
+    @Column(name = "location_type")
     private LocationType locationType;
 
-    @Column(name = "meeting_link", length = 500)
+    @Column(name = "meeting_link")
     private String meetingLink;
 
-    @Column(name = "meeting_password", length = 100)
+    // Keep this field in domain model but do not map to DB to avoid schema drift issues.
+    @Transient
     private String meetingPassword;
 
     /* =========================
@@ -96,10 +95,9 @@ public class Session {
     ========================= */
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private SessionStatus status = SessionStatus.SCHEDULED;
+    private SessionStatus status;
 
-    @Column(name = "cancellation_reason", length = 500)
+    @Column(name = "cancellation_reason")
     private String cancellationReason;
 
     @Column(columnDefinition = "NVARCHAR(MAX)")
@@ -118,6 +116,27 @@ public class Session {
     @OneToMany(mappedBy = "session")
     private List<Feedback> feedbacks;
 
-    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL)
-    private List<Enrollment> enrollments;
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        if (this.locationType == null) {
+            this.locationType = LocationType.OFFLINE;
+        }
+        if (this.status == null) {
+            this.status = SessionStatus.SCHEDULED;
+        }
+        if (this.maxCapacity == null || this.maxCapacity <= 0) {
+            this.maxCapacity = 100;
+        }
+        if (this.currentEnrolled == null || this.currentEnrolled < 0) {
+            this.currentEnrolled = 0;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

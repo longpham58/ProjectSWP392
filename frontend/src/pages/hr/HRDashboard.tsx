@@ -1,27 +1,25 @@
-import React, { useState } from 'react';
-import { Header, HrBrand } from '../../components/u';
+import React, { useEffect, useState } from 'react';
+import { Header, HrBrand } from '../../components/Header';
 import { CourseManagePage } from './component/CourseManage';
+import { ClassManagePage } from './component/ClassManage';
 import { SchedulePage } from './component/Schedule';
 import { NotificationPage } from './component/Notification';
 import { UserAccountManagePage } from './component/UserAccountManage';
-import { Footer } from '@/components/Footer';
+import { Footer } from '../../components/Footer';
 import { DashboardAnalytics } from './components/DashboardAnalytics';
+import courseApi from '../../api/course.api.wrapper';
+import type { CourseDto } from '../../api/course.api';
 import '@/assets/styles/HRDashboardPage.css';
 
-type CurrentPageId = 'dashboard' | 'course' | 'schedule' | 'notification' | 'useraccount';
+type CurrentPageId = 'dashboard' | 'course' | 'classroom' | 'schedule' | 'notification' | 'useraccount';
 
 const SIDEBAR_ITEMS: ReadonlyArray<{ id: CurrentPageId; label: string }> = [
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'course', label: 'Course Management' },
+  { id: 'classroom', label: 'Class Management' },
   { id: 'schedule', label: 'Schedule Management' },
   { id: 'notification', label: 'Notification Management' },
   { id: 'useraccount', label: 'User Account Management' },
-];
-
-const MOCK_RECENT_COURSES = [
-  { id: 1, name: 'Python cơ bản', trainer: 'Nguyễn Văn A', startDate: '01/03/2026', endDate: '30/03/2026' },
-  { id: 2, name: 'React & TypeScript', trainer: 'Trần Thị B', startDate: '05/03/2026', endDate: '05/04/2026' },
-  { id: 3, name: 'Node.js Backend', trainer: 'Lê Văn C', startDate: '10/03/2026', endDate: '10/04/2026' },
 ];
 
 interface HRDashboardPageProps {
@@ -31,6 +29,26 @@ interface HRDashboardPageProps {
 
 export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout }) => {
   const [currentPage, setCurrentPage] = useState<CurrentPageId>('dashboard');
+  const [recentCourses, setRecentCourses] = useState<CourseDto[]>([]);
+  const [courseRefreshToken, setCourseRefreshToken] = useState(0);
+  const [hrRefreshToken, setHrRefreshToken] = useState(0);
+
+  const notifyHrDataChanged = () => {
+    setHrRefreshToken((prev) => prev + 1);
+  };
+
+  useEffect(() => {
+    if (currentPage !== 'dashboard') return;
+    courseApi.getMyCourses()
+      .then((res) => {
+        if (res.success) {
+          setRecentCourses(res.data.slice(0, 5));
+        }
+      })
+      .catch(() => {
+        setRecentCourses([]);
+      });
+  }, [currentPage, courseRefreshToken, hrRefreshToken]);
 
   return (
     <div className="hr-dashboard-wrap">
@@ -69,7 +87,7 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
                 </div>
               </div>
 
-              <DashboardAnalytics />
+              <DashboardAnalytics refreshToken={hrRefreshToken} />
 
               <div className="hr-recent-section">
                 <h2 className="hr-section-title">Khóa học gần đây</h2>
@@ -78,32 +96,45 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Name</th>
+                        <th>Mã khoá học</th>
+                        <th>Tên khoá học</th>
                         <th>Trainer</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
+                        <th>Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {MOCK_RECENT_COURSES.map((row) => (
+                      {recentCourses.map((row) => (
                         <tr key={row.id}>
                           <td>{row.id}</td>
-                          <td>{row.name}</td>
-                          <td>{row.trainer}</td>
-                          <td>{row.startDate}</td>
-                          <td>{row.endDate}</td>
+                          <td>{row.code || `ITMS-${String(row.id).padStart(3, '0')}`}</td>
+                          <td>{(row.title || row.name || '').trim() || 'Chưa có tên khoá học'}</td>
+                          <td>{row.trainerName || '-'}</td>
+                          <td>{row.status || '-'}</td>
                         </tr>
                       ))}
+                      {recentCourses.length === 0 && (
+                        <tr>
+                          <td colSpan={5}>Không có dữ liệu.</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
               </div>
             </div>
           )}
-          {currentPage === 'course' && <CourseManagePage />}
-          {currentPage === 'schedule' && <SchedulePage />}
-          {currentPage === 'notification' && <NotificationPage />}
-          {currentPage === 'useraccount' && <UserAccountManagePage />}
+          {currentPage === 'course' && (
+            <CourseManagePage
+              onCoursesChanged={() => {
+                setCourseRefreshToken((prev) => prev + 1);
+                notifyHrDataChanged();
+              }}
+            />
+          )}
+          {currentPage === 'classroom' && <ClassManagePage onClassesChanged={notifyHrDataChanged} />}
+          {currentPage === 'schedule' && <SchedulePage onSchedulesChanged={notifyHrDataChanged} />}
+          {currentPage === 'notification' && <NotificationPage onNotificationsChanged={notifyHrDataChanged} />}
+          {currentPage === 'useraccount' && <UserAccountManagePage refreshToken={hrRefreshToken} />}
         </main>
       </div>
       <Footer />

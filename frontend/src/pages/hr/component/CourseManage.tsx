@@ -1,10 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import '@/assets/styles/CourseManagePage.css';
-import courseApi from '../../../api/course.api.wrapper';
+import courseApi, { type HrTrainerOption } from '../../../api/course.api.wrapper';
 import type { CourseDto } from '../../../api/course.api';
-import { mockUsers } from '../../../mocks/mockAuthData';
 
-export const CourseManagePage: React.FC = () => {
+type CourseManagePageProps = {
+  onCoursesChanged?: () => void;
+};
+
+export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesChanged }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [searchSchedule, setSearchSchedule] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -12,33 +15,17 @@ export const CourseManagePage: React.FC = () => {
 
   const [courses, setCourses] = useState<CourseDto[]>([]);
   const [loading, setLoading] = useState(false);
+  const [trainers, setTrainers] = useState<HrTrainerOption[]>([]);
 
   const [formCode, setFormCode] = useState('');
   const [formTitle, setFormTitle] = useState('');
   const [formCategory, setFormCategory] = useState('Programming');
-  const [formSubjectCode, setFormSubjectCode] = useState('PYTHON-001');
   const [formDescription, setFormDescription] = useState('');
-  const [formStartDate, setFormStartDate] = useState('');
-  const [formEndDate, setFormEndDate] = useState('');
-  const [formStatus, setFormStatus] = useState('Draft');
+  const [formStatus, setFormStatus] = useState('DRAFT');
   const [formDepartment, setFormDepartment] = useState('IT Department');
-  const [formTrainerUsername, setFormTrainerUsername] = useState('trainer001');
+  const [formTrainerUsername, setFormTrainerUsername] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
-
-  const TRAINERS = useMemo(
-    () => mockUsers.filter((u) => (u.roles || []).includes('TRAINER')),
-    []
-  );
-
-  const SUBJECTS = useMemo(
-    () => [
-      { code: 'PYTHON-001', title: 'Python cơ bản', category: 'Programming' },
-      { code: 'JAVA-002', title: 'Java nâng cao', category: 'Programming' },
-      { code: 'WEB-003', title: 'Web Development', category: 'Web Development' },
-      { code: 'DATA-004', title: 'Data Science', category: 'Data Science' },
-    ],
-    []
-  );
+  const [formError, setFormError] = useState<string>('');
 
   const fetchCourses = async () => {
     try {
@@ -52,6 +39,15 @@ export const CourseManagePage: React.FC = () => {
 
   useEffect(() => {
     fetchCourses();
+    courseApi.getTrainers().then((list) => {
+      setTrainers(list);
+      if (!formTrainerUsername && list.length > 0) {
+        setFormTrainerUsername(list[0].username);
+      }
+    }).catch(() => {
+      setTrainers([]);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filtered = useMemo(() => {
@@ -75,16 +71,14 @@ export const CourseManagePage: React.FC = () => {
 
   const openCreateModal = () => {
     setEditingId(null);
+    setFormError('');
     setFormCode('');
     setFormTitle('');
     setFormCategory('Programming');
-    setFormSubjectCode('PYTHON-001');
     setFormDescription('');
-    setFormStartDate('');
-    setFormEndDate('');
-    setFormStatus('Draft');
+    setFormStatus('DRAFT');
     setFormDepartment('IT Department');
-    setFormTrainerUsername('trainer001');
+    setFormTrainerUsername(trainers[0]?.username || '');
     setModalOpen(true);
   };
 
@@ -149,10 +143,10 @@ export const CourseManagePage: React.FC = () => {
         <div className="course-filters-inline">
           <select aria-label="Trạng thái" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="">Tất cả trạng thái</option>
-            <option value="Draft">Draft</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Cancel">Cancel</option>
+            <option value="DRAFT">Draft</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+            <option value="ARCHIVED">Archived</option>
           </select>
           <input
             aria-label="Mã khoá học"
@@ -171,8 +165,6 @@ export const CourseManagePage: React.FC = () => {
               <th>Tên khoá học</th>
               <th>Phòng ban</th>
               <th>Giảng viên</th>
-              <th>Ngày bắt đầu</th>
-              <th>Ngày kết thúc</th>
               <th>Trạng thái</th>
               <th>Action</th>
             </tr>
@@ -184,9 +176,11 @@ export const CourseManagePage: React.FC = () => {
                 <td>{c.title || c.name}</td>
                 <td>{c.departmentName || '-'}</td>
                 <td>{c.trainerName || '-'}</td>
-                <td>{c.startDate || '-'}</td>
-                <td>{c.endDate || '-'}</td>
-                <td><span className={`course-status course-status-${(c.status || 'draft').toLowerCase()}`}>{c.status}</span></td>
+                <td>
+                  <span className={`course-status course-status-${(c.status || 'draft').toLowerCase()}`}>
+                    {c.status}
+                  </span>
+                </td>
                 <td>
                   <button
                     type="button"
@@ -198,11 +192,8 @@ export const CourseManagePage: React.FC = () => {
                       setFormCode(c.code || '');
                       setFormTitle(c.title || c.name || '');
                       setFormCategory(c.category || 'Programming');
-                      setFormSubjectCode(c.subjectCode || 'PYTHON-001');
                       setFormDescription(c.description || '');
-                      setFormStartDate(c.startDate || '');
-                      setFormEndDate(c.endDate || '');
-                      setFormStatus(c.status || 'Draft');
+                      setFormStatus(c.status || 'DRAFT');
                       setFormDepartment(c.departmentName || 'IT Department');
                       setFormTrainerUsername(c.trainerUsername || 'trainer001');
                     }}
@@ -216,8 +207,13 @@ export const CourseManagePage: React.FC = () => {
                     onClick={async () => {
                       const ok = window.confirm('Delete this course?');
                       if (!ok) return;
-                      await courseApi.deleteCourse(c.id);
-                      setCourses((prev) => prev.filter((x) => x.id !== c.id));
+                      try {
+                        await courseApi.deleteCourse(c.id);
+                        setCourses((prev) => prev.filter((x) => x.id !== c.id));
+                        onCoursesChanged?.();
+                      } catch (err: any) {
+                        setFormError(err?.response?.data?.message || 'Không thể xóa khoá học.');
+                      }
                     }}
                   >
                     🗑
@@ -247,84 +243,61 @@ export const CourseManagePage: React.FC = () => {
               className="course-modal-form"
               onSubmit={async (e) => {
                 e.preventDefault();
+                setFormError('');
                 if (!formTitle.trim()) return;
-                const trainer = TRAINERS.find((t) => t.username === formTrainerUsername);
-                if (editingId) {
-                  await courseApi.updateCourse(editingId, {
+                const trainer = trainers.find((t) => t.username === formTrainerUsername);
+                try {
+                  if (editingId) {
+                    await courseApi.updateCourse(editingId, {
+                      code: formCode.trim() || undefined,
+                      title: formTitle.trim(),
+                      name: formTitle.trim(),
+                      category: formCategory,
+                      description: formDescription,
+                      status: formStatus,
+                      trainerName: trainer?.fullName || '',
+                      trainerUsername: trainer?.username,
+                      departmentName: formDepartment,
+                    });
+                  } else {
+                    await courseApi.addCourse({
                     code: formCode.trim() || undefined,
                     title: formTitle.trim(),
                     name: formTitle.trim(),
-                    subjectCode: formSubjectCode,
                     category: formCategory,
                     description: formDescription,
-                    startDate: formStartDate || undefined,
-                    endDate: formEndDate || undefined,
                     status: formStatus,
-                    trainerName: trainer?.fullName || 'Trainer',
+                    trainerName: trainer?.fullName || '',
                     trainerUsername: trainer?.username,
                     departmentName: formDepartment,
-                  });
-                } else {
-                  await courseApi.addCourse({
-                  code: formCode.trim() || undefined,
-                  title: formTitle.trim(),
-                  name: formTitle.trim(),
-                  subjectCode: formSubjectCode,
-                  category: formCategory,
-                  description: formDescription,
-                  startDate: formStartDate || undefined,
-                  endDate: formEndDate || undefined,
-                  status: formStatus,
-                  trainerName: trainer?.fullName || 'Trainer',
-                  trainerUsername: trainer?.username,
-                  departmentName: formDepartment,
-                  });
+                    });
+                  }
+                  await fetchCourses();
+                  onCoursesChanged?.();
+                  setModalOpen(false);
+                  setFormCode('');
+                  setFormTitle('');
+                  setFormCategory('Programming');
+                  setFormDescription('');
+                  setFormStatus('DRAFT');
+                  setFormDepartment('IT Department');
+                  setFormTrainerUsername(trainers[0]?.username || '');
+                  setEditingId(null);
+                } catch (err: any) {
+                  const message = err?.response?.data?.message || 'Không thể lưu khoá học.';
+                  setFormError(message);
                 }
-                await fetchCourses();
-                setModalOpen(false);
-                setFormCode('');
-                setFormTitle('');
-                setFormCategory('Programming');
-                setFormSubjectCode('PYTHON-001');
-                setFormDescription('');
-                setFormStartDate('');
-                setFormEndDate('');
-                setFormStatus('Draft');
-                setFormDepartment('IT Department');
-                setFormTrainerUsername('trainer001');
-                setEditingId(null);
               }}
             >
               <div className="course-form-row">
-                <div className="course-form-field">
-                  <label>Môn học</label>
-                  <select
-                    value={formSubjectCode}
-                    onChange={(e) => {
-                      const code = e.target.value;
-                      setFormSubjectCode(code);
-                      const subject = SUBJECTS.find((s) => s.code === code);
-                      if (subject) {
-                        setFormTitle(subject.title);
-                        setFormCategory(subject.category);
-                        if (!formCode.trim()) setFormCode(subject.code);
-                      }
-                    }}
-                  >
-                    {SUBJECTS.map((s) => (
-                      <option key={s.code} value={s.code}>
-                        {s.code} - {s.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
                 <div className="course-form-field">
                   <label>Giảng viên phụ trách</label>
                   <select
                     value={formTrainerUsername}
                     onChange={(e) => setFormTrainerUsername(e.target.value)}
                   >
-                    {TRAINERS.map((t) => (
+                    <option value="">Chọn giảng viên</option>
+                    {trainers.map((t) => (
                       <option key={t.username} value={t.username}>
                         {t.fullName} ({t.username})
                       </option>
@@ -375,29 +348,22 @@ export const CourseManagePage: React.FC = () => {
                   <input value={formDepartment} onChange={(e) => setFormDepartment(e.target.value)} />
                 </div>
               </div>
-              <div className="course-form-row">
-                <div className="course-form-field">
-                  <label>Ngày bắt đầu</label>
-                  <input type="date" value={formStartDate} onChange={(e) => setFormStartDate(e.target.value)} />
-                </div>
-                <div className="course-form-field">
-                  <label>Ngày kết thúc</label>
-                  <input type="date" value={formEndDate} onChange={(e) => setFormEndDate(e.target.value)} />
-                </div>
-              </div>
               <div className="course-form-field">
                 <label>Trạng thái</label>
                 <select value={formStatus} onChange={(e) => setFormStatus(e.target.value)}>
-                  <option value="Draft">Draft</option>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Cancel">Cancel</option>
+                  <option value="DRAFT">Draft</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="INACTIVE">Inactive</option>
+                  <option value="ARCHIVED">Archived</option>
                 </select>
               </div>
               <div className="course-modal-actions">
                 <button type="button" className="course-btn secondary" onClick={() => { setModalOpen(false); setEditingId(null); }}>Hủy</button>
                 <button type="submit" className="course-btn primary">{editingId ? 'Lưu' : 'Thêm khoá học'}</button>
               </div>
+              {formError && (
+                <div style={{ color: '#dc2626', fontSize: 13, marginTop: 8 }}>{formError}</div>
+              )}
             </form>
           </div>
         </div>

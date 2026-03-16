@@ -1,12 +1,10 @@
 package com.itms.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.itms.common.CourseStatus;
 import com.itms.common.Level;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,52 +21,54 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "code", nullable = false, unique = true, length = 20)
+    @Column(name = "code")
     private String code;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name")
     private String name;
 
-    @Column(name = "description", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "description")
     private String description;
 
-    @Column(name = "objectives", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "objectives")
     private String objectives;
 
-    @Column(name = "prerequisites", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "prerequisites")
     private String prerequisites;
 
-    @Column(name = "duration_hours", columnDefinition = "DECIMAL(10,2)")
+    @Column(name = "duration_hours")
     private Double durationHours;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // FK to User table
+    @ManyToOne
     @JoinColumn(name = "trainer_id")
     private User trainer;
 
-    @Column(name = "category", length = 50)
+    @Column(name = "category")
     private String category;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "level", length = 20)
+    @Column(name = "level")
     private Level level;
 
-    @Column(name = "thumbnail_url", length = 500)
+    @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
-    @Column(name = "passing_score", columnDefinition = "DECIMAL(10,2)")
+    @Column(name = "passing_score")
     private Double passingScore;
 
     @Column(name = "max_attempts")
     private Integer maxAttempts;
 
-    @Column(name = "start_date")
-    private LocalDate startDate;
+    // Current DB in use does not expose start_date/end_date columns.
+    @Transient
+    private java.time.LocalDate startDate;
 
-    @Column(name = "end_date")
-    private LocalDate endDate;
+    @Transient
+    private java.time.LocalDate endDate;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
+    @Column(name = "status")
     private CourseStatus status;
 
     @Column(name = "created_at")
@@ -91,9 +91,16 @@ public class Course {
     @OneToMany(mappedBy = "course")
     private List<Session> sessions;
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
-    private List<ClassRoom> classRooms;
+    @PrePersist
+    protected void onCreate() {
+        if (this.status == null) {
+            this.status = CourseStatus.DRAFT;
+        }
+        this.createdAt = LocalDateTime.now();
+    }
 
-    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL)
-    private List<CourseModule> modules;
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

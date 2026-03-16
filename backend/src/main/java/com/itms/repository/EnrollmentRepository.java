@@ -1,7 +1,6 @@
 package com.itms.repository;
 
 import com.itms.entity.Enrollment;
-import com.itms.common.EnrollmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,7 +15,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     List<Enrollment> findByUserId(int userId);
 
     /**
-     * Find enrollment by user and session
+     * Find enrollment by user and course
      */
     @Query("SELECT e FROM Enrollment e JOIN e.session s WHERE e.user.id = :userId AND s.course.id = :courseId")
     java.util.Optional<Enrollment> findByUserIdAndCourseId(@Param("userId") int userId, @Param("courseId") int courseId);
@@ -99,13 +98,6 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
     Integer countCompletedEnrollmentsByUserId(@Param("userId") Integer userId);
 
     /**
-
-     * Count enrollments by user and status.
-     */
-    @Query("SELECT COUNT(e) FROM Enrollment e WHERE e.user.id = :userId AND e.status = :status")
-    Integer countEnrollmentsByUserIdAndStatus(@Param("userId") Integer userId, @Param("status") String status);
-
-/**
      * Find enrollments by course code
      */
     @Query("SELECT e FROM Enrollment e JOIN e.session s JOIN s.course c WHERE c.code = :courseCode")
@@ -116,5 +108,11 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Integer>
      */
     @Query("SELECT e FROM Enrollment e JOIN e.session s JOIN s.classRoom cr WHERE cr.classCode = :classCode")
     List<Enrollment> findBySessionClassCode(@Param("classCode") String classCode);
-}
 
+    /**
+     * Find enrollment by user id and session id
+     */
+    @Query("SELECT e FROM Enrollment e WHERE e.user.id = :userId AND e.session.id = :sessionId")
+    Optional<Enrollment> findByUserIdAndSessionId(@Param("userId") Integer userId,
+                                                   @Param("sessionId") Long sessionId);
+}

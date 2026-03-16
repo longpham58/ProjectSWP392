@@ -20,6 +20,8 @@ const { login, loading, error, setError} = useAuthStore();
     switch (role) {
       case "ADMIN":
         return "/admin";
+      case "HR":
+        return "/hr";
       case "EMPLOYEE":
         return "/employee";
       case "TRAINER":

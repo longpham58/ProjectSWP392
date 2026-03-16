@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { dashboardService } from '@/services/api/hr';
-import { mockDashboardStats } from '@/mocks/hr/dashboard.mock';
 import type { HRDashboardStats } from '@/types/hr.types';
 
-export function useDashboardStats() {
+export function useDashboardStats(refreshToken = 0) {
   const [stats, setStats] = useState<HRDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -15,12 +14,14 @@ export function useDashboardStats() {
     dashboardService
       .getStats()
       .then((res) => {
-        if (!cancelled && res?.data) setStats(res.data);
+        if (!cancelled && res?.data?.data) {
+          setStats(res.data.data);
+        }
       })
       .catch((err) => {
         if (!cancelled) {
           setError(err);
-          setStats(mockDashboardStats);
+          setStats(null);
         }
       })
       .finally(() => {
@@ -29,7 +30,7 @@ export function useDashboardStats() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshToken]);
 
-  return { stats: stats ?? mockDashboardStats, loading, error };
+  return { stats, loading, error };
 }

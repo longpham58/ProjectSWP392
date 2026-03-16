@@ -6,18 +6,17 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SessionRepository extends JpaRepository<Session, Long> {
-
     /**
-     * Find all sessions for a course, ordered by date and session ID
+     * Find all sessions for a course, ordered by date and session number
      */
-    @Query("SELECT s FROM Session s WHERE s.course.id = :courseId ORDER BY s.date ASC, s.id ASC")
+    @Query("SELECT s FROM Session s WHERE s.course.id = :courseId ORDER BY s.date ASC, s.sessionNumber ASC")
     List<Session> findByCourseIdOrderByDateAsc(@Param("courseId") Integer courseId);
 
     /**
@@ -32,11 +31,8 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     @Query("""
         SELECT new com.itms.dto.SessionAttendanceDto(
             s.id,
-
-            s.course.code,
-
-            CONCAT('Session ', s.id),
-            CAST(s.id AS int),
+            s.sessionName,
+            s.sessionNumber,
             s.date,
             s.timeStart,
             s.timeEnd,
@@ -48,7 +44,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
         )
         FROM Session s
         LEFT JOIN Enrollment e 
-               ON e.session.id = s.id 
+               ON e.course.id = s.course.id 
                AND e.user.id = :userId
         LEFT JOIN Attendance a 
                ON a.enrollment.id = e.id
@@ -63,19 +59,48 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     );
 
     /**
-     * Find all sessions for courses taught by a specific trainer, ordered by date
+     * Get attendance list for a specific session (trainer view).
      */
-    @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId ORDER BY s.date ASC, s.timeStart ASC")
+    @Query("""
+        SELECT new com.itms.dto.SessionAttendanceDto(
+            s.id,
+            s.sessionName,
+            s.sessionNumber,
+            s.date,
+            s.timeStart,
+            s.timeEnd,
+            s.location,
+            s.status,
+            a.attended,
+            a.completionStatus,
+            m.fullName
+        )
+        FROM Session s
+        LEFT JOIN Enrollment e
+               ON e.course.id = s.course.id
+        LEFT JOIN Attendance a
+               ON a.enrollment.id = e.id
+        LEFT JOIN User m
+               ON m.id = a.markedBy.id
+        WHERE s.id = :sessionId
+        ORDER BY e.user.id ASC
+    """)
+    List<SessionAttendanceDto> getSessionAttendanceForSession(@Param("sessionId") Long sessionId);
+
+    /**
+     * Find all sessions for a specific trainer, ordered by date
+     */
+    @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId ORDER BY s.date ASC")
     List<Session> findByCourseTrainerIdOrderByDateAsc(@Param("trainerId") Integer trainerId);
 
     /**
-     * Find all sessions for courses taught by a specific trainer, ordered by date (alias)
+     * Find all sessions for a specific trainer, ordered by date (alias)
      */
-    @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId ORDER BY s.date ASC, s.timeStart ASC")
+    @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId ORDER BY s.date ASC")
     List<Session> findByTrainerIdOrderByDateAsc(@Param("trainerId") Integer trainerId);
 
     /**
-     * Find all sessions for courses taught by a specific trainer
+     * Find all sessions for a specific trainer
      */
     @Query("SELECT s FROM Session s WHERE s.trainer.id = :trainerId")
     List<Session> findByTrainerId(@Param("trainerId") Integer trainerId);
@@ -92,57 +117,73 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     """)
     Integer getSessionNumber(
         @Param("classId") Integer classId,
-        @Param("sessionDate") LocalDate sessionDate,
-        @Param("timeStart") LocalTime timeStart
+        @Param("sessionDate") java.time.LocalDate sessionDate,
+        @Param("timeStart") java.time.LocalTime timeStart
     );
 
     /**
      * Find all sessions for a user (through enrollments), ordered by date
      */
-
-    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session.id = s.id WHERE e.user.id = :userId ORDER BY s.date ASC, s.id ASC")
-
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.course = s.course WHERE e.user.id = :userId ORDER BY s.date ASC, s.sessionNumber ASC")
     List<Session> findByUserIdOrderByDateAsc(@Param("userId") Integer userId);
 
     /**
      * Find all sessions for a user for a specific course
      */
-
-
-    /**
-     * Find all sessions for a class
-     */
-    @Query("SELECT s FROM Session s WHERE s.classRoom.id = :classId ORDER BY s.date ASC, s.timeStart ASC")
-    List<Session> findByClassRoomIdOrderByDateAsc(@Param("classId") Integer classId);
-
-    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session.id = s.id WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.id ASC")
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.course = s.course WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.sessionNumber ASC")
     List<Session> findByUserIdAndCourseIdOrderByDateAsc(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
 
     /**
-     * Get session attendance for a specific session (for trainers)
+     * Find all sessions, ordered by date and start time
      */
-    @Query("""
-        SELECT new com.itms.dto.SessionAttendanceDto(
-            s.id,
-            u.fullName,
-            CAST(s.id AS int),
-            s.date,
-            s.timeStart,
-            s.timeEnd,
-            s.location,
-            s.status,
-            a.attended,
-            a.completionStatus,
-            m.fullName
-        )
-        FROM Session s
-        JOIN Enrollment e ON e.session.id = s.id
-        JOIN User u ON u.id = e.user.id
-        LEFT JOIN Attendance a ON a.enrollment.id = e.id
-        LEFT JOIN User m ON m.id = a.markedBy.id
-        WHERE s.id = :sessionId
-        ORDER BY u.fullName ASC
-    """)
-    List<SessionAttendanceDto> getSessionAttendanceForSession(@Param("sessionId") Long sessionId);
+    List<Session> findAllByOrderByDateAscTimeStartAsc();
 
+    /**
+     * Check if there is a time conflict for a trainer on a specific date
+     */
+    @Query(value = """
+        SELECT CASE WHEN COUNT_BIG(s.id) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
+        FROM Session s
+        JOIN Course c ON c.id = s.course_id
+        JOIN [User] t ON t.id = c.trainer_id
+        WHERE LOWER(t.username) = LOWER(:trainerUsername)
+          AND CAST(s.date AS DATE) = CAST(:date AS DATE)
+          AND CAST(s.time_start AS TIME) < CAST(:endTime AS TIME)
+          AND CAST(s.time_end AS TIME) > CAST(:startTime AS TIME)
+          AND (:excludeId IS NULL OR s.id <> :excludeId)
+    """, nativeQuery = true)
+    boolean existsTrainerTimeConflict(
+            @Param("trainerUsername") String trainerUsername,
+            @Param("date") LocalDate date,
+            @Param("startTime") LocalTime startTime,
+            @Param("endTime") LocalTime endTime,
+            @Param("excludeId") Long excludeId
+    );
+
+    /**
+     * Check if there is a time conflict in a specific room on a specific date
+     */
+    @Query(value = """
+        SELECT CASE WHEN COUNT_BIG(s.id) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
+        FROM Session s
+        WHERE CAST(s.date AS DATE) = CAST(:date AS DATE)
+          AND LOWER(COALESCE(s.location, '')) = LOWER(COALESCE(:location, ''))
+          AND CAST(s.time_start AS TIME) < CAST(:endTime AS TIME)
+          AND CAST(s.time_end AS TIME) > CAST(:startTime AS TIME)
+          AND (:excludeId IS NULL OR s.id <> :excludeId)
+    """, nativeQuery = true)
+    boolean existsRoomTimeConflict(
+            @Param("date") LocalDate date,
+            @Param("location") String location,
+            @Param("startTime") LocalTime startTime,
+            @Param("endTime") LocalTime endTime,
+            @Param("excludeId") Long excludeId
+    );
+
+    /**
+     * Find session by class room id and date
+     */
+    @Query("SELECT s FROM Session s WHERE s.classRoom.id = :classRoomId AND s.date = :date")
+    Optional<Session> findByClassRoomIdAndDate(@Param("classRoomId") Integer classRoomId,
+                                               @Param("date") java.time.LocalDate date);
 }

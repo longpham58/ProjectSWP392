@@ -1,68 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSessionStore } from '../../stores/session.store';
-import { CourseSchedule } from '../../api/session.api';
+import type { CourseSchedule } from '../../api/session.api';
 
 export default function SchedulePage() {
   const { schedule, scheduleLoading, scheduleError, fetchCourseSchedule } = useSessionStore();
-  const [selectedWeek, setSelectedWeek] = useState(() => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const week = getWeekNumber(now);
-    return `${year}-W${week.toString().padStart(2, '0')}`;
-  });
+  const [selectedWeek, setSelectedWeek] = useState('2026-W10');
   const [viewMode, setViewMode] = useState<'week' | 'list'>('week');
 
-  // Helper function to get week number
-  function getWeekNumber(date: Date): number {
-    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
-    const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
-    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
-  }
-
-  // Get current week string
-  const getCurrentWeek = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const week = getWeekNumber(now);
-    return `${year}-W${week.toString().padStart(2, '0')}`;
-  };
-
-  // Navigate to previous week
-  const goToPreviousWeek = () => {
-    const [year, weekStr] = selectedWeek.split('-W');
-    let yearNum = parseInt(year);
-    let weekNum = parseInt(weekStr);
-    
-    if (weekNum === 1) {
-      yearNum--;
-      weekNum = 52;
-    } else {
-      weekNum--;
-    }
-    setSelectedWeek(`${yearNum}-W${weekNum.toString().padStart(2, '0')}`);
-  };
-
-  // Navigate to next week
-  const goToNextWeek = () => {
-    const [year, weekStr] = selectedWeek.split('-W');
-    let yearNum = parseInt(year);
-    let weekNum = parseInt(weekStr);
-    
-    if (weekNum === 52) {
-      yearNum++;
-      weekNum = 1;
-    } else {
-      weekNum++;
-    }
-    setSelectedWeek(`${yearNum}-W${weekNum.toString().padStart(2, '0')}`);
-  };
-
-  // Go to current week (today)
-  const goToToday = () => {
-    setSelectedWeek(getCurrentWeek());
-  };
-
-  // Fetch schedule from store
   useEffect(() => {
     fetchCourseSchedule();
   }, [fetchCourseSchedule]);
@@ -86,8 +30,29 @@ export default function SchedulePage() {
     { slot: 4, label: 'Slot 4', time: '13:00 - 15:00' },
   ];
 
+  // Memoize schedule if needed
+  const memoSchedule: CourseSchedule[] = useMemo(() => {
+    return schedule.map((item, index) => {
+      const dateObj = new Date(item.date);
+      const dayOfWeek = Number.isNaN(dateObj.getTime()) ? 1 : dateObj.getDay();
+      const time = `${item.startTime} - ${item.endTime}`;
+      let slot = 1;
+      if (time === '07:00 - 09:00') slot = 1;
+      else if (time === '09:00 - 11:00') slot = 2;
+      else if (time === '11:00 - 13:00') slot = 3;
+      else if (time === '13:00 - 15:00') slot = 4;
+
+      return {
+        ...item,
+        id: item.id ?? index + 1,
+        slot,
+        dayOfWeek,
+      } as CourseSchedule;
+    });
+  }, [schedule]);
+
   const getSessionForSlot = (dayOfWeek: number, slotNumber: number) => {
-    return schedule.find(
+    return memoSchedule.find(
       s => s.dayOfWeek === dayOfWeek && s.slot === slotNumber
     );
   };
@@ -117,7 +82,7 @@ export default function SchedulePage() {
       case 'CANCELLED':
         return 'Đã hủy';
       default:
-        return status;
+        return '';
     }
   };
 
@@ -157,11 +122,7 @@ export default function SchedulePage() {
 
           {/* Week Selector */}
           <div className="flex items-center gap-4 bg-white rounded-lg p-4 shadow">
-            <button 
-              onClick={goToPreviousWeek}
-              className="p-2 hover:bg-gray-100 rounded transition-colors"
-              title="Tuần trước"
-            >
+            <button className="p-2 hover:bg-gray-100 rounded">
               ←
             </button>
             <input
@@ -170,17 +131,10 @@ export default function SchedulePage() {
               onChange={(e) => setSelectedWeek(e.target.value)}
               className="px-4 py-2 border rounded-lg"
             />
-            <button 
-              onClick={goToNextWeek}
-              className="p-2 hover:bg-gray-100 rounded transition-colors"
-              title="Tuần sau"
-            >
+            <button className="p-2 hover:bg-gray-100 rounded">
               →
             </button>
-            <button 
-              onClick={goToToday} 
-              className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
+            <button className="ml-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
               Hôm nay
             </button>
           </div>

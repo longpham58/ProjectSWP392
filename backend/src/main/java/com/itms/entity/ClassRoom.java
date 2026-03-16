@@ -19,27 +19,25 @@ public class ClassRoom {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "course_id", nullable = false)
+    @Transient
     private Course course;
 
-    @Column(name = "class_code", nullable = false, unique = true, length = 50)
+    @Column(name = "class_code", nullable = false, unique = true, length = 20)
     private String classCode;
 
     @Column(name = "class_name", nullable = false, length = 200)
     private String className;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "trainer_id")
+    @Transient
     private User trainer;
 
-    @Column(name = "max_students", nullable = false)
-    private Integer maxStudents = 30;
+    @Transient
+    private Integer maxStudents;
 
-    @Column(nullable = false, length = 20)
-    private String status = "ACTIVE";
+    @Transient
+    private String status;
 
-    @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
+    @Transient
     private String notes;
 
     @Column(name = "created_at")
@@ -48,20 +46,18 @@ public class ClassRoom {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by")
+    @Transient
     private User createdBy;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by")
+    @Transient
     private User updatedBy;
 
-    @OneToMany(mappedBy = "classRoom", cascade = CascadeType.ALL)
+    @Transient
     private List<ClassMember> classMembers;
 
-    @OneToMany(mappedBy = "classRoom", cascade = CascadeType.ALL)
-    private List<Session> sessions;
+    @Transient
+    private List<CourseSchedule> courseSchedules;
 
-    @OneToMany(mappedBy = "classRoom", cascade = CascadeType.ALL)
-    private List<CourseSchedule> schedules;
+    @Transient
+    private List<Session> sessions;
 }
