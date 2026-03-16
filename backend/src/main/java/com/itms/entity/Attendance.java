@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 @Table(name = "Attendance")
 @Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 public class Attendance {
 

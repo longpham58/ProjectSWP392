@@ -16,7 +16,7 @@ import java.util.List;
 )
 @Getter
 @Setter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class User {
@@ -46,8 +46,6 @@ public class User {
     @Column(length = 20)
     private String phone;
 
-    @Column(name = "address", length = 500)
-    private String address;
 
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;

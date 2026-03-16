@@ -71,8 +71,9 @@ public class CourseController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseDto<CourseDto>> getCourseById(@PathVariable int id) {
-        CourseDto course = courseService.getCourseById(id);
+    public ResponseEntity<ResponseDto<CourseDto>> getCourseById(@PathVariable int id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        int userId = userDetails.getId();
+        CourseDto course = courseService.getCourseByIdWithAttendance(id, userId);
         return ResponseEntity.ok(
                 ResponseDto.success(course, "Course retrieved successfully")
         );

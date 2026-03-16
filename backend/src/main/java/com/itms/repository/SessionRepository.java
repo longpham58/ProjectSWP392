@@ -20,10 +20,39 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     List<Session> findByCourseIdOrderByDateAsc(@Param("courseId") Integer courseId);
 
     /**
+     * Find upcoming sessions for a user (today and future) via ClassMember.
+     */
+    @Query(value = """
+        SELECT TOP 10
+            s.id                AS id,
+            COALESCE(s.session_name, 'Session ' + CAST(s.id AS VARCHAR)) AS title,
+            c.name              AS course,
+            s.date              AS sessionDate,
+            DATEDIFF(DAY, CAST(GETDATE() AS DATE), CAST(s.date AS DATE)) AS daysLeft,
+            'SESSION'           AS type
+        FROM Session s
+        JOIN ClassRoom cr ON s.class_id = cr.id
+        JOIN Course c ON cr.course_id = c.id
+        JOIN ClassMember cm ON cm.class_id = cr.id
+        WHERE cm.user_id = :userId
+        AND cm.status = 'ACTIVE'
+        AND s.status = 'SCHEDULED'
+        AND CAST(s.date AS DATE) >= CAST(GETDATE() AS DATE)
+        ORDER BY s.date ASC, s.time_start ASC
+    """, nativeQuery = true)
+    List<Object[]> findUpcomingSessions(@Param("userId") Integer userId);
+
+    /**
      * Find all sessions for a course with a specific status
      */
     @Query("SELECT s FROM Session s WHERE s.course.id = :courseId AND s.status = :status ORDER BY s.date ASC")
     List<Session> findByCourseIdAndStatus(@Param("courseId") Integer courseId, com.itms.common.SessionStatus status);
+    
+    /**
+     * Find all sessions for given class IDs
+     */
+    @Query("SELECT s FROM Session s WHERE s.classRoom.id IN :classIds")
+    List<Session> findByClassRoomIdIn(@Param("classIds") List<Integer> classIds);
 
     /**
      * Get session attendance for a user in a course - single query with JOINs
@@ -44,7 +73,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
         )
         FROM Session s
         LEFT JOIN Enrollment e 
-               ON e.course.id = s.course.id 
+               ON e.session.id = s.id 
                AND e.user.id = :userId
         LEFT JOIN Attendance a 
                ON a.enrollment.id = e.id
@@ -77,7 +106,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
         )
         FROM Session s
         LEFT JOIN Enrollment e
-               ON e.course.id = s.course.id
+               ON e.session.id = s.id
         LEFT JOIN Attendance a
                ON a.enrollment.id = e.id
         LEFT JOIN User m
@@ -124,13 +153,13 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     /**
      * Find all sessions for a user (through enrollments), ordered by date
      */
-    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.course = s.course WHERE e.user.id = :userId ORDER BY s.date ASC, s.sessionNumber ASC")
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session = s WHERE e.user.id = :userId ORDER BY s.date ASC, s.sessionNumber ASC")
     List<Session> findByUserIdOrderByDateAsc(@Param("userId") Integer userId);
 
     /**
      * Find all sessions for a user for a specific course
      */
-    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.course = s.course WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.sessionNumber ASC")
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session = s WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.sessionNumber ASC")
     List<Session> findByUserIdAndCourseIdOrderByDateAsc(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
 
     /**
@@ -186,4 +215,10 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     @Query("SELECT s FROM Session s WHERE s.classRoom.id = :classRoomId AND s.date = :date")
     Optional<Session> findByClassRoomIdAndDate(@Param("classRoomId") Integer classRoomId,
                                                @Param("date") java.time.LocalDate date);
+
+    /**
+     * Find all sessions for a class room, ordered by date and start time
+     */
+    @Query("SELECT s FROM Session s WHERE s.classRoom.id = :classRoomId ORDER BY s.date ASC, s.timeStart ASC")
+    List<Session> findByClassRoomIdOrderByDateAsc(@Param("classRoomId") Integer classRoomId);
 }

@@ -291,6 +291,8 @@ CREATE TABLE Session (
     class_id            INT           NOT NULL,   -- lớp học của buổi này
     schedule_id         INT           NULL,        -- NULL nếu tạo thủ công
     trainer_id          INT           NULL,        -- trainer phụ trách buổi này, điểm danh buổi này
+    session_name        NVARCHAR(255) NOT NULL,  -- tên buổi học
+    session_number      INT           NULL,        -- số thứ tự buổi trong lớp
     date                DATE          NOT NULL,
     time_start          TIME          NOT NULL,
     time_end            TIME          NOT NULL,

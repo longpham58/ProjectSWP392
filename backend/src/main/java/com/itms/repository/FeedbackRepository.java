@@ -65,5 +65,10 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
      */
     @Query("SELECT f FROM Feedback f JOIN f.enrollment e JOIN e.session s JOIN s.course c WHERE c.trainer.id = :trainerId")
     List<Feedback> findByTrainerId(@Param("trainerId") Integer trainerId);
-
+    
+    /**
+     * Count all feedback
+     */
+    long count();
+    
 }

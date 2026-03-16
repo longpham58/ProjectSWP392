@@ -64,4 +64,10 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     /** Users that have the given role name (e.g. "Human Resources" for HR). */
     @Query("SELECT DISTINCT u FROM User u JOIN u.userRole ur JOIN ur.role r WHERE r.roleName = :roleName")
     List<User> findByRoleName(@Param("roleName") String roleName);
+    
+    /** Count all users */
+    long count();
+    
+    /** Count users by active status */
+    long countByIsActive(boolean isActive);
 }

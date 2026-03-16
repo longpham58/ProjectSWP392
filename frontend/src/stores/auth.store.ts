@@ -11,6 +11,7 @@ interface AuthState {
   error: string | null;
   initialized: boolean;
   setError: (error: string | null) => void;
+  clearError: () => void;
   
 
   login: (
@@ -25,7 +26,7 @@ interface AuthState {
   resendOtp: () => Promise<void>;
 
    forgotPassword: (email: string) => Promise<void>;
-  resetPassword: (token: string, newPassword: string) => Promise<void>;
+  resetPassword: (newPassword: string) => Promise<void>;
 
 
   fetchMe: () => Promise<void>;
@@ -39,6 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   error: null,
   initialized: false,
   setError: (error) => set({ error }),
+  clearError: () => set({ error: null }),
   login: async (username, password, rememberMe) => {
   set({ loading: true, error: null });
   try {
@@ -104,7 +106,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   forgotPassword: async (email: string) => {
   set({ loading: true, error: null });
   try {
-    await authApi.forgotPassword(email);
+    // Call requestForgotPasswordOtp to send OTP only
+    await authApi.requestForgotPasswordOtp(email);
   } catch (err: any) {
     set({
       error:
@@ -116,11 +119,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ loading: false });
   }
 },
-resetPassword: async (token: string, newPassword: string) => {
+resetPassword: async (newPassword: string) => {
   set({ loading: true, error: null });
   try {
     await authApi.resetPassword({
-      token,
       newPassword,
     });
   } catch (err: any) {

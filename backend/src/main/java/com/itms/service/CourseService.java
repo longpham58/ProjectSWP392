@@ -5,14 +5,8 @@ import com.itms.dto.CourseDto;
 import com.itms.dto.HrCourseDto;
 import com.itms.dto.HrTrainerDto;
 import com.itms.dto.TrainerScheduleDto;
-import com.itms.entity.Course;
-import com.itms.entity.Enrollment;
-import com.itms.entity.Session;
-import com.itms.entity.User;
-import com.itms.repository.CourseRepository;
-import com.itms.repository.EnrollmentRepository;
-import com.itms.repository.SessionRepository;
-import com.itms.repository.UserRepository;
+import com.itms.entity.*;
+import com.itms.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -33,6 +28,9 @@ public class CourseService {
     private final UserRepository userRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final JdbcTemplate jdbcTemplate;
+    private final ClassMemberRepository classMemberRepository;
+    private final ClassRoomRepository classRoomRepository;
+    private final AttendanceRepository attendanceRepository;
 
 
     /**
@@ -41,14 +39,91 @@ public class CourseService {
     public List<CourseDto> getCourseDtosByUserId(Integer userId) {
         return courseRepository.findCoursesByUserId(userId)
                 .stream()
-                .map(CourseDto::fromEntity)
+                .map(course -> {
+                    CourseDto dto = CourseDto.fromEntity(course);
+                    // Add attendance info for each course
+                    populateAttendanceInfo(dto, userId);
+                    return dto;
+                })
                 .toList();
     }
 
+    /**
+     * Populate attendance info for a course based on user's attendance in that course's classes
+     */
+    private void populateAttendanceInfo(CourseDto dto, Integer userId) {
+        // Get classes for this course
+        List<ClassRoom> classes = classRoomRepository.findByCourseId(dto.getId());
+        
+        if (classes.isEmpty()) {
+            dto.setTotalSessions(0);
+            dto.setAttendedSessions(0);
+            dto.setProgressPercentage(0);
+            return;
+        }
+        
+        // Get the first active class the user is a member of
+        ClassMember member = classMemberRepository.findByUserIdAndClassRoomCourseIdAndStatus(userId, dto.getId(), "ACTIVE")
+                .orElse(null);
+        
+        if (member != null) {
+            dto.setClassName(member.getClassRoom().getClassName());
+            dto.setClassCode(member.getClassRoom().getClassCode());
+        }
+        
+        // Get all sessions for these classes
+        List<Integer> classIds = classes.stream().map(ClassRoom::getId).collect(Collectors.toList());
+        List<Session> sessions = sessionRepository.findByClassRoomIdIn(classIds);
+        
+        int totalSessions = sessions.size();
+        
+        if (totalSessions == 0) {
+            dto.setTotalSessions(0);
+            dto.setAttendedSessions(0);
+            dto.setProgressPercentage(0);
+            return;
+        }
+        
+        // Populate start and end dates from sessions
+        if (!sessions.isEmpty()) {
+            LocalDate minDate = sessions.stream()
+                .map(Session::getDate)
+                .min(LocalDate::compareTo)
+                .orElse(null);
+            LocalDate maxDate = sessions.stream()
+                .map(Session::getDate)
+                .max(LocalDate::compareTo)
+                .orElse(null);
+            if (minDate != null) {
+                dto.setStartDate(minDate.toString());
+            }
+            if (maxDate != null) {
+                dto.setEndDate(maxDate.toString());
+            }
+        }
+        
+        // Count attended sessions
+        List<Long> sessionIds = sessions.stream().map(Session::getId).collect(Collectors.toList());
+        int attendedSessions = attendanceRepository.countByUserIdAndSessionIds(userId, sessionIds);
+        
+        dto.setTotalSessions(totalSessions);
+        dto.setAttendedSessions(attendedSessions);
+        dto.setProgressPercentage(totalSessions > 0 ? (int) Math.round((attendedSessions * 100.0) / totalSessions) : 0);
+    }
+
     public CourseDto getCourseById(Integer id) {
-        return courseRepository.findById(id)
+        CourseDto dto = courseRepository.findById(id)
                 .map(CourseDto::fromEntity)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + id));
+        return dto;
+    }
+
+    public CourseDto getCourseByIdWithAttendance(Integer id, Integer userId) {
+        CourseDto dto = courseRepository.findById(id)
+                .map(CourseDto::fromEntity)
+                .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + id));
+        populateAttendanceInfo(dto, userId);
+        return dto;
     }
 
     /**

@@ -55,12 +55,16 @@ export const authApi = {
   logout: () =>
     axios.post<ApiResponse<void>>("/auth/logout"),
 
-  forgotPassword: (email: string) =>
-    axios.post<ApiResponse<void>>("/auth/forgot-password", { email }),
+  // Request OTP for forgot password
+  requestForgotPasswordOtp: (email: string) =>
+    axios.post<ApiResponse<void>>("/auth/forgot-password/request-otp", { email }),
+
+  // Verify OTP and reset password in one step
+  forgotPassword: (payload: { email: string; otp: string; newPassword: string }) =>
+    axios.post<ApiResponse<void>>("/auth/forgot-password", payload),
 
   resetPassword: (payload: {
-  token: string;        // 🔐 JWT from email link
-  newPassword: string; // 🔑 new password
-}) =>
-  axios.post<ApiResponse<void>>("/auth/reset-password", payload),
+    newPassword: string;
+  }) =>
+    axios.post<ApiResponse<void>>("/auth/reset-password", payload),
 };

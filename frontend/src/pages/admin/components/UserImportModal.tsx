@@ -27,11 +27,12 @@ export default function UserImportModal({ open, onClose, onImport }: Props) {
   const handleDownloadTemplate = () => {
   const data = [
     {
-      Name: "",
+      Username: "",
       Email: "",
-      Role: "Employee",
+      FullName: "",
+      Phone: "",
       Department: "",
-      Status: "Active",
+      Role: "EMPLOYEE",
     },
   ];
 
@@ -66,7 +67,8 @@ export default function UserImportModal({ open, onClose, onImport }: Props) {
           <ul className="text-sm text-gray-600 list-disc list-inside">
             <li>CSV or Excel file (.csv, .xlsx, .xls)</li>
             <li>Maximum file size: 10MB</li>
-            <li>Required columns: Name, Email, Role, Department, Status</li>
+            <li>Required columns: Username, Email, FullName, Phone, Department, Role</li>
+            <li>Role values: ADMIN, HR, TRAINER, EMPLOYEE</li>
           </ul>
 
         </div>

@@ -46,7 +46,7 @@ public class DataSeeder {
             CourseModuleRepository courseModuleRepository
     ) {
         return args -> {
-            if (RESET_DATA) {
+            if (!RESET_DATA) {
                 System.out.println("⏭️ Data reset disabled. Skipping...");
                 return;
             }

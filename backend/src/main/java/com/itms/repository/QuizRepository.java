@@ -38,10 +38,11 @@ public interface QuizRepository extends JpaRepository<Quiz, Integer> {
     WHERE q.isActive = true
     AND q.dueDate IS NOT NULL
     AND c.id IN (
-        SELECT s.course.id
-        FROM Enrollment e
-        JOIN e.session s
-        WHERE e.user.id = :userId
+        SELECT cr.course.id
+        FROM ClassMember cm
+        JOIN cm.classRoom cr
+        WHERE cm.user.id = :userId
+        AND cm.status = 'ACTIVE'
     )
     AND NOT EXISTS (
         SELECT qa.id

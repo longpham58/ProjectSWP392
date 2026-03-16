@@ -10,6 +10,7 @@ import com.itms.repository.AttendanceRepository;
 import com.itms.repository.CertificateRepository;
 import com.itms.repository.EnrollmentRepository;
 import com.itms.repository.QuizRepository;
+import com.itms.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,7 @@ public class EmployeeDashboardService {
     private final AttendanceRepository attendanceRepository;
     private final CertificateRepository certificateRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final SessionRepository sessionRepository;
 
     // Fallback daily targets when no sessions are scheduled
     private static final int LESSONS_TARGET_FALLBACK = 0;
@@ -32,11 +34,11 @@ public class EmployeeDashboardService {
     private static final int QUIZZES_TARGET_FALLBACK = 0;
 
     public List<DeadlineDto> getDeadlines(Integer userId) {
-
-        List<Object[]> rows = quizRepository.findPendingQuizDeadlines(userId);
         List<DeadlineDto> deadlines = new ArrayList<>();
 
-        for (Object[] row : rows) {
+        // Get quiz deadlines
+        List<Object[]> quizRows = quizRepository.findPendingQuizDeadlines(userId);
+        for (Object[] row : quizRows) {
             DeadlineDto d = new DeadlineDto();
             d.setId(row[0] != null ? ((Number) row[0]).intValue() : null);
             d.setTitle((String) row[1]);
@@ -47,36 +49,62 @@ public class EmployeeDashboardService {
             deadlines.add(d);
         }
 
-        deadlines.forEach(d -> {
+        // Get upcoming sessions (today and future)
+        List<Object[]> sessionRows = sessionRepository.findUpcomingSessions(userId);
+        for (Object[] row : sessionRows) {
+            DeadlineDto d = new DeadlineDto();
+            d.setId(row[0] != null ? ((Number) row[0]).intValue() : null);
+            d.setTitle((String) row[1]);
+            d.setCourse((String) row[2]);
+            d.setDueDate(row[3] != null ? ((java.time.LocalDate) row[3]).atStartOfDay() : null);
+            d.setDaysLeft(row[4] != null ? ((Number) row[4]).intValue() : null);
+            d.setType((String) row[5]);
+            deadlines.add(d);
+        }
 
+        // Set priority and normalize type for all deadlines
+        deadlines.forEach(d -> {
             // priority
-            if (d.getDaysLeft() <= 3) d.setPriority("HIGH");
-            else if (d.getDaysLeft() <= 7) d.setPriority("MEDIUM");
-            else d.setPriority("LOW");
+            if (d.getDaysLeft() != null) {
+                if (d.getDaysLeft() <= 3) d.setPriority("HIGH");
+                else if (d.getDaysLeft() <= 7) d.setPriority("MEDIUM");
+                else d.setPriority("LOW");
+            }
 
             // convert quiz type
-            switch (d.getType()) {
-                case "PRACTICE":
-                    d.setType("QUIZ");
-                    break;
-                case "PRE_TEST":
-                    d.setType("TEST");
-                    break;
-                case "POST_TEST":
-                    d.setType("FINAL_EXAM");
-                    break;
-                default:
-                    d.setType("QUIZ");
+            if (d.getType() != null) {
+                switch (d.getType()) {
+                    case "PRACTICE":
+                        d.setType("QUIZ");
+                        break;
+                    case "PRE_TEST":
+                        d.setType("TEST");
+                        break;
+                    case "POST_TEST":
+                        d.setType("FINAL_EXAM");
+                        break;
+                    case "SESSION":
+                        // Keep as SESSION for upcoming sessions
+                        break;
+                    default:
+                        d.setType("QUIZ");
+                }
             }
         });
 
-        return deadlines;
+        // Sort by days left (ascending)
+        deadlines.sort(Comparator.comparing(
+            d -> d.getDaysLeft() != null ? d.getDaysLeft() : Integer.MAX_VALUE
+        ));
+
+        // Return top 10
+        return deadlines.size() > 10 ? deadlines.subList(0, 10) : deadlines;
     }
 
     public List<RecentActivityDto> getRecentActivities(Integer userId) {
         List<RecentActivityDto> activities = new ArrayList<>();
 
-        // Session attendance activities
+        // Session attendance activities (past - already attended)
         List<Object[]> sessionRows = attendanceRepository.findRecentSessionActivities(userId);
         for (Object[] row : sessionRows) {
             RecentActivityDto dto = new RecentActivityDto();
@@ -88,7 +116,7 @@ public class EmployeeDashboardService {
             activities.add(dto);
         }
 
-        // Quiz attempt activities
+        // Quiz attempt activities (past - submitted/graded)
         List<Object[]> quizRows = quizRepository.findRecentQuizActivities(userId);
         for (Object[] row : quizRows) {
             RecentActivityDto dto = new RecentActivityDto();
@@ -150,6 +178,7 @@ public class EmployeeDashboardService {
             case "COURSE":
             case "ENROLLMENT":
             case "JOIN_COURSE":
+            case "JOIN_CLASS":
                 activity.setColor("blue");
                 break;
             case "CERTIFICATE":

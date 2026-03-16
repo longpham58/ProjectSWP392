@@ -27,4 +27,10 @@ public interface ClassMemberRepository extends JpaRepository<ClassMember, Intege
      */
     @Query("SELECT cm FROM ClassMember cm JOIN FETCH cm.user WHERE cm.classRoom.classCode = :classCode AND cm.status = 'ACTIVE'")
     List<ClassMember> findByClassRoomClassCode(@Param("classCode") String classCode);
+    
+    /**
+     * Find class member by user ID and course ID (via class room)
+     */
+    @Query("SELECT cm FROM ClassMember cm JOIN FETCH cm.classRoom cr WHERE cm.user.id = :userId AND cr.course.id = :courseId AND cm.status = :status")
+    Optional<ClassMember> findByUserIdAndClassRoomCourseIdAndStatus(@Param("userId") Integer userId, @Param("courseId") Integer courseId, @Param("status") String status);
 }

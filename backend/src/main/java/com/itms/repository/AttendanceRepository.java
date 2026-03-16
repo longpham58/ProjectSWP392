@@ -18,10 +18,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     @Query("SELECT a FROM Attendance a JOIN FETCH a.enrollment e JOIN FETCH e.session s JOIN FETCH s.course c WHERE e.user.id = :userId AND c.id = :courseId")
     List<Attendance> findByUserIdAndCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
 
-    /**
-     * Find attendance by enrollment
-     */
-    Optional<Attendance> findByEnrollmentId(Integer enrollmentId);
+
 
     @Query(value = """
         SELECT DISTINCT activity_date
@@ -45,21 +42,25 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     List<LocalDate> findLearningDates(@Param("userId") Integer userId);
 
     /**
-     * Count sessions attended today for the given employee.
+     * Count sessions attended today for the given employee via ClassMember.
      */
     @Query(value = """
-        SELECT COUNT(*)
+        SELECT COUNT(DISTINCT s.id)
         FROM Attendance a
         JOIN Enrollment e ON a.enrollment_id = e.id
         JOIN Session s ON e.session_id = s.id
         WHERE e.user_id = :userId
+        AND s.class_id IN (
+            SELECT cm.class_id FROM ClassMember cm 
+            WHERE cm.user_id = :userId AND cm.status = 'ACTIVE'
+        )
         AND a.attended = 1
         AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
     """, nativeQuery = true)
     Integer countSessionsAttendedToday(@Param("userId") Integer userId);
 
     /**
-     * Total study minutes from sessions attended today.
+     * Total study minutes from sessions attended today via ClassMember.
      */
     @Query(value = """
         SELECT COALESCE(SUM(a.duration_minutes), 0)
@@ -67,13 +68,17 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         JOIN Enrollment e ON a.enrollment_id = e.id
         JOIN Session s ON e.session_id = s.id
         WHERE e.user_id = :userId
+        AND s.class_id IN (
+            SELECT cm.class_id FROM ClassMember cm 
+            WHERE cm.user_id = :userId AND cm.status = 'ACTIVE'
+        )
         AND a.attended = 1
         AND CAST(s.date AS DATE) = CAST(GETDATE() AS DATE)
     """, nativeQuery = true)
     Integer sumStudyMinutesToday(@Param("userId") Integer userId);
 
     /**
-     * Recent session attendance activities for the employee, most recent first.
+     * Recent session attendance activities for the employee via ClassMember, most recent first.
      */
     @Query(value = """
         SELECT TOP 10
@@ -87,6 +92,10 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         JOIN Session s ON e.session_id = s.id
         JOIN Course c ON s.course_id = c.id
         WHERE e.user_id = :userId
+        AND s.class_id IN (
+            SELECT cm.class_id FROM ClassMember cm 
+            WHERE cm.user_id = :userId AND cm.status = 'ACTIVE'
+        )
         AND a.attended = 1
         ORDER BY s.date DESC
     """, nativeQuery = true)
@@ -116,4 +125,17 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
      * Find attendance by enrollment id
      */
     Optional<Attendance> findByEnrollmentId(Integer enrollmentId);
+    
+    /**
+     * Count attended sessions for a user from a list of session IDs
+     */
+    @Query(value = """
+        SELECT COUNT(DISTINCT a.id)
+        FROM Attendance a
+        JOIN Enrollment e ON a.enrollment_id = e.id
+        WHERE e.user_id = :userId
+        AND e.session_id IN (:sessionIds)
+        AND a.attended = 1
+    """, nativeQuery = true)
+    Integer countByUserIdAndSessionIds(@Param("userId") Integer userId, @Param("sessionIds") List<Long> sessionIds);
 }

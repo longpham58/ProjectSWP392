@@ -1,17 +1,25 @@
 package com.itms.service;
 
 import com.itms.dto.DepartmentDto;
+import com.itms.dto.UserDto;
 import com.itms.dto.UserInfo;
 import com.itms.dto.auth.*;
 import com.itms.dto.common.ResponseDto;
+import com.itms.entity.Department;
+import com.itms.entity.Role;
 import com.itms.entity.User;
 import com.itms.entity.UserRole;
+import com.itms.repository.DepartmentRepository;
+import com.itms.repository.RoleRepository;
 import com.itms.repository.UserRepository;
+import com.itms.repository.UserRoleRepository;
 import com.itms.security.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
@@ -22,15 +30,29 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.Random;
+import java.util.stream.Collectors;
+
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvException;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final DepartmentRepository departmentRepository;
+    private final RoleRepository roleRepository;
+    private final UserRoleRepository userRoleRepository;
     private final PasswordEncoder passwordEncoder;
     private final OtpService otpService;
     private final JwtService jwtService;
@@ -93,35 +115,262 @@ public class UserService {
     }
 
     public ResponseDto<String> forgotPassword(ForgotPasswordRequest request) {
-        userRepository.findByEmail(request.getEmail())
-                .ifPresent(this::sendPasswordResetEmail);
+        // Check if email exists
+        var userOpt = userRepository.findByEmail(request.getEmail());
+        if (userOpt.isEmpty()) {
+            // Don't reveal if email exists
+            return ResponseDto.success(null, "If an account exists, an OTP has been sent.");
+        }
+        
+        // Generate OTP for forgot password
+        otpService.generateOtpForForgotPassword(request.getEmail());
 
         return ResponseDto.success(
                 null,
-                "If an account exists, a reset link has been sent."
+                "If an account exists, an OTP has been sent to your email."
         );
     }
-
+    
     // --------------------------
-    // Reset password
+    // Verify Forgot Password OTP
     // --------------------------
-    public ResponseDto<Void> resetPassword(ResetPasswordRequest request) {
-
-        Claims claims = jwtService.validateAndGetClaims(request.getToken());
-
-        if (!"RESET_PASSWORD".equals(claims.get("type"))) {
-            throw new RuntimeException("Invalid reset token");
+    public ResponseDto<String> verifyForgotPasswordOtp(
+            String email,
+            String otp,
+            HttpServletRequest httpRequest
+    ) {
+        // Validate OTP
+        int userId = otpService.validateForgotPasswordOtp(email, otp);
+        
+        // Store user ID in session for password reset
+        HttpSession session = httpRequest.getSession(true);
+        session.setAttribute("PASSWORD_RESET_USER_ID", userId);
+        session.setMaxInactiveInterval(10 * 60); // 10 minutes
+        
+        return ResponseDto.success(null, "OTP verified successfully. Please enter your new password.");
+    }
+    
+    // --------------------------
+    // Reset password (after OTP verification)
+    // --------------------------
+    public ResponseDto<Void> resetPassword(ResetPasswordRequest request, HttpServletRequest httpRequest) {
+        HttpSession session = httpRequest.getSession(false);
+        if (session == null) {
+            throw new RuntimeException("Session expired. Please try again.");
         }
-
-        int userId = Integer.parseInt(claims.getSubject());
+        
+        Integer userId = (Integer) session.getAttribute("PASSWORD_RESET_USER_ID");
+        if (userId == null) {
+            throw new RuntimeException("Invalid session. Please try again.");
+        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+        
+        // Clear session
+        session.removeAttribute("PASSWORD_RESET_USER_ID");
 
         return ResponseDto.success(null, "Password reset successful");
+    }
+
+    // --------------------------
+    // Request OTP for forgot password
+    // --------------------------
+    public ResponseDto<String> requestForgotPasswordOtp(ForgotPasswordRequest request) {
+        // Check if email exists
+        var userOpt = userRepository.findByEmail(request.getEmail());
+        if (userOpt.isEmpty()) {
+            // Don't reveal if email exists
+            return ResponseDto.success(null, "If an account exists, an OTP has been sent.");
+        }
+        
+        // Generate OTP for forgot password
+        otpService.generateOtpForForgotPassword(request.getEmail());
+
+        return ResponseDto.success(
+                null,
+                "If an account exists, an OTP has been sent to your email."
+        );
+    }
+
+    // --------------------------
+    // Import users from file
+    // --------------------------
+    @Transactional
+    public int importUsers(MultipartFile file) throws Exception {
+        int count = 0;
+        
+        List<String[]> rows = new ArrayList<>();
+        String filename = file.getOriginalFilename();
+        
+        try {
+            if (filename != null && filename.endsWith(".xlsx")) {
+                // Read Excel file
+                InputStream inputStream = file.getInputStream();
+                Workbook workbook = new XSSFWorkbook(inputStream);
+                Sheet sheet = workbook.getSheetAt(0);
+                Iterator<Row> rowIterator = sheet.iterator();
+                
+                while (rowIterator.hasNext()) {
+                    Row row = rowIterator.next();
+                    if (row.getRowNum() == 0) {
+                        // Skip header row
+                        continue;
+                    }
+                    
+                    List<String> rowData = new ArrayList<>();
+                    for (int i = 0; i < 6; i++) {
+                        Cell cell = row.getCell(i, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+                        rowData.add(getCellValue(cell));
+                    }
+                    
+                    if (!rowData.isEmpty() && !rowData.get(1).isEmpty()) {
+                        rows.add(rowData.toArray(new String[0]));
+                    }
+                }
+                
+                workbook.close();
+            } else {
+                // Read CSV file
+                CSVReader csvReader = new CSVReader(new java.io.InputStreamReader(file.getInputStream()));
+                rows = csvReader.readAll();
+                csvReader.close();
+            }
+        } catch (Exception e) {
+            // If parsing fails, return 0
+            throw new Exception("Failed to parse file: " + e.getMessage());
+        }
+        
+        // Process rows (skip header if CSV)
+        for (String[] row : rows) {
+            if (row.length < 2) continue;
+            
+            // Column order: Username, Email, FullName, Phone, Department, Role
+            String username = row.length > 0 ? row[0].trim() : "";
+            String email = row.length > 1 ? row[1].trim() : "";
+            String fullName = row.length > 2 ? row[2].trim() : "";
+            String phone = row.length > 3 ? row[3].trim() : "";
+            String department = row.length > 4 ? row[4].trim() : "";
+            String roleCode = row.length > 5 ? row[5].trim().toUpperCase() : "EMPLOYEE";
+            
+            // Skip empty rows
+            if (email.isEmpty()) continue;
+            
+            // Validate and sanitize phone (max 20 chars for NVARCHAR(20))
+            if (phone.length() > 20) {
+                phone = phone.substring(0, 20);
+            }
+            
+            // Check if user already exists
+            var existingUser = userRepository.findByEmail(email);
+            if (existingUser.isEmpty()) {
+                // Generate temporary password
+                String tempPassword = generateTempPassword();
+                
+                User newUser = new User();
+                newUser.setUsername(username.isEmpty() ? email.split("@")[0] : username);
+                newUser.setEmail(email);
+                newUser.setFullName(fullName.isEmpty() ? email.split("@")[0] : fullName);
+                newUser.setPhone(phone.isEmpty() ? null : phone);
+                newUser.setPassword(passwordEncoder.encode(tempPassword));
+                newUser.setIsActive(true);
+                
+                // Set department if provided
+                if (!department.isEmpty()) {
+                    Optional<Department> dept = departmentRepository.findByName(department);
+                    dept.ifPresent(newUser::setDepartment);
+                }
+                
+                userRepository.save(newUser);
+                
+                // Set role
+                Optional<Role> roleOpt = roleRepository.findByRoleCode(roleCode);
+                Role role = roleOpt.orElseGet(() -> roleRepository.findByRoleCode("EMPLOYEE").orElse(null));
+                if (role != null) {
+                    UserRole userRole = new UserRole();
+                    userRole.setUser(newUser);
+                    userRole.setRole(role);
+                    userRole.setIsActive(true);
+                    // Save UserRole to repository to ensure it's persisted
+                    userRoleRepository.save(userRole);
+                }
+                
+                // Send welcome email
+                sendWelcomeEmail(newUser, tempPassword);
+                
+                count++;
+            }
+        }
+        return count;
+    }
+    
+    // Helper method to get cell value as string
+    private String getCellValue(Cell cell) {
+        if (cell == null) return "";
+        
+        try {
+            switch (cell.getCellType()) {
+                case STRING:
+                    return cell.getStringCellValue().trim();
+                case NUMERIC:
+                    if (DateUtil.isCellDateFormatted(cell)) {
+                        return cell.getDateCellValue().toString();
+                    }
+                    // Return as integer string (remove decimals)
+                    long numValue = (long) cell.getNumericCellValue();
+                    return String.valueOf(numValue);
+                case BOOLEAN:
+                    return String.valueOf(cell.getBooleanCellValue());
+                case FORMULA:
+                    return cell.getCellFormula();
+                default:
+                    return "";
+            }
+        } catch (Exception e) {
+            // If any error occurs reading cell, return empty string
+            return "";
+        }
+    }
+
+    private String generateTempPassword() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder sb = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 8; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
+    private void sendWelcomeEmail(User user, String tempPassword) {
+        try {
+            String subject = "Welcome to ITMS - Your Account Details";
+            
+            String body = """
+                Dear %s,
+                
+                Welcome to ITMS Training Management System!
+                
+                Your account has been created. Here are your login details:
+                
+                Username: %s
+                Temporary Password: %s
+                
+                Please login with the above credentials. After login, you can change your password in your profile settings.
+                
+                If you need to reset your password, use the "Forgot Password" feature on the login page and verify with OTP.
+                
+                Best regards,
+                ITMS Admin
+                """.formatted(user.getFullName(), user.getUsername(), tempPassword);
+            
+            emailService.sendEmail(user.getEmail(), subject, body);
+        } catch (Exception e) {
+            System.err.println("Failed to send welcome email: " + e.getMessage());
+        }
     }
 
     public ResponseDto<UserInfo> getMe(Authentication authentication) {
@@ -268,6 +517,42 @@ public class UserService {
         """.formatted(link);
 
         emailService.sendEmail(user.getEmail(), subject, body);
+    }
+
+    public List<UserDto> getUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream().map(user -> {
+            String role = user.getUserRole().stream()
+                    .filter(UserRole::getIsActive)
+                    .map(ur -> ur.getRole().getRoleCode())
+                    .findFirst()
+                    .orElse("EMPLOYEE");
+            
+            String department = user.getDepartment() != null ? user.getDepartment().getName() : "";
+            
+            return UserDto.builder()
+                    .id(user.getId())
+                    .userId(user.getUsername())
+                    .fullname(user.getFullName())
+                    .email(user.getEmail())
+                    .role(role)
+                    .status(user.getIsActive() != null && user.getIsActive() ? "Active" : "Inactive")
+                    .department(department)
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
+    public void toggleUserStatus(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setIsActive(!user.getIsActive());
+        userRepository.save(user);
+    }
+
+    public void deleteUser(Integer userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        userRepository.delete(user);
     }
 
 

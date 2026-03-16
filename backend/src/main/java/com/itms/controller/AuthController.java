@@ -3,6 +3,7 @@ package com.itms.controller;
 import com.itms.dto.UserInfo;
 import com.itms.dto.auth.*;
 import com.itms.dto.common.ResponseDto;
+import com.itms.repository.UserRepository;
 import com.itms.service.OtpService;
 import com.itms.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -62,13 +63,34 @@ public class AuthController {
     }
 
     // --------------------------
-    // Forgot password
+    // Forgot password - send OTP and verify in one step
     // --------------------------
     @PostMapping("/forgot-password")
     public ResponseEntity<ResponseDto<String>> forgotPassword(
+            @RequestBody VerifyForgotPasswordOtpRequest request,
+            HttpServletRequest httpRequest) {
+
+        // Validate OTP
+        int userId = otpService.validateForgotPasswordOtp(request.getEmail(), request.getOtp());
+        
+        // Store user ID in session for password reset
+        HttpSession session = httpRequest.getSession(true);
+        session.setAttribute("PASSWORD_RESET_USER_ID", userId);
+        session.setMaxInactiveInterval(10 * 60); // 10 minutes
+        
+        return ResponseEntity.ok(
+                ResponseDto.success(null, "OTP verified successfully. Please enter your new password.")
+        );
+    }
+
+    // --------------------------
+    // Request OTP for forgot password (send OTP only)
+    // --------------------------
+    @PostMapping("/forgot-password/request-otp")
+    public ResponseEntity<ResponseDto<String>> requestForgotPasswordOtp(
             @RequestBody ForgotPasswordRequest request) {
 
-        ResponseDto<String> response = userService.forgotPassword(request);
+        ResponseDto<String> response = userService.requestForgotPasswordOtp(request);
         return ResponseEntity.ok(response);
     }
 
@@ -77,9 +99,10 @@ public class AuthController {
     // --------------------------
     @PostMapping("/reset-password")
     public ResponseEntity<ResponseDto<Void>> resetPassword(
-            @RequestBody ResetPasswordRequest request) {
+            @RequestBody ResetPasswordRequest request,
+            HttpServletRequest httpRequest) {
 
-        ResponseDto<Void> response = userService.resetPassword(request);
+        ResponseDto<Void> response = userService.resetPassword(request, httpRequest);
         return ResponseEntity.ok(response);
     }
 

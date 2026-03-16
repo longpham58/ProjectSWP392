@@ -45,6 +45,12 @@ export interface Course {
   score?: number;
   materials: Material[];
   feedbacks: Feedback[];
+  // Attendance info based on session attendance
+  totalSessions?: number;
+  attendedSessions?: number;
+  progressPercentage?: number;
+  className?: string;
+  classCode?: string;
 }
 
 export interface EmployeeClass {
@@ -59,6 +65,27 @@ export interface EmployeeClass {
   status: string;
   notes: string;
   joinedAt: string;
+}
+
+export interface TrainerScheduleItem {
+  id: number;
+  courseId: number;
+  courseName: string;
+  className: string;
+  sessionDate: string;
+  startTime: string;
+  endTime: string;
+  location: string;
+  status: string;
+}
+
+export interface CourseModule {
+  id: number;
+  title: string;
+  description: string;
+  displayOrder: number;
+  materials: any[];
+  quizzes: any[];
 }
 
 export const coursesApi = {
@@ -77,4 +104,28 @@ export const coursesApi = {
   // Get course modules
   getCourseModules: (courseId: number) =>
     axios.get<ApiResponse<any[]>>(`/courses/${courseId}/modules`),
+
+  // Trainer: Get my courses
+  getMyTrainerCourses: () =>
+    axios.get<ApiResponse<Course[]>>("/trainer/courses"),
+
+  // Trainer: Get my schedule
+  getMyTrainerSchedule: () =>
+    axios.get<ApiResponse<TrainerScheduleItem[]>>("/trainer/schedule"),
+
+  // Trainer: Create module
+  createModule: (courseId: number, data: { title: string; description: string; displayOrder?: number }) =>
+    axios.post<ApiResponse<CourseModule>>(`/trainer/courses/${courseId}/modules`, data),
+
+  // Trainer: Delete module
+  deleteModule: (moduleId: number) =>
+    axios.delete<ApiResponse<void>>(`/trainer/modules/${moduleId}`),
+
+  // Trainer: Create material
+  createMaterial: (moduleId: number, data: { title: string; description?: string; type: string; fileUrl?: string; fileSize?: number }) =>
+    axios.post<ApiResponse<any>>(`/trainer/modules/${moduleId}/materials`, data),
+
+  // Trainer: Delete material
+  deleteMaterial: (materialId: number) =>
+    axios.delete<ApiResponse<void>>(`/trainer/materials/${materialId}`),
 };
