@@ -28,4 +28,22 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     @Query("SELECT n FROM Notification n WHERE n.sender.id = :senderId AND n.isDraft = true ORDER BY n.sentDate DESC")
     List<Notification> findDraftsBySenderId(@Param("senderId") Integer senderId);
+
+    // Get recent notifications ordered by sent date
+    @Query("SELECT n FROM Notification n ORDER BY n.sentDate DESC")
+    List<Notification> findRecentNotifications();
+
+    // Get recent notifications with limit
+    @Query("SELECT n FROM Notification n ORDER BY n.sentDate DESC")
+    List<Notification> findTopRecentNotifications(org.springframework.data.domain.Pageable pageable);
+
+    // Get all notifications for admin (not filtered by user)
+    @Query("SELECT n FROM Notification n WHERE n.isDraft = :isDraft ORDER BY n.sentDate DESC")
+    List<Notification> findAllByIsDraft(@Param("isDraft") Boolean isDraft);
+
+    // Count all notifications
+    long count();
+
+    // Count by isDraft
+    long countByIsDraft(Boolean isDraft);
 }

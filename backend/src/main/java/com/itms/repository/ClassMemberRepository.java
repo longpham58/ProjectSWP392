@@ -33,4 +33,15 @@ public interface ClassMemberRepository extends JpaRepository<ClassMember, Intege
      */
     @Query("SELECT cm FROM ClassMember cm JOIN FETCH cm.classRoom cr WHERE cm.user.id = :userId AND cr.course.id = :courseId AND cm.status = :status")
     Optional<ClassMember> findByUserIdAndClassRoomCourseIdAndStatus(@Param("userId") Integer userId, @Param("courseId") Integer courseId, @Param("status") String status);
+    
+    /**
+     * Count students enrolled in a specific course (across all its classes)
+     */
+    @Query("SELECT COUNT(cm) FROM ClassMember cm JOIN cm.classRoom cr WHERE cr.course.id = :courseId AND cm.status = 'ACTIVE'")
+    long countActiveStudentsByCourseId(@Param("courseId") Integer courseId);
+    
+    /**
+     * Count active students in a specific class
+     */
+    long countByClassRoomIdAndStatus(Integer classRoomId, String status);
 }

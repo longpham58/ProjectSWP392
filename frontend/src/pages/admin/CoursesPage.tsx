@@ -1,31 +1,35 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { mockCourses } from "../../data/mockCourses";
+import { useCourseStore } from "../../stores/course.store";
 
 export default function AdminCoursesPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
+  
+  const { courses, loading, fetchCourses } = useCourseStore();
 
   const itemsPerPage = 5;
+
+  // Fetch courses from store
+  useEffect(() => {
+    const status = statusFilter === "ALL" ? undefined : statusFilter;
+    fetchCourses(status);
+  }, [statusFilter, fetchCourses]);
 
   /* =========================
      FILTER LOGIC
   ========================= */
 
   const filteredCourses = useMemo(() => {
-    return mockCourses.filter((course) => {
+    return courses.filter((course) => {
       const matchesSearch =
         course.name.toLowerCase().includes(search.toLowerCase()) ||
         course.code.toLowerCase().includes(search.toLowerCase());
 
-      const matchesStatus =
-        statusFilter === "ALL" ||
-        course.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
+      return matchesSearch;
     });
-  }, [search, statusFilter]);
+  }, [courses, search]);
 
   /* =========================
      PAGINATION
@@ -44,10 +48,10 @@ export default function AdminCoursesPage() {
      KPI DATA
   ========================= */
 
-  const total = mockCourses.length;
-  const active = mockCourses.filter(c => c.status === "ACTIVE").length;
-  const draft = mockCourses.filter(c => c.status === "DRAFT").length;
-  const archived = mockCourses.filter(c => c.status === "ARCHIVED").length;
+  const total = courses.length;
+  const active = courses.filter(c => c.status === "ACTIVE").length;
+  const draft = courses.filter(c => c.status === "DRAFT").length;
+  const archived = courses.filter(c => c.status === "ARCHIVED").length;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -98,56 +102,76 @@ export default function AdminCoursesPage() {
 
       {/* TABLE */}
       <div className="bg-white shadow rounded-xl overflow-hidden">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-100 text-left">
-            <tr>
-              <TableHead>Code</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Trainer</TableHead>
-              <TableHead>Level</TableHead>
-              <TableHead>Duration</TableHead>
-              <TableHead>Passing</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead>Action</TableHead>
-            </tr>
-          </thead>
-
-          <tbody>
-            {paginatedCourses.map((course) => (
-              <tr key={course.id} className="border-t hover:bg-gray-50">
-                <TableCell>{course.code}</TableCell>
-                <TableCell className="font-medium">
-                  {course.name}
-                </TableCell>
-                <TableCell>{course.trainer}</TableCell>
-                <TableCell>{course.level}</TableCell>
-                <TableCell>{course.duration_hours}h</TableCell>
-                <TableCell>{course.passing_score}%</TableCell>
-                <TableCell>
-                  <StatusBadge status={course.status} />
-                </TableCell>
-                <TableCell>{course.created_at}</TableCell>
-                <TableCell>
-                  <Link
-                    to={`/admin/courses/${course.id}`}
-                    className="text-blue-600 hover:underline"
-                  >
-                    View
-                  </Link>
-                </TableCell>
-              </tr>
-            ))}
-
-            {paginatedCourses.length === 0 && (
+        {loading ? (
+          <div className="p-8 text-center text-gray-500">Loading...</div>
+        ) : (
+          <table className="min-w-full text-sm">
+            <thead className="bg-gray-100 text-left">
               <tr>
-                <td colSpan="9" className="text-center p-6 text-gray-500">
-                  No courses found.
-                </td>
+                <TableHead>Code</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Trainer</TableHead>
+                <TableHead>Level</TableHead>
+                <TableHead>Classes</TableHead>
+                <TableHead>Students</TableHead>
+                <TableHead>Duration</TableHead>
+                <TableHead>Passing</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Action</TableHead>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody>
+              {paginatedCourses.map((course) => (
+                <tr key={course.id} className="border-t hover:bg-gray-50">
+                  <TableCell>{course.code}</TableCell>
+                  <TableCell className="font-medium">
+                    {course.name}
+                  </TableCell>
+                  <TableCell>{course.trainerName || "N/A"}</TableCell>
+                  <TableCell>{course.level}</TableCell>
+                  <TableCell>
+                    <span className="font-semibold text-blue-600">
+                      {course.classCount || 0}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="font-semibold text-green-600">
+                      {course.studentCount || 0}
+                    </span>
+                  </TableCell>
+                  <TableCell>{course.durationHours}h</TableCell>
+                  <TableCell>{course.passingScore}%</TableCell>
+                  <TableCell>
+                    <StatusBadge status={course.status} />
+                  </TableCell>
+                  <TableCell>
+                    {course.createdAt 
+                      ? new Date(course.createdAt).toLocaleDateString() 
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    <Link
+                      to={`/admin/courses/${course.id}`}
+                      className="text-blue-600 hover:underline"
+                    >
+                      View
+                    </Link>
+                  </TableCell>
+                </tr>
+              ))}
+
+              {paginatedCourses.length === 0 && (
+                <tr>
+                  <td colSpan={11} className="text-center p-6 text-gray-500">
+                    No courses found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* PAGINATION */}
@@ -182,7 +206,7 @@ export default function AdminCoursesPage() {
    SMALL COMPONENTS
 ========================= */
 
-function KpiCard({ title, value }) {
+function KpiCard({ title, value }: { title: string; value: number }) {
   return (
     <div className="bg-white shadow rounded-xl p-4">
       <p className="text-sm text-gray-500">{title}</p>
@@ -191,11 +215,11 @@ function KpiCard({ title, value }) {
   );
 }
 
-function StatusBadge({ status }) {
+function StatusBadge({ status }: { status: string }) {
   const base =
     "px-2 py-1 text-xs font-semibold rounded-full";
 
-  const styles = {
+  const styles: Record<string, string> = {
     DRAFT: "bg-gray-200 text-gray-700",
     ACTIVE: "bg-green-100 text-green-700",
     INACTIVE: "bg-yellow-100 text-yellow-700",
@@ -203,17 +227,17 @@ function StatusBadge({ status }) {
   };
 
   return (
-    <span className={`${base} ${styles[status]}`}>
+    <span className={`${base} ${styles[status] || styles.DRAFT}`}>
       {status}
     </span>
   );
 }
 
-function TableHead({ children }) {
+function TableHead({ children }: { children: ReactNode }) {
   return <th className="p-3">{children}</th>;
 }
 
-function TableCell({ children, className = "" }) {
+function TableCell({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <td className={`p-3 ${className}`}>
       {children}

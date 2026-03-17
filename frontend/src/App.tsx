@@ -21,6 +21,7 @@ import AdminNotificationsPage from "./pages/admin/NotificationsPage";
 import AdminSystemFeedbackPage from "./pages/admin/FeedbackPage";
 import AdminCoursesPage from "./pages/admin/CoursesPage";
 import AdminCourseDetailPage from "./pages/admin/CourseDetailPage";
+import AdminClassesPage from "./pages/admin/ClassesPage";
 
 import EmployeeLayout from "./layouts/EmployeeLayout";
 import EmployeePage from "./pages/employee/EmployeePage";
@@ -125,6 +126,7 @@ function App() {
             <Route path="feedback" element={<AdminSystemFeedbackPage />} />
             <Route path="courses" element={<AdminCoursesPage />} />
             <Route path="courses/:id" element={<AdminCourseDetailPage />} />
+            <Route path="classes" element={<AdminClassesPage />} />
           </Route>
 
           {/* Employee Routes */}

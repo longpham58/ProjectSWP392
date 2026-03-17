@@ -29,9 +29,18 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
 
     List<Course> findByTrainerId(Integer trainerId);
     
+    /** Find courses by status */
+    List<Course> findByStatus(com.itms.common.CourseStatus status);
+    
     /** Count all courses */
     long count();
     
     /** Count courses by status */
     long countByStatus(com.itms.common.CourseStatus status);
+
+    /** Get all courses with enrollment counts - for analytics */
+    @Query("SELECT c.name, (SELECT COUNT(cm) FROM ClassMember cm JOIN cm.classRoom cl WHERE cl.course = c), " +
+            "(SELECT COUNT(cm2) FROM ClassMember cm2 JOIN cm2.classRoom cl2 WHERE cl2.course = c AND cm2.status = 'COMPLETED') " +
+            "FROM Course c")
+    List<Object[]> getCourseCompletionStats();
 }

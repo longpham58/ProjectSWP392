@@ -65,7 +65,7 @@ public class TrainerNotificationService {
                 .recipientType(request.getRecipientType())
                 .classCodes(request.getClassCodes() != null ? String.join(",", request.getClassCodes()) : null)
                 .isDraft(request.getIsDraft() != null ? request.getIsDraft() : false)
-                .type("GENERAL")
+                .type(NotificationType.GENERAL)
                 .isRead(true) // Trainer's own notifications are "read"
                 .build();
 

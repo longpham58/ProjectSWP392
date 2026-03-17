@@ -70,7 +70,7 @@ public class HrNotificationService {
         String title = require(dto.getTitle(), "Tiêu đề không được để trống");
         String status = normalizeStatus(dto.getStatus());
 
-        entity.setType("GENERAL");
+        entity.setType(NotificationType.GENERAL);
         entity.setPriority(NotificationPriority.NORMAL);
         entity.setTitle(title);
         entity.setMessage(dto.getContent() == null ? "" : dto.getContent().trim());

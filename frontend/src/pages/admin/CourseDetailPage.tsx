@@ -1,36 +1,51 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { mockCourses } from "../../data/mockCourses";
+import { useEffect } from "react";
+import { useCourseStore } from "../../stores/course.store";
 
 export default function AdminCourseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { currentCourse, loading, error, fetchCourseById, clearCurrentCourse } = useCourseStore();
 
   const courseId = Number(id);
-  const course = mockCourses.find((c) => c.id === courseId);
 
-  if (!course) {
+  useEffect(() => {
+    console.log("CourseDetailPage mounted with ID:", courseId);
+    if (courseId) {
+      fetchCourseById(courseId);
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      clearCurrentCourse();
+    };
+  }, [courseId, fetchCourseById, clearCurrentCourse]);
+
+  if (loading) {
+    return (
+      <div className="p-6">
+        <p className="text-gray-500">Loading course...</p>
+      </div>
+    );
+  }
+
+  if (error || !currentCourse) {
     return (
       <div className="p-6">
         <h2 className="text-xl font-bold text-red-600">
           Course not found
         </h2>
+        <button 
+          onClick={() => navigate("/admin/courses")}
+          className="mt-4 text-blue-600 hover:underline"
+        >
+          Back to Courses
+        </button>
       </div>
     );
   }
 
-  /* =========================
-     CALCULATE AVG RATING
-  ========================= */
-
-  const averageRating =
-    course.feedbacks.length > 0
-      ? (
-          course.feedbacks.reduce(
-            (sum, fb) => sum + fb.rating,
-            0
-          ) / course.feedbacks.length
-        ).toFixed(1)
-      : "0.0";
+  const course = currentCourse;
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -69,27 +84,33 @@ export default function AdminCourseDetailPage() {
 
         {/* INFO GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 text-sm">
-          <InfoItem label="Trainer" value={course.trainer} />
-          <InfoItem label="Level" value={course.level} />
+          <InfoItem label="Trainer" value={course.trainerName || "Not assigned"} />
+          <InfoItem label="Level" value={course.level || "N/A"} />
           <InfoItem
             label="Duration"
-            value={`${course.duration_hours} hours`}
+            value={`${course.durationHours || 0} hours`}
           />
           <InfoItem
             label="Passing Score"
-            value={`${course.passing_score}%`}
+            value={`${course.passingScore || 0}%`}
           />
           <InfoItem
-            label="Total Materials"
-            value={course.materials.length}
+            label="Classes"
+            value={course.classCount || 0}
+          />
+          <InfoItem
+            label="Students"
+            value={course.studentCount || 0}
+          />
+          <InfoItem
+            label="Category"
+            value={course.category || "N/A"}
           />
           <InfoItem
             label="Created At"
-            value={course.created_at}
-          />
-          <InfoItem
-            label="Average Rating"
-            value={`⭐ ${averageRating}`}
+            value={course.createdAt 
+              ? new Date(course.createdAt).toLocaleDateString() 
+              : "N/A"}
           />
         </div>
       </div>
@@ -99,88 +120,79 @@ export default function AdminCourseDetailPage() {
       ========================= */}
       <SectionCard title="Description">
         <p className="text-gray-600">
-          {course.description}
+          {course.description || "No description available."}
         </p>
+      </SectionCard>
+
+      {/* =========================
+          ADDITIONAL INFO
+      ========================= */}
+      <SectionCard title="Course Details">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-gray-500 text-sm">Max Attempts</p>
+            <p className="font-medium">{course.maxAttempts || "Unlimited"}</p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-sm">Prerequisites</p>
+            <p className="font-medium">{(course as any).prerequisites || "None"}</p>
+          </div>
+        </div>
       </SectionCard>
 
       {/* =========================
           OBJECTIVES
       ========================= */}
-      <SectionCard title="Objectives">
-        <p className="text-gray-600">
-          {course.objectives}
-        </p>
-      </SectionCard>
+      {(course as any).objectives && (
+        <SectionCard title="Learning Objectives">
+          <p className="text-gray-600 whitespace-pre-line">
+            {(course as any).objectives}
+          </p>
+        </SectionCard>
+      )}
 
       {/* =========================
           MATERIALS
       ========================= */}
-      <SectionCard title={`Materials (${course.materials.length})`}>
-        {course.materials.length === 0 ? (
-          <p className="text-gray-500">
-            No materials available.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {course.materials.map((material) => (
-              <li
-                key={material.id}
-                className="border rounded-lg p-3 flex justify-between items-center"
+      {(course as any).materials && (course as any).materials.length > 0 && (
+        <SectionCard title="Course Materials">
+          <div className="space-y-3">
+            {(course as any).materials.map((material: any) => (
+              <div 
+                key={material.id} 
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
               >
-                <div>
-                  <p className="font-medium">
-                    {material.title}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {material.type}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <MaterialTypeIcon type={material.type} />
+                  <div>
+                    <p className="font-medium text-gray-900">{material.title}</p>
+                    <p className="text-sm text-gray-500">
+                      {material.type} {material.fileSize ? `• ${formatFileSize(material.fileSize)}` : ""}
+                    </p>
+                  </div>
                 </div>
-
-                {material.is_required && (
-                  <span className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded">
-                    Required
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </SectionCard>
-
-      {/* =========================
-          FEEDBACK
-      ========================= */}
-      <SectionCard
-        title={`Feedback (${course.feedbacks.length})`}
-      >
-        {course.feedbacks.length === 0 ? (
-          <p className="text-gray-500">
-            No feedback yet.
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {course.feedbacks.map((fb) => (
-              <div
-                key={fb.id}
-                className="border rounded-lg p-4"
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">
-                    {fb.user}
-                  </span>
-                  <span className="text-yellow-500">
-                    {"⭐".repeat(fb.rating)}
-                  </span>
+                <div className="flex items-center gap-2">
+                  {material.isRequired && (
+                    <span className="px-2 py-1 text-xs bg-red-100 text-red-700 rounded">
+                      Required
+                    </span>
+                  )}
+                  {material.fileUrl && (
+                    <a 
+                      href={material.fileUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    >
+                      View
+                    </a>
+                  )}
                 </div>
-
-                <p className="text-gray-600 mt-2">
-                  {fb.comment}
-                </p>
               </div>
             ))}
           </div>
-        )}
-      </SectionCard>
+        </SectionCard>
+      )}
     </div>
   );
 }
@@ -224,12 +236,12 @@ function InfoItem({
 function StatusBadge({
   status,
 }: {
-  status: "DRAFT" | "ACTIVE" | "INACTIVE" | "ARCHIVED";
+  status: string;
 }) {
   const base =
     "px-3 py-1 text-xs font-semibold rounded-full";
 
-  const styles = {
+  const styles: Record<string, string> = {
     DRAFT: "bg-gray-200 text-gray-700",
     ACTIVE: "bg-green-100 text-green-700",
     INACTIVE: "bg-yellow-100 text-yellow-700",
@@ -237,8 +249,37 @@ function StatusBadge({
   };
 
   return (
-    <span className={`${base} ${styles[status]}`}>
+    <span className={`${base} ${styles[status] || styles.DRAFT}`}>
       {status}
     </span>
   );
+}
+
+function MaterialTypeIcon({ type }: { type: string }) {
+  const iconClass = "w-8 h-8 p-1.5 rounded-lg";
+  
+  const styles: Record<string, { bg: string; color: string; icon: string }> = {
+    PDF: { bg: "bg-red-100", color: "text-red-600", icon: "📄" },
+    VIDEO: { bg: "bg-purple-100", color: "text-purple-600", icon: "🎬" },
+    DOCUMENT: { bg: "bg-blue-100", color: "text-blue-600", icon: "📝" },
+    LINK: { bg: "bg-green-100", color: "text-green-600", icon: "🔗" },
+    IMAGE: { bg: "bg-pink-100", color: "text-pink-600", icon: "🖼️" },
+    AUDIO: { bg: "bg-yellow-100", color: "text-yellow-600", icon: "🎵" },
+  };
+  
+  const style = styles[type] || { bg: "bg-gray-100", color: "text-gray-600", icon: "📁" };
+  
+  return (
+    <div className={`${iconClass} ${style.bg} ${style.color} flex items-center justify-center text-lg`}>
+      {style.icon}
+    </div>
+  );
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }

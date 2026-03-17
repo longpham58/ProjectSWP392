@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,4 +75,42 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     
     /** Count users by active status */
     long countByIsActive(boolean isActive);
+    
+    /** Count users created after a specific date (new registrations) */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt >= :startDate")
+    long countUsersCreatedAfter(@Param("startDate") LocalDateTime startDate);
+    
+    /** Count users who logged in after a specific date (daily active users) */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.lastLogin >= :startDate AND u.lastLogin IS NOT NULL")
+    long countUsersLoggedInAfter(@Param("startDate") LocalDateTime startDate);
+    
+    /** Count users with failed login attempts */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.failedLoginAttempts > 0")
+    long countUsersWithFailedLoginAttempts();
+    
+    /** Count locked users (lockedUntil is in the future) */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.lockedUntil IS NOT NULL AND u.lockedUntil > :now")
+    long countLockedUsers(@Param("now") LocalDateTime now);
+    
+    /** Count new users per month for the last N months */
+   @Query("""
+    SELECT MONTH(u.createdAt), COUNT(u)
+    FROM User u
+    WHERE u.createdAt >= :startDate
+    GROUP BY MONTH(u.createdAt)
+    ORDER BY MONTH(u.createdAt)
+""")
+List<Object[]> countNewUsersByMonth(@Param("startDate") LocalDateTime startDate);
+
+    /** Count users by department */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.department.id = :departmentId")
+    long countByDepartmentId(@Param("departmentId") Integer departmentId);
+
+    /** Count active users by department */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.department.id = :departmentId AND u.isActive = true")
+    long countActiveByDepartmentId(@Param("departmentId") Integer departmentId);
+
+    /** Get all departments with user counts */
+    @Query("SELECT u.department.name, COUNT(u) FROM User u WHERE u.department IS NOT NULL GROUP BY u.department.name")
+    List<Object[]> countUsersGroupByDepartment();
 }

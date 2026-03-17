@@ -7,11 +7,11 @@ export default function AdminLayout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
- logout().then(() => {
+   const handleLogout = () => {
+      logout();
       navigate("/login");
-    });
-};
+    };
+
   const getNavClass: NavLinkProps["className"] = ({ isActive }) =>
     isActive ? "nav-btn active" : "nav-btn";
 
