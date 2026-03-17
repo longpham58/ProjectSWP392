@@ -13,7 +13,7 @@ export default function EmployeePage() {
   const { certificates, fetchCertificates } = useCertificateStore();
 
   const navigate = useNavigate();
-  const { courses, fetchMyCourses } = useCourseStore();
+  const { courses, myCourses, fetchMyCourses } = useCourseStore();
   const { streak, fetchStreak, loading: streakLoading } = useStreakStore();
   const { deadlines, activities, todayProgress, loading: dashboardLoading, fetchDashboardData } = useDashboardStore();
   
@@ -24,13 +24,13 @@ export default function EmployeePage() {
       setIsLoading(true);
       try {
         await Promise.all([
-          fetchMyCourses(user?.id),
+          fetchMyCourses(),
           fetchNotifications(),
           fetchCertificates(user?.id || 0),
           fetchStreak(),
           fetchDashboardData()
         ]);
-        console.log(courses);
+        console.log(myCourses);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -38,15 +38,17 @@ export default function EmployeePage() {
       }
     };
     
-    if (user) {
+    if (user?.id) {
       fetchData();
+    } else {
+      // Clear data on logout
+      setIsLoading(false);
     }
   }, [user?.id]);
 
   // Get courses from API store
-  const myCourses = courses;
-  const ongoingCourses = courses.filter(c => c.status === "ACTIVE");
-  const completedCourses = courses.filter(c => c.status === "ARCHIVED");
+  const ongoingCourses = myCourses.filter(c => c.status === "ACTIVE");
+  const completedCourses = myCourses.filter(c => c.status === "ARCHIVED");
   const unreadNotifications = notifications.filter(n => !n.read);
   const learningStreak = streak ?? 0;
   const milestone = 10;

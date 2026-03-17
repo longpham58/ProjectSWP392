@@ -108,9 +108,9 @@ public class NotificationService {
     }
 
     private NotificationType toType(String type) {
-        if (type == null) return NotificationType.ANNOUNCEMENT;
+        if (type == null) return NotificationType.GENERAL;
         try { return NotificationType.valueOf(type.toUpperCase()); }
-        catch (IllegalArgumentException e) { return NotificationType.ANNOUNCEMENT; }
+        catch (IllegalArgumentException e) { return NotificationType.GENERAL; }
     }
 
     private NotificationPriority toPriority(String priority) {

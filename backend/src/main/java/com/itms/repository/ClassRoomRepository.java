@@ -39,4 +39,9 @@ public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
      * Count all class rooms
      */
     long count();
+    
+    /**
+     * Count classes for a specific course
+     */
+    long countByCourseId(Integer courseId);
 }

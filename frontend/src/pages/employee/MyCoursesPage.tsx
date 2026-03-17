@@ -9,7 +9,7 @@ type SortOption = 'newest' | 'oldest' | 'progress' | 'name';
 type ViewMode = 'grid' | 'list';
 
 export default function MyCoursesPage() {
-  const { courses, fetchMyCourses, loading } = useCourseStore();
+  const { myCourses, fetchMyCourses, loading } = useCourseStore();
   const { user } = useAuthStore();
   const [filter, setFilter] = useState<'all' | 'ACTIVE' | 'DRAFT' | 'ARCHIVED'>('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,11 +18,11 @@ export default function MyCoursesPage() {
 
   // Fetch courses from API
   useEffect(() => {
-    fetchMyCourses(user?.id);
-  }, [fetchMyCourses, user]);
+    fetchMyCourses();
+  }, [fetchMyCourses]);
 
   // Filter courses
-  let filteredCourses = courses.filter(course => {
+  let filteredCourses = myCourses.filter(course => {
     const matchesFilter = filter === 'all' || course.status === filter;
     const matchesSearch = (course.title || course.name).toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -46,9 +46,9 @@ export default function MyCoursesPage() {
   });
 
   // Statistics
-  const activeCourses = courses.filter(c => c.status === 'ACTIVE');
-  const draftCourses = courses.filter(c => c.status === 'DRAFT');
-  const archivedCourses = courses.filter(c => c.status === 'ARCHIVED');
+  const activeCourses = myCourses.filter(c => c.status === 'ACTIVE');
+  const draftCourses = myCourses.filter(c => c.status === 'DRAFT');
+  const archivedCourses = myCourses.filter(c => c.status === 'ARCHIVED');
 
   return (
     <div className="p-6">

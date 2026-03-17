@@ -169,11 +169,13 @@ resetPassword: async (newPassword: string) => {
       // Ignore API errors in mock mode
     }
     
-    // Clear all auth state
+    // Clear all auth state and localStorage
+    localStorage.removeItem(AUTH_SESSION_HINT_KEY);
     set({
       user: null,
       otpRequired: false,
       error: null,
+      initialized: false,
     });
   },
 }));

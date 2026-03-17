@@ -13,9 +13,9 @@ import {
   Legend,
 } from "recharts";
 import CompletionTrend from "./components/CompletionTrend";
-import { adminApi, AdminDashboardStats } from "../../api/admin.api";
+import { adminApi, AdminDashboardStats, MonthlyCompletion, RecentActivity } from "../../api/admin.api";
 
-type MonthlyData = {
+type ChartData = {
   month: string;
   completion: number;
 };
@@ -40,49 +40,57 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
-  // Fallback KPIs if not loaded
+  // Admin-focused KPIs (Training System)
   const kpis = stats
     ? [
         { title: "Total Users", value: stats.totalUsers },
         { title: "Active Users", value: stats.activeUsers },
-        { title: "Locked Accounts", value: stats.lockedAccounts },
-        { title: "Open Feedback", value: stats.openFeedback },
+        { title: "Total Courses", value: stats.totalCourses },
+        { title: "Active Courses", value: stats.activeCourses },
       ]
     : [
         { title: "Total Users", value: 0 },
         { title: "Active Users", value: 0 },
-        { title: "Locked Accounts", value: 0 },
-        { title: "Open Feedback", value: 0 },
+        { title: "Total Courses", value: 0 },
+        { title: "Active Courses", value: 0 },
       ];
 
-  // 🔹 Completion Trend
-  const monthlyData: MonthlyData[] = [
-    { month: "Jan", completion: 65 },
-    { month: "Feb", completion: 70 },
-    { month: "Mar", completion: 72 },
-    { month: "Apr", completion: 75 },
-    { month: "May", completion: 78 },
-    { month: "Jun", completion: 82 },
-  ];
+  // Course Completion Trend from API
+  const monthlyData: ChartData[] = stats?.monthlyCompletion
+    ? stats.monthlyCompletion.map((item: MonthlyCompletion) => ({
+        month: item.month,
+        completion: item.completions,
+      }))
+    : [
+        { month: "Jan", completion: 0 },
+        { month: "Feb", completion: 0 },
+        { month: "Mar", completion: 0 },
+        { month: "Apr", completion: 0 },
+        { month: "May", completion: 0 },
+        { month: "Jun", completion: 0 },
+      ];
 
-  // 🥧 Role distribution mock
-  const roleData = [
-    { name: "Admin", value: 3 },
-    { name: "HR", value: 5 },
-    { name: "Trainer", value: 12 },
-    { name: "Employee", value: 108 },
-  ];
+  // Role distribution from API
+  const roleData = stats?.roleDistribution
+    ? Object.entries(stats.roleDistribution).map(([name, value]) => ({
+        name,
+        value,
+      }))
+    : [];
 
   const COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#9333ea"];
 
-  const activities = [
-    "HR created 'Advanced React' course",
-    "12 employees enrolled in Compliance",
-    "5 certificates issued",
-    "3 feedback reports submitted",
-    "Trainer uploaded new materials",
-    "2 users marked inactive",
-  ];
+  // Recent activities from API
+  const activities = stats?.recentActivities
+    ? stats.recentActivities.map((activity: RecentActivity) => ({
+        description: activity.description,
+        timeAgo: activity.timeAgo,
+      }))
+    : [];
+
+  // Security alerts from API
+  const securityAlerts = stats?.securityAlerts ?? 0;
+  const failedLogins = stats?.failedLoginAttempts ?? 0;
 
   return (
     <div>
@@ -102,7 +110,7 @@ export default function AdminDashboard() {
           ))
         )}
       </div>
-{/* TRAINING TREND - FULL WIDTH */}
+{/* COURSE COMPLETION TREND - FULL WIDTH */}
 <div className="bg-white p-6 rounded-2xl shadow mb-8">
   <CompletionTrend monthlyData={monthlyData} />
 </div>
@@ -118,17 +126,21 @@ export default function AdminDashboard() {
     </h3>
 
     <div className="space-y-4">
-      {activities.map((activity, index) => (
-        <div key={index} className="flex items-center gap-4">
-          <div className="w-3 h-3 bg-gray-400 rounded-full" />
-          <p className="text-sm text-gray-700 flex-1">
-            {activity}
-          </p>
-          <span className="text-xs text-gray-400">
-            2 hours ago
-          </span>
-        </div>
-      ))}
+      {activities.length > 0 ? (
+        activities.map((activity, index) => (
+          <div key={index} className="flex items-center gap-4">
+            <div className="w-3 h-3 bg-gray-400 rounded-full" />
+            <p className="text-sm text-gray-700 flex-1">
+              {activity.description}
+            </p>
+            <span className="text-xs text-gray-400">
+              {activity.timeAgo}
+            </span>
+          </div>
+        ))
+      ) : (
+        <p className="text-sm text-gray-500">No recent activities</p>
+      )}
     </div>
   </div>
 
@@ -138,34 +150,45 @@ export default function AdminDashboard() {
       Role Distribution
     </h3>
 
-    <ResponsiveContainer width="100%" height={300}>
-      <PieChart>
-        <Pie
-          data={roleData}
-          dataKey="value"
-          nameKey="name"
-          outerRadius={90}
-          label
-        >
-          {roleData.map((entry, index) => (
-            <Cell key={index} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <Legend />
-      </PieChart>
-    </ResponsiveContainer>
+    {roleData.length > 0 ? (
+      <ResponsiveContainer width="100%" height={300}>
+        <PieChart>
+          <Pie
+            data={roleData}
+            dataKey="value"
+            nameKey="name"
+            outerRadius={90}
+            label
+          >
+            {roleData.map((entry, index) => (
+              <Cell key={index} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Legend />
+        </PieChart>
+      </ResponsiveContainer>
+    ) : (
+      <p className="text-sm text-gray-500 text-center py-8">No role data available</p>
+    )}
   </div>
 </div>
 
-      {/* ALERTS + FEEDBACK */}
+      {/* SECURITY + FEEDBACK */}
       <div className="grid grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-2xl shadow">
           <h3 className="text-lg font-semibold mb-4">
             Security Alerts
           </h3>
           <p className="text-sm text-gray-600">
-            2 accounts locked due to failed login attempts.
+            {securityAlerts > 0
+              ? `${securityAlerts} security alert(s) requiring attention.`
+              : "No security alerts at this time."}
           </p>
+          {failedLogins > 0 && (
+            <p className="text-sm text-red-600 mt-2">
+              {failedLogins} failed login attempt(s) detected.
+            </p>
+          )}
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow">
@@ -173,7 +196,7 @@ export default function AdminDashboard() {
             Open Feedback Tickets
           </h3>
           <p className="text-sm text-gray-600">
-            12 pending feedback reports awaiting review.
+            {stats?.openFeedback ?? 0} pending feedback reports awaiting review.
           </p>
         </div>
       </div>

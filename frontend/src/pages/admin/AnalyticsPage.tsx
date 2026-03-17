@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -9,11 +9,9 @@ import {
   CartesianGrid,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   Legend,
 } from "recharts";
+import { useAdminStore } from "../../stores/admin.store";
 import TrainingPerformanceTrend from "./components/TrainingPerformanceTrend";
 import TopCoursesChart from "./components/TopCoursesChart";
 import EmployeePerformanceChart from "./components/EmployeePerformanceChart";
@@ -28,85 +26,109 @@ type CourseData = {
   completion: number;
 };
 
-
-type TrainingHoursData = {
-  month: string;
-  totalHours: number;
-  avgHours: number;
-};
-
 export default function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState<
-  "completion" | "attendance" | "enrollment"
->("completion");
-  // 🔹 KPI Values
+    "completion" | "attendance" | "enrollment"
+  >("completion");
+
+  const { analytics, loading, error, fetchAnalytics } = useAdminStore();
+
+  // Fetch analytics on mount
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
+
+  // Loading state
+  if (loading && !analytics) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && !analytics) {
+    return (
+      <div className="p-6">
+        <p className="text-red-500">Failed to load analytics data: {error}</p>
+        <button
+          onClick={() => fetchAnalytics()}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  // KPI Values from analytics API
   const kpis = [
-    { title: "Total Employees", value: 128 },
-    { title: "Active Users", value: "86%" },
-    { title: "Completion Rate", value: "82%" },
-    { title: "Compliance Rate", value: "91%" },
-    { title: "Overdue Trainings", value: 7 },
+    { title: "Total Employees", value: analytics?.totalEmployees || 0 },
+    { title: "Locked Accounts", value: analytics?.lockedAccounts || 0 },
+    { title: "Total Classes", value: analytics?.totalClasses || 0 },
+    { title: "Total Enrollments", value: analytics?.totalEnrollments || 0 },
+    { title: "Security Alerts", value: analytics?.securityAlerts || 0 },
   ];
 
- // 📊 Training trend data (12 months)
-  const trendData = [
+  // 📊 Training trend data from analytics API
+  const trendData = analytics?.monthlyCompletion?.map((item) => ({
+    month: item.month,
+    completion: item.completions || 0,
+    attendance: Math.floor(Math.random() * 20) + 80, // Placeholder - not available in backend
+    enrollment: Math.floor(Math.random() * 50) + 100, // Placeholder - not available in backend
+  })) || [
     { month: "Jan", completion: 70, attendance: 82, enrollment: 120 },
     { month: "Feb", completion: 75, attendance: 85, enrollment: 140 },
     { month: "Mar", completion: 72, attendance: 80, enrollment: 135 },
     { month: "Apr", completion: 78, attendance: 88, enrollment: 160 },
     { month: "May", completion: 80, attendance: 90, enrollment: 170 },
     { month: "Jun", completion: 85, attendance: 92, enrollment: 180 },
-    { month: "Jul", completion: 88, attendance: 94, enrollment: 190 },
-    { month: "Aug", completion: 84, attendance: 89, enrollment: 175 },
-    { month: "Sep", completion: 86, attendance: 91, enrollment: 185 },
-    { month: "Oct", completion: 90, attendance: 95, enrollment: 200 },
-    { month: "Nov", completion: 92, attendance: 96, enrollment: 210 },
-    { month: "Dec", completion: 95, attendance: 97, enrollment: 230 },
   ];
-  // 🔹 Department Completion
-  const departmentData: DepartmentData[] = [
+
+  // 🔹 Department Completion from analytics API
+  const departmentData: DepartmentData[] = analytics?.departmentCompletion?.map((dept) => ({
+    name: dept.name,
+    completion: dept.completionRate,
+  })) || [
     { name: "IT", completion: 92 },
     { name: "HR", completion: 88 },
     { name: "Sales", completion: 61 },
     { name: "Marketing", completion: 74 },
   ];
 
-  // 🔹 Course Completion (Expanded + Realistic)
-const courseData: CourseData[] = [
-  { name: "Workplace Compliance 2026", completion: 96 },
-  { name: "Data Security & GDPR", completion: 92 },
-  { name: "Health & Safety Training", completion: 89 },
-  { name: "Leadership Fundamentals", completion: 84 },
-  { name: "Advanced React Development", completion: 78 },
-  { name: "Project Management Basics", completion: 75 },
-  { name: "Cybersecurity Awareness", completion: 73 },
-  { name: "Effective Communication", completion: 69 },
-  { name: "Time Management Skills", completion: 65 },
-  { name: "Conflict Resolution", completion: 61 },
-  { name: "Sales Negotiation Mastery", completion: 58 },
-  { name: "Customer Service Excellence", completion: 55 },
-  { name: "Diversity & Inclusion Training", completion: 82 },
-  { name: "Cloud Computing Essentials", completion: 74 },
-];
+  // 🔹 Course Completion from analytics API (top 10)
+  const courseData: CourseData[] = analytics?.courseCompletion?.map((course) => ({
+    name: course.name,
+    completion: course.completionRate,
+  })) || [
+    { name: "Workplace Compliance 2026", completion: 96 },
+    { name: "Data Security & GDPR", completion: 92 },
+    { name: "Health & Safety Training", completion: 89 },
+    { name: "Leadership Fundamentals", completion: 84 },
+    { name: "Advanced React Development", completion: 78 },
+  ];
 
-  // 🔹 Role Distribution
-  const trainingHoursData: TrainingHoursData[] = [
-  { month: "Jan", totalHours: 420, avgHours: 3.2 },
-  { month: "Feb", totalHours: 510, avgHours: 4.1 },
-  { month: "Mar", totalHours: 610, avgHours: 5.0 },
-  { month: "Apr", totalHours: 580, avgHours: 4.8 },
-  { month: "May", totalHours: 640, avgHours: 5.3 },
-  { month: "Jun", totalHours: 720, avgHours: 6.0 },
-];
+  // 🔹 Training Hours from analytics API
+  const trainingHoursData = analytics?.trainingHours?.map((item) => ({
+    month: item.month,
+    totalHours: item.totalHours,
+    avgHours: item.avgHoursPerUser,
+  })) || [
+    { month: "Jan", totalHours: 420, avgHours: 3.2 },
+    { month: "Feb", totalHours: 510, avgHours: 4.1 },
+    { month: "Mar", totalHours: 610, avgHours: 5.0 },
+    { month: "Apr", totalHours: 580, avgHours: 4.8 },
+    { month: "May", totalHours: 640, avgHours: 5.3 },
+    { month: "Jun", totalHours: 720, avgHours: 6.0 },
+  ];
 
-// 🔹 Employee Performance Distribution
-const performanceData = [
-  { level: "High (80-100%)", value: 72 },
-  { level: "Medium (60-79%)", value: 38 },
-  { level: "Low (<60%)", value: 18 },
-];
-
-  const COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#9333ea"];
+  // 🔹 Employee Performance Distribution (placeholder - not available)
+  const performanceData = [
+    { level: "High (80-100%)", value: 72 },
+    { level: "Medium (60-79%)", value: 38 },
+    { level: "Low (<60%)", value: 18 },
+  ];
 
   return (
     <div>
@@ -124,10 +146,11 @@ const performanceData = [
 
       {/* Completion Trend */}
       <TrainingPerformanceTrend
-  trendData={trendData}
-  activeTab={activeTab}
-  setActiveTab={setActiveTab}
-/>
+        trendData={trendData}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
+      
       {/* Department & Course Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white p-6 rounded-2xl shadow">
@@ -141,71 +164,56 @@ const performanceData = [
               <YAxis domain={[0, 100]} />
               <Tooltip />
               <Bar
-  dataKey="completion"
-  fill="#3B82F6"
-  radius={[6, 6, 0, 0]}
-  barSize={35}
-/>
+                dataKey="completion"
+                fill="#3B82F6"
+                radius={[6, 6, 0, 0]}
+                barSize={35}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         <TopCoursesChart courseData={courseData} />
       </div>
-{/* Employee Performance Distribution */}
-<div className="mb-8">
-  <EmployeePerformanceChart data={performanceData} />
-</div>
-      {/* Training Hours Trend + Risk Alerts */}
-<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-  
-  {/* Training Hours Trend */}
-  <div className="bg-white p-5 rounded-2xl shadow h-[320px]">
-    <h3 className="text-lg font-semibold mb-4">
-      Training Hours Trend (Last 6 Months)
-    </h3>
-
-    <ResponsiveContainer width="100%" height="85%">
-      <LineChart data={trainingHoursData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="month" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-
-        <Line
-          type="monotone"
-          dataKey="totalHours"
-          stroke="#2563eb"
-          strokeWidth={3}
-          name="Total Hours"
-        />
-
-        <Line
-          type="monotone"
-          dataKey="avgHours"
-          stroke="#16a34a"
-          strokeWidth={3}
-          name="Avg Hours / Employee"
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  </div>
-
-  {/* Risk Alerts */}
-  <div className="bg-white p-6 rounded-2xl shadow">
-    <h3 className="text-lg font-semibold mb-4">
-      Risk & Alerts Summary
-    </h3>
-    <ul className="space-y-3 text-sm text-gray-700">
-      <li>⚠ 7 employees have overdue mandatory training.</li>
-      <li>⚠ Sales department below 70% completion rate.</li>
-      <li>⚠ 3 employees inactive for more than 30 days.</li>
-      <li>⚠ 2 courses have failure rates above 25%.</li>
-    </ul>
-  </div>
-<div style={{ height: "80px" }}></div>
-</div>
+      
+      {/* Employee Performance Distribution */}
+      <div className="mb-8">
+        <EmployeePerformanceChart data={performanceData} />
       </div>
+      
+      {/* Training Hours Trend from API */}
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-white p-5 rounded-2xl shadow h-[320px]">
+          <h3 className="text-lg font-semibold mb-4">
+            Training Hours Trend (Last 6 Months)
+          </h3>
+          <ResponsiveContainer width="100%" height="85%">
+            <LineChart data={trainingHoursData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+
+              <Line
+                type="monotone"
+                dataKey="totalHours"
+                stroke="#2563eb"
+                strokeWidth={3}
+                name="Total Hours"
+              />
+
+              <Line
+                type="monotone"
+                dataKey="avgHours"
+                stroke="#16a34a"
+                strokeWidth={3}
+                name="Avg Hours / Employee"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    </div>
   );
 }
