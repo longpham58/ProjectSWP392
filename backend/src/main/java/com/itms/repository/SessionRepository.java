@@ -27,7 +27,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     @Query(value = """
         SELECT TOP 10
             s.id                AS id,
-            COALESCE(s.session_name, 'Session ' + CAST(s.id AS VARCHAR)) AS title,
+            COALESCE('Session ' + CAST(s.id AS VARCHAR), 'Session ' + CAST(s.id AS VARCHAR)) AS title,
             c.name              AS course,
             s.date              AS sessionDate,
             DATEDIFF(DAY, CAST(GETDATE() AS DATE), CAST(s.date AS DATE)) AS daysLeft,
@@ -62,11 +62,6 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     @Query("""
         SELECT new com.itms.dto.SessionAttendanceDto(
             s.id,
-
-            s.course.code,
-
-            CONCAT('Session ', s.id),
-            CAST(s.id AS int),
             s.date,
             s.timeStart,
             s.timeEnd,
@@ -98,8 +93,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     @Query("""
         SELECT new com.itms.dto.SessionAttendanceDto(
             s.id,
-            s.sessionName,
-            s.sessionNumber,
+            CAST(s.id AS int),
             s.date,
             s.timeStart,
             s.timeEnd,
@@ -142,13 +136,18 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     /**
      * Calculate session number dynamically by counting previous sessions in the same class
      */
-    @Query("""
-        SELECT COUNT(s2) + 1
+    @Query(value = """
+        SELECT COUNT_BIG(s2.id) + 1
         FROM Session s2
-        WHERE s2.classRoom.id = :classId
-        AND (s2.date < :sessionDate 
-             OR (s2.date = :sessionDate AND s2.timeStart < :timeStart))
-    """)
+        WHERE s2.class_id = :classId
+        AND (
+            CAST(s2.date AS DATE) < CAST(:sessionDate AS DATE)
+            OR (
+                CAST(s2.date AS DATE) = CAST(:sessionDate AS DATE)
+                AND CAST(s2.time_start AS TIME) < CAST(:timeStart AS TIME)
+            )
+        )
+    """, nativeQuery = true)
     Integer getSessionNumber(
         @Param("classId") Integer classId,
         @Param("sessionDate") LocalDate sessionDate,
@@ -158,13 +157,13 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     /**
      * Find all sessions for a user (through enrollments), ordered by date
      */
-    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session = s WHERE e.user.id = :userId ORDER BY s.date ASC, s.sessionNumber ASC")
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session = s WHERE e.user.id = :userId ORDER BY s.date ASC, s.id ASC")
     List<Session> findByUserIdOrderByDateAsc(@Param("userId") Integer userId);
 
     /**
      * Find all sessions for a user for a specific course
      */
-    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session = s WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.sessionNumber ASC")
+    @Query("SELECT s FROM Session s JOIN Enrollment e ON e.session = s WHERE e.user.id = :userId AND s.course.id = :courseId ORDER BY s.date ASC, s.id ASC")
     List<Session> findByUserIdAndCourseIdOrderByDateAsc(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
 
     /**

@@ -1,7 +1,6 @@
 package com.itms.service;
 
 import com.itms.common.NotificationPriority;
-import com.itms.common.NotificationType;
 import com.itms.common.ReferenceType;
 import com.itms.dto.NotificationDto;
 import com.itms.entity.ClassMember;
@@ -95,7 +94,7 @@ public class NotificationService {
                 .read(n.getIsRead())
                 .isRead(n.getIsRead())
                 .isDraft(n.getIsDraft())
-                .type(n.getType() != null ? n.getType().name() : "ANNOUNCEMENT")
+                .type(n.getType() != null ? n.getType() : "GENERAL")
                 .priority(n.getPriority() != null ? n.getPriority().name() : "NORMAL")
                 .referenceType(n.getReferenceType())
                 .referenceId(n.getReferenceId())

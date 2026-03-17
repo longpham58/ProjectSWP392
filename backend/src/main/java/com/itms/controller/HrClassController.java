@@ -31,6 +31,11 @@ public class HrClassController {
         return ResponseEntity.ok(ResponseDto.success(hrClassService.getAll(), "HR classes retrieved"));
     }
 
+    @GetMapping("/trainers")
+    public ResponseEntity<ResponseDto<List<HrClassDto>>> getTrainers() {
+        return ResponseEntity.ok(ResponseDto.success(hrClassService.getTrainers(), "Trainers retrieved"));
+    }
+
     @PostMapping
     public ResponseEntity<ResponseDto<HrClassDto>> create(@RequestBody HrClassDto request) {
         HrClassDto created = hrClassService.create(request);

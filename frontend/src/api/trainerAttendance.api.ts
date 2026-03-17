@@ -24,7 +24,7 @@ interface ApiResponse<T> {
 // Get classes that have schedule today
 export const getTodayClasses = async (): Promise<ClassAttendanceDto[]> => {
   const response = await api.get<ApiResponse<ClassAttendanceDto[]>>(
-    '/trainer/attendance/today-classes'
+    'trainer/attendance/today-classes'
   );
   return response.data.data;
 };
@@ -34,7 +34,7 @@ export const getClassAttendance = async (
   date: string
 ): Promise<ClassAttendanceDto> => {
   const response = await api.get<ApiResponse<ClassAttendanceDto>>(
-    `/trainer/attendance/class/${classCode}`,
+    `trainer/attendance/class/${classCode}`,
     { params: { date } }
   );
   return response.data.data;
@@ -45,7 +45,7 @@ export const saveClassAttendance = async (
   date: string,
   updates: StudentAttendanceDto[]
 ): Promise<void> => {
-  await api.post(`/trainer/attendance/class/${classCode}`, { students: updates }, {
+  await api.post(`trainer/attendance/class/${classCode}`, { students: updates }, {
     params: { date }
   });
 };

@@ -1,7 +1,6 @@
 package com.itms.service;
 
 import com.itms.common.NotificationPriority;
-import com.itms.common.NotificationType;
 import com.itms.dto.TrainerNotificationDto;
 import com.itms.dto.TrainerNotificationRequest;
 import com.itms.entity.Course;

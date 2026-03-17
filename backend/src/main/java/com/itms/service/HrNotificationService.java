@@ -1,7 +1,6 @@
 package com.itms.service;
 
 import com.itms.common.NotificationPriority;
-import com.itms.common.NotificationType;
 import com.itms.dto.HrNotificationDto;
 import com.itms.entity.Notification;
 import com.itms.entity.User;

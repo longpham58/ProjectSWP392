@@ -1,7 +1,6 @@
 package com.itms.entity;
 
 import com.itms.common.NotificationPriority;
-import com.itms.common.NotificationType;
 import com.itms.common.ReferenceType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,9 +28,8 @@ public class Notification {
     @JoinColumn(name = "sender_id")
     private User sender;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 50)
-    private NotificationType type;
+    private String type;
 
     @Column(nullable = false)
     private String title;

@@ -25,6 +25,7 @@ public class CourseDto {
     private Double durationHours;
     private String duration; // Human readable duration
     private String trainer;
+    private Integer trainerId;
     private String instructor; // Alias for trainer
     private String category;
     private Level level;
@@ -82,6 +83,7 @@ public class CourseDto {
                 .duration(course.getDurationHours() != null ? 
                         formatDuration(course.getDurationHours()) : null)
                 .trainer(course.getTrainer() != null ? course.getTrainer().getFullName() : null)
+                .trainerId(course.getTrainer() != null ? course.getTrainer().getId() : null)
                 .instructor(course.getTrainer() != null ? course.getTrainer().getFullName() : null) // Alias
                 .category(course.getCategory())
                 .level(course.getLevel())

@@ -33,24 +33,32 @@ public class TrainerAttendanceService {
     private final UserRepository userRepository;
 
     /**
-     * Get classes that have a schedule TODAY for this trainer.
+     * Get classes that have a session TODAY for this trainer.
+     * Queries Session table directly so all scheduled sessions appear.
      */
     public List<ClassAttendanceDto> getTodayClasses(Integer trainerId) {
         LocalDate today = LocalDate.now();
-        String todayDow = today.getDayOfWeek().name().substring(0, 3).toUpperCase();
 
-        List<ClassRoom> classRooms = classRoomRepository.findByTrainerIdWithCourse(trainerId);
+        // Find all sessions today for this trainer
+        List<Session> todaySessions = sessionRepository.findByTrainerId(trainerId)
+                .stream()
+                .filter(s -> today.equals(s.getDate()))
+                .collect(Collectors.toList());
 
-        return classRooms.stream()
-                .filter(cr -> courseScheduleRepository.findByClassRoomId(cr.getId())
-                        .stream()
-                        .anyMatch(s -> s.getDayOfWeek() != null &&
-                                s.getDayOfWeek().equalsIgnoreCase(todayDow)))
-                .map(cr -> ClassAttendanceDto.builder()
-                        .classCode(cr.getClassCode())
-                        .className(cr.getClassName())
-                        .date(today)
-                        .build())
+        // Deduplicate by classCode
+        return todaySessions.stream()
+                .filter(s -> s.getClassRoom() != null)
+                .collect(Collectors.toMap(
+                        s -> s.getClassRoom().getClassCode(),
+                        s -> ClassAttendanceDto.builder()
+                                .classCode(s.getClassRoom().getClassCode())
+                                .className(s.getClassRoom().getClassName())
+                                .date(today)
+                                .build(),
+                        (a, b) -> a
+                ))
+                .values()
+                .stream()
                 .collect(Collectors.toList());
     }
 

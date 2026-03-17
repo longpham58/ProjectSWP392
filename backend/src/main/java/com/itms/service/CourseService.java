@@ -142,7 +142,6 @@ public class CourseService {
         return sessions.stream()
                 .map(session -> TrainerScheduleDto.builder()
                         .sessionId(session.getId())
-                        .sessionName("Session " + session.getId()) // Generate session name from ID
                         .sessionNumber(session.getId().intValue()) // Use session ID as session number
                         .date(session.getDate())
                         .timeStart(session.getTimeStart())
@@ -228,6 +227,7 @@ public class CourseService {
                 .status(c.getStatus() != null ? c.getStatus().name() : null)
                 .trainerUsername(trainerUsername)
                 .trainerName(trainerName)
+                .trainerId(trainer != null ? trainer.getId() : null)
                 .departmentName(departmentName)
                 .build();
     }

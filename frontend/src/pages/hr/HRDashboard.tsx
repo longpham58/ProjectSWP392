@@ -32,6 +32,7 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
   const [recentCourses, setRecentCourses] = useState<CourseDto[]>([]);
   const [courseRefreshToken, setCourseRefreshToken] = useState(0);
   const [hrRefreshToken, setHrRefreshToken] = useState(0);
+  const [lastCreatedCourseId, setLastCreatedCourseId] = useState<number | undefined>(undefined);
 
   const notifyHrDataChanged = () => {
     setHrRefreshToken((prev) => prev + 1);
@@ -125,13 +126,22 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
           )}
           {currentPage === 'course' && (
             <CourseManagePage
-              onCoursesChanged={() => {
+              onCoursesChanged={(newCourseId?: number) => {
                 setCourseRefreshToken((prev) => prev + 1);
                 notifyHrDataChanged();
+                if (newCourseId) {
+                  setLastCreatedCourseId(newCourseId);
+                  setCurrentPage('classroom');
+                }
               }}
             />
           )}
-          {currentPage === 'classroom' && <ClassManagePage onClassesChanged={notifyHrDataChanged} />}
+          {currentPage === 'classroom' && (
+            <ClassManagePage
+              onClassesChanged={notifyHrDataChanged}
+              defaultCourseId={lastCreatedCourseId}
+            />
+          )}
           {currentPage === 'schedule' && <SchedulePage onSchedulesChanged={notifyHrDataChanged} />}
           {currentPage === 'notification' && <NotificationPage onNotificationsChanged={notifyHrDataChanged} />}
           {currentPage === 'useraccount' && <UserAccountManagePage refreshToken={hrRefreshToken} />}

@@ -13,6 +13,8 @@ export interface CourseDto {
   startDate?: string;
   endDate?: string;
   subjectCode?: string;
+  trainer?: string;
+  trainerId?: number;
   trainerName?: string;
   trainerUsername?: string;
   departmentName?: string;

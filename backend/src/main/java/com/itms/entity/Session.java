@@ -53,12 +53,6 @@ public class Session {
        Session Info
     ========================= */
 
-    @Column(name = "session_name", length = 255)
-    private String sessionName;
-
-    @Column(name = "session_number")
-    private Integer sessionNumber;
-
     @Column(nullable = false)
     private LocalDate date;
 

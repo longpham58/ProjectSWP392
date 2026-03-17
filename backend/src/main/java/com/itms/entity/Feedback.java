@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 @Table(
         name = "Feedback",
         uniqueConstraints = {
-                @UniqueConstraint(name = "UQ_Feedback_Enrollment",
-                        columnNames = {"enrollment_id"})
+                @UniqueConstraint(name = "UQ_Feedback_EnrollmentSession",
+                        columnNames = {"enrollment_id", "session_id"})
         }
 )
 public class Feedback {
