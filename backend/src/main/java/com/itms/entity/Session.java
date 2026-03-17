@@ -30,11 +30,7 @@ public class Session {
     private Course course;
 
     @ManyToOne(fetch = FetchType.LAZY)
-<<<<<<< HEAD
-    @JoinColumn(name = "class_id")
-=======
     @JoinColumn(name = "class_id", nullable = false)
->>>>>>> admin-UI
     private ClassRoom classRoom;
 
     @ManyToOne(fetch = FetchType.LAZY)

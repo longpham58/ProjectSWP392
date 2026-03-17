@@ -22,4 +22,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     List<Notification> findBySenderIdAndIsDraftOrderBySentDateDesc(
             @Param("senderId") Integer senderId,
             @Param("isDraft") Boolean isDraft);
+
+    @Query("SELECT n FROM Notification n WHERE n.sender.id = :senderId AND n.isDraft = false ORDER BY n.sentDate DESC")
+    List<Notification> findSentBySenderId(@Param("senderId") Integer senderId);
+
+    @Query("SELECT n FROM Notification n WHERE n.sender.id = :senderId AND n.isDraft = true ORDER BY n.sentDate DESC")
+    List<Notification> findDraftsBySenderId(@Param("senderId") Integer senderId);
 }

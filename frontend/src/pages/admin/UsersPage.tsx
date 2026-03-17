@@ -3,18 +3,16 @@ import UserImportModal from "./components/UserImportModal";
 import { useUserStore } from "../../stores/user.store";
 import { User } from "../../api/user.api";
 
-type Role = "Admin" | "HR" | "Trainer" | "Employee";
-type Status = "Active" | "Inactive";
-type Department = "IT" | "HR" | "Training" | "Finance";
+
 
 const ITEMS_PER_PAGE = 10;
 
 export default function UsersPage() {
   const { users, loading, fetchUsers, importUsers, deleteUser, toggleUserStatus } = useUserStore();
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState<Role | "All">("All");
-  const [statusFilter, setStatusFilter] = useState<Status | "All">("All");
-  const [departmentFilter, setDepartmentFilter] = useState<Department | "All">("All");
+  const [roleFilter, setRoleFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [departmentFilter, setDepartmentFilter] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [isImportOpen, setIsImportOpen] = useState(false);
 
@@ -126,42 +124,47 @@ export default function UsersPage() {
           className="border rounded-lg px-4 py-2"
           value={roleFilter}
           onChange={(e) => {
-            setRoleFilter(e.target.value as Role | "All");
+            setRoleFilter(e.target.value);
             setCurrentPage(1);
           }}
         >
           <option value="All">All Roles</option>
-          <option value="Admin">Admin</option>
-          <option value="HR">HR</option>
-          <option value="Trainer">Trainer</option>
-          <option value="Employee">Employee</option>
+          {[...new Set(users.map(user => user.role))].map((role) => (
+            <option key={role} value={role}>
+              {role}
+            </option>
+          ))}
         </select>
         <select
           className="border rounded-lg px-4 py-2"
           value={departmentFilter}
           onChange={(e) => {
-            setDepartmentFilter(e.target.value as Department | "All");
+            setDepartmentFilter(e.target.value);
             setCurrentPage(1);
           }}
         >
           <option value="All">All Departments</option>
-          <option value="IT">IT</option>
-          <option value="HR">HR</option>
-          <option value="Training">Training</option>
-          <option value="Finance">Finance</option>
+           {[...new Set(users.map(user => user.department))].map((department) => (
+            <option key={department} value={department}>
+              {department}
+            </option>
+          ))}
         </select>
         {/* Status Filter */}
         <select
           className="border rounded-lg px-4 py-2"
           value={statusFilter}
           onChange={(e) => {
-            setStatusFilter(e.target.value as Status | "All");
+            setStatusFilter(e.target.value);
             setCurrentPage(1);
           }}
         >
           <option value="All">All Status</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
+          {[...new Set(users.map(user => user.status))].map((status) => (
+            <option key={status} value={status}>
+              {status}
+            </option>
+          ))}
         </select>
 
         <button

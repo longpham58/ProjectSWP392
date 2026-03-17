@@ -30,21 +30,5 @@ public class HrEmployeeController {
         ));
     }
 
-    @PutMapping("/{userId}/status")
-    public ResponseEntity<ResponseDto<Void>> toggleUserStatus(@PathVariable Integer userId) {
-        hrEmployeeService.toggleUserStatus(userId);
-        return ResponseEntity.ok(ResponseDto.success(null, "User status updated"));
-    }
 
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<ResponseDto<Void>> deleteUser(@PathVariable Integer userId) {
-        hrEmployeeService.deleteUser(userId);
-        return ResponseEntity.ok(ResponseDto.success(null, "User deleted successfully"));
-    }
-
-    @PostMapping("/import")
-    public ResponseEntity<ResponseDto<Integer>> importUsers(@RequestBody List<HrEmployeeDto> users) {
-        int count = hrEmployeeService.importUsers(users);
-        return ResponseEntity.ok(ResponseDto.success(count, "Users imported successfully"));
-    }
 }

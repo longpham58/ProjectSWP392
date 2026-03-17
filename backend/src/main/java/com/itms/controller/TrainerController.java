@@ -20,26 +20,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TrainerController {
 
-    private final TrainerScheduleService trainerScheduleService;
     private final CourseService courseService;
     private final AttendanceService attendanceService;
     private final FeedbackService feedbackService;
-    private final NotificationService notificationService;
     private final ClassRoomService classRoomService;
     private final TrainerAttendanceService trainerAttendanceService;
-
-    /**
-     * Get trainer's schedule
-     */
-    @GetMapping("/schedule")
-    public ResponseEntity<ResponseDto<List<TrainerScheduleDto>>> getSchedule(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        
-        Integer trainerId = userDetails.getId();
-        List<TrainerScheduleDto> schedule = trainerScheduleService.getTrainerSchedule(trainerId);
-        
-        return ResponseEntity.ok(ResponseDto.success(schedule, "Lấy lịch giảng dạy thành công"));
-    }
 
     /**
      * Get trainer's courses
@@ -169,104 +154,6 @@ public class TrainerController {
         return ResponseEntity.ok(ResponseDto.success("", "Phản hồi feedback thành công"));
     }
 
-    /**
-     * Get trainer's notifications
-     */
-    @GetMapping("/notifications")
-    public ResponseEntity<ResponseDto<List<NotificationDto>>> getNotifications(
-            @RequestParam(defaultValue = "inbox") String category,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        
-        Integer trainerId = userDetails.getId();
-        List<NotificationDto> notifications = notificationService.getNotificationsByCategory(trainerId, category);
-        
-        return ResponseEntity.ok(ResponseDto.success(notifications, "Lấy danh sách thông báo thành công"));
-    }
-
-    /**
-     * Create notification
-     */
-    @PostMapping("/notifications")
-    public ResponseEntity<ResponseDto<String>> createNotification(
-            @RequestBody CreateNotificationRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        
-        if (userDetails == null) {
-            return ResponseEntity.status(401)
-                    .body(ResponseDto.fail("User not authenticated"));
-        }
-        
-        Integer trainerId = userDetails.getId();
-        if (trainerId == null) {
-            return ResponseEntity.status(400)
-                    .body(ResponseDto.fail("Trainer ID is null"));
-        }
-        
-        try {
-            notificationService.createNotification(trainerId, request);
-            return ResponseEntity.ok(ResponseDto.success("", "Tạo thông báo thành công"));
-        } catch (Exception e) {
-            System.err.println("Error creating notification: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(500)
-                    .body(ResponseDto.fail("Lỗi khi tạo thông báo: " + e.getMessage()));
-        }
-    }
-
-    /**
-     * Mark notification as read
-     */
-    @PutMapping("/notifications/{notificationId}/read")
-    public ResponseEntity<ResponseDto<String>> markNotificationAsRead(
-            @PathVariable Integer notificationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        
-        notificationService.markAsRead(notificationId);
-        
-        return ResponseEntity.ok(ResponseDto.success("", "Đánh dấu đã đọc thành công"));
-    }
-
-    /**
-     * Delete notification
-     */
-    @DeleteMapping("/notifications/{notificationId}")
-    public ResponseEntity<ResponseDto<String>> deleteNotification(
-            @PathVariable Integer notificationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        
-        notificationService.deleteNotification(notificationId);
-        
-        return ResponseEntity.ok(ResponseDto.success("", "Xóa thông báo thành công"));
-    }
-
-    /**
-     * Update notification (for drafts)
-     */
-    @PutMapping("/notifications/{notificationId}")
-    public ResponseEntity<ResponseDto<String>> updateNotification(
-            @PathVariable Integer notificationId,
-            @RequestBody CreateNotificationRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        
-        Integer trainerId = userDetails.getId();
-        notificationService.updateNotification(notificationId, trainerId, request);
-        
-        return ResponseEntity.ok(ResponseDto.success("", "Cập nhật thông báo thành công"));
-    }
-
-    /**
-     * Send a draft notification
-     */
-    @PostMapping("/notifications/{notificationId}/send")
-    public ResponseEntity<ResponseDto<String>> sendNotification(
-            @PathVariable Integer notificationId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        
-        notificationService.sendNotification(notificationId);
-        
-        return ResponseEntity.ok(ResponseDto.success("", "Gửi thông báo thành công"));
-    }
-
     // DTOs for requests
     public static class AttendanceUpdateRequest {
         private Integer studentId;
@@ -287,32 +174,6 @@ public class TrainerController {
         
         public String getReply() { return reply; }
         public void setReply(String reply) { this.reply = reply; }
-    }
-
-    public static class CreateNotificationRequest {
-        private String title;
-        private String message;
-        private String type;
-        private String priority;
-        private String recipientType;
-        private List<String> classCodes;
-        private Boolean isDraft;
-        
-        // Getters and setters
-        public String getTitle() { return title; }
-        public void setTitle(String title) { this.title = title; }
-        public String getMessage() { return message; }
-        public void setMessage(String message) { this.message = message; }
-        public String getType() { return type; }
-        public void setType(String type) { this.type = type; }
-        public String getPriority() { return priority; }
-        public void setPriority(String priority) { this.priority = priority; }
-        public String getRecipientType() { return recipientType; }
-        public void setRecipientType(String recipientType) { this.recipientType = recipientType; }
-        public List<String> getClassCodes() { return classCodes; }
-        public void setClassCodes(List<String> classCodes) { this.classCodes = classCodes; }
-        public Boolean getIsDraft() { return isDraft; }
-        public void setIsDraft(Boolean isDraft) { this.isDraft = isDraft; }
     }
 
     public static class SaveAttendanceRequest {

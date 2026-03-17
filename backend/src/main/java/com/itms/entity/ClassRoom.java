@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -19,11 +20,7 @@ public class ClassRoom {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-<<<<<<< HEAD
-    @JoinColumn(name = "course_id")
-=======
     @JoinColumn(name = "course_id", nullable = false)
->>>>>>> admin-UI
     private Course course;
 
     @Column(name = "class_code", nullable = false, unique = true, length = 20)
@@ -39,17 +36,10 @@ public class ClassRoom {
     @Column(name = "max_students")
     private Integer maxStudents;
 
-<<<<<<< HEAD
-    @Column(name = "status", length = 20)
-    private String status;
-
-    @Column(name = "notes", columnDefinition = "NVARCHAR(MAX)")
-=======
     @Column(nullable = false, length = 20)
     private String status;
 
     @Column(columnDefinition = "NVARCHAR(MAX)")
->>>>>>> admin-UI
     private String notes;
 
     @Column(name = "created_at")
@@ -65,8 +55,6 @@ public class ClassRoom {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "updated_by")
     private User updatedBy;
-<<<<<<< HEAD
-=======
 
     @OneToMany(mappedBy = "classRoom", cascade = CascadeType.ALL)
     private List<ClassMember> classMembers;
@@ -76,5 +64,4 @@ public class ClassRoom {
 
     @OneToMany(mappedBy = "classRoom", cascade = CascadeType.ALL)
     private List<Session> sessions;
->>>>>>> admin-UI
 }

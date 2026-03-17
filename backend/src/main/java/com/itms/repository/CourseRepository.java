@@ -21,23 +21,6 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     Integer findMaxId();
 
     /**
-<<<<<<< HEAD
-     * Find all courses that a user is enrolled in (via session)
-     */
-    @Query("SELECT DISTINCT c FROM Course c JOIN Session s ON s.course = c JOIN Enrollment e ON e.session = s WHERE e.user.id = :userId")
-    List<Course> findCoursesByUserId(@Param("userId") Integer userId);
-
-    /**
-     * Find courses by trainer ID using the trainer relationship
-     */
-    @Query("SELECT c FROM Course c WHERE c.trainer.id = :trainerId")
-    List<Course> findByTrainerId(@Param("trainerId") Integer trainerId);
-
-    /**
-     * Find course by code
-     */
-    Optional<Course> findByCode(String code);
-=======
      * Find all courses that a user is enrolled in via ClassMember
      * Path: Course -> ClassRoom (course_id) -> ClassMember (class_id, user_id)
      */
@@ -51,5 +34,4 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
     
     /** Count courses by status */
     long countByStatus(com.itms.common.CourseStatus status);
->>>>>>> admin-UI
 }

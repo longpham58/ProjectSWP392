@@ -3,7 +3,6 @@ package com.itms.service;
 import com.itms.common.NotificationPriority;
 import com.itms.common.NotificationType;
 import com.itms.common.ReferenceType;
-import com.itms.controller.TrainerController;
 import com.itms.dto.NotificationDto;
 import com.itms.entity.ClassMember;
 import com.itms.entity.Notification;
@@ -43,66 +42,6 @@ public class NotificationService {
             default      -> notificationRepository.findByUserIdOrderBySentDateDesc(trainerId);
         };
         return notifications.stream().map(this::convertToDto).collect(Collectors.toList());
-    }
-
-    public void createNotification(Integer trainerId, TrainerController.CreateNotificationRequest request) {
-        User trainer = userRepository.findById(trainerId)
-                .orElseThrow(() -> new RuntimeException("Trainer not found"));
-
-        if (Boolean.TRUE.equals(request.getIsDraft())) {
-            saveSingle(trainer, trainer, request, true);
-            return;
-        }
-
-        if ("STUDENTS".equals(request.getRecipientType()) && request.getClassCodes() != null) {
-            for (String classCode : request.getClassCodes()) {
-                classMemberRepository.findByClassRoomClassCode(classCode)
-                        .forEach(cm -> saveSingle(cm.getUser(), trainer, request, false));
-            }
-        } else if ("HR".equals(request.getRecipientType())) {
-            userRepository.findByRoleName("Human Resources")
-                    .forEach(hr -> saveSingle(hr, trainer, request, false));
-        } else {
-            saveSingle(trainer, trainer, request, false);
-        }
-    }
-
-    private void saveSingle(User recipient, User sender, TrainerController.CreateNotificationRequest request, boolean isDraft) {
-        Notification n = new Notification();
-        n.setUser(recipient);
-        n.setSender(sender);
-        n.setTitle(request.getTitle());
-        n.setMessage(request.getMessage());
-        n.setType(toType(request.getType()));
-        n.setPriority(toPriority(request.getPriority()));
-        n.setIsDraft(isDraft);
-        n.setIsRead(false);
-        n.setSentDate(LocalDateTime.now());
-        n.setReferenceType(ReferenceType.GENERAL);
-        n.setRecipientType(request.getRecipientType());
-        if (request.getClassCodes() != null && !request.getClassCodes().isEmpty()) {
-            n.setClassCodes(String.join(",", request.getClassCodes()));
-        }
-        notificationRepository.save(n);
-    }
-
-    public void updateNotification(Integer notificationId, Integer trainerId, TrainerController.CreateNotificationRequest request) {
-        Notification n = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
-        n.setTitle(request.getTitle());
-        n.setMessage(request.getMessage());
-        n.setType(toType(request.getType()));
-        n.setPriority(toPriority(request.getPriority()));
-        n.setIsDraft(Boolean.TRUE.equals(request.getIsDraft()));
-        notificationRepository.save(n);
-    }
-
-    public void sendNotification(Integer notificationId) {
-        Notification n = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
-        n.setIsDraft(false);
-        n.setSentDate(LocalDateTime.now());
-        notificationRepository.save(n);
     }
 
     public void markAsRead(Integer notificationId) {
