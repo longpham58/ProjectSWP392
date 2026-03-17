@@ -1,7 +1,6 @@
 package com.itms.dto;
 
 import com.itms.common.NotificationPriority;
-import com.itms.common.NotificationType;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -19,7 +18,7 @@ public class TrainerNotificationDto {
     private String message;
     private LocalDateTime sentDate;
     private Boolean isRead;
-    private NotificationType type;
+    private String type;
     private NotificationPriority priority;
     private String category; // "inbox", "sent", "draft"
     private String sender; // For inbox

@@ -23,10 +23,10 @@ public class ClassRoom {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @Column(name = "class_code", nullable = false, unique = true, length = 20)
+    @Column(name = "class_code", nullable = false, unique = true, length = 50)
     private String classCode;
 
-    @Column(name = "class_name", nullable = false, length = 200)
+    @Column(name = "class_name", length = 255)
     private String className;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -16,7 +16,6 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class TrainerScheduleDto {
     private Long sessionId;
-    private String sessionName;
     private Integer sessionNumber;
     private LocalDate date;
     private LocalTime timeStart;

@@ -47,8 +47,10 @@ public class CourseModuleService {
         module.setTitle(title);
         module.setDescription(description);
         module.setDisplayOrder(displayOrder != null ? displayOrder : 0);
+        module.setMaterials(java.util.List.of());
 
         CourseModule saved = courseModuleRepository.save(module);
+        saved.setMaterials(java.util.List.of());
         return CourseModuleDto.from(saved);
     }
 
@@ -68,6 +70,7 @@ public class CourseModuleService {
         }
 
         CourseModule saved = courseModuleRepository.save(module);
+        if (saved.getMaterials() == null) saved.setMaterials(java.util.List.of());
         return CourseModuleDto.from(saved);
     }
 

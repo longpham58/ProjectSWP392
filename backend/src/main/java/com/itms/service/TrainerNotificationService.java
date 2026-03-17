@@ -1,7 +1,6 @@
 package com.itms.service;
 
 import com.itms.common.NotificationPriority;
-import com.itms.common.NotificationType;
 import com.itms.dto.TrainerNotificationDto;
 import com.itms.dto.TrainerNotificationRequest;
 import com.itms.entity.Course;
@@ -66,7 +65,7 @@ public class TrainerNotificationService {
                 .recipientType(request.getRecipientType())
                 .classCodes(request.getClassCodes() != null ? String.join(",", request.getClassCodes()) : null)
                 .isDraft(request.getIsDraft() != null ? request.getIsDraft() : false)
-                .type(NotificationType.ANNOUNCEMENT)
+                .type("GENERAL")
                 .isRead(true) // Trainer's own notifications are "read"
                 .build();
 

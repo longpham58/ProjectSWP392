@@ -47,4 +47,14 @@ public class CourseModule {
     @OneToMany(mappedBy = "module", cascade = CascadeType.ALL)
     @OrderBy("displayOrder ASC")
     private List<Material> materials;
+
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

@@ -18,6 +18,7 @@ public class HrCourseDto {
     private String status;
     private String trainerUsername;
     private String trainerName;
+    private Integer trainerId;
     private String departmentName;
 }
 

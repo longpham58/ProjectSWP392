@@ -109,10 +109,6 @@ public class HrScheduleService {
         session.setDate(date);
         session.setTimeStart(startTime);
         session.setTimeEnd(endTime);
-        session.setSessionName(dto.getCourseName() == null || dto.getCourseName().isBlank()
-                ? course.getName()
-                : dto.getCourseName().trim());
-        session.setSessionNumber(resolveSessionNumber(classRoom, date, startTime));
         session.setLocationType(locationType);
         session.setLocation(locationType == LocationType.OFFLINE ? room : "ONLINE");
         session.setMeetingLink(locationType == LocationType.ONLINE ? meetingLink : null);
@@ -122,9 +118,6 @@ public class HrScheduleService {
         session.setNotes(mergeClassCodeToNotes(session.getNotes(), classCode));
     }
 
-    private Integer resolveSessionNumber(ClassRoom classRoom, LocalDate date, LocalTime startTime) {
-        return 1;
-    }
 
     private SessionStatus parseStatus(String status) {
         if (status == null || status.isBlank()) {

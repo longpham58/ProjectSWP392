@@ -18,6 +18,14 @@ export type HRClassroom = {
   id: number;
   classCode: string;
   className: string;
+  courseId?: number;
+  courseName?: string;
+  courseCode?: string;
+  trainerId?: number;
+  trainerName?: string;
+  maxStudents?: number;
+  status?: string;
+  notes?: string;
 };
 
 export type HRSchedule = {

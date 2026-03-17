@@ -46,9 +46,10 @@ export const hrNotificationService = {
 
 export const hrClassService = {
   list: () => axios.get<ApiResponse<HRClassroom[]>>('/hr/classes'),
-  create: (payload: Pick<HRClassroom, 'classCode' | 'className'>) =>
+  listTrainers: () => axios.get<ApiResponse<Array<{ trainerId: number; trainerName: string }>>>('/hr/classes/trainers'),
+  create: (payload: Omit<HRClassroom, 'id' | 'courseName' | 'courseCode' | 'trainerName'>) =>
     axios.post<ApiResponse<HRClassroom>>('/hr/classes', payload),
-  update: (id: number, payload: Pick<HRClassroom, 'classCode' | 'className'>) =>
+  update: (id: number, payload: Omit<HRClassroom, 'id' | 'courseName' | 'courseCode' | 'trainerName'>) =>
     axios.put<ApiResponse<HRClassroom>>(`/hr/classes/${id}`, payload),
   remove: (id: number) => axios.delete<ApiResponse<void>>(`/hr/classes/${id}`),
 };
