@@ -3,6 +3,7 @@ import { hrClassService } from '../../../services/api/hr';
 import courseApi from '../../../api/course.api.wrapper';
 import type { HRClassroom } from '../../../types/hr.types';
 import type { CourseDto } from '../../../api/course.api';
+import { ClassMembersModal } from './ClassMembersModal';
 
 type Trainer = { trainerId: number; trainerName: string };
 
@@ -33,6 +34,7 @@ export const ClassManagePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const [membersClassId, setMembersClassId] = useState<number | null>(null);
   const [form, setForm] = useState<Form>(empty);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -175,6 +177,7 @@ export const ClassManagePage: React.FC = () => {
                     <span style={statusBadge(cls.status)}>{cls.status ?? '-'}</span>
                   </td>
                   <td style={tdStyle}>
+                    <button onClick={() => setMembersClassId(cls.id)} style={{ ...btnSmall('#10b981'), marginRight: 6 }}>Học viên</button>
                     <button onClick={() => openEdit(cls)} style={btnSmall('#2563eb')}>Sửa</button>
                     <button onClick={() => handleDelete(cls.id)} style={{ ...btnSmall('#ef4444'), marginLeft: 6 }}>Xóa</button>
                   </td>
@@ -235,6 +238,13 @@ export const ClassManagePage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {membersClassId !== null && (
+        <ClassMembersModal 
+          classId={membersClassId} 
+          onClose={() => setMembersClassId(null)} 
+        />
       )}
     </div>
   );

@@ -52,6 +52,18 @@ public interface UserRepository extends JpaRepository<User, Integer> {
         """)
     List<User> findAllActiveTrainers();
 
+    /** Active users that have an active EMPLOYEE role. */
+    @Query("""
+        SELECT DISTINCT u FROM User u
+        JOIN u.userRole ur
+        JOIN ur.role r
+        WHERE LOWER(r.roleCode) = 'employee'
+        AND (ur.isActive = true OR ur.isActive IS NULL)
+        AND (u.isActive = true OR u.isActive IS NULL)
+        ORDER BY u.fullName
+        """)
+    List<User> findAllActiveEmployees();
+
     /** Count active users with the given role code (e.g. TRAINER). */
     @Query("""
         SELECT COUNT(DISTINCT u) FROM User u
