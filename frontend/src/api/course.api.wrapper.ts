@@ -22,8 +22,9 @@ const courseApi = {
     return { success: true, data: res.data.data };
   },
 
-  async addCourse(payload: AddCoursePayload): Promise<void> {
-    await axios.post<ApiResponse<CourseDto>>('/hr/courses', payload);
+  async addCourse(payload: AddCoursePayload): Promise<CourseDto> {
+    const res = await axios.post<ApiResponse<CourseDto>>('/hr/courses', payload);
+    return res.data.data;
   },
 
   async updateCourse(id: number, payload: Partial<AddCoursePayload>): Promise<void> {

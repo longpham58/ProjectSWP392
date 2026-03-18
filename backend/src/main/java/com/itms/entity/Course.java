@@ -61,10 +61,10 @@ public class Course {
     private Integer maxAttempts;
 
     // Current DB in use does not expose start_date/end_date columns.
-    @Transient
+    @Column(name = "start_date")
     private java.time.LocalDate startDate;
 
-    @Transient
+    @Column(name = "end_date")
     private java.time.LocalDate endDate;
 
     @Enumerated(EnumType.STRING)

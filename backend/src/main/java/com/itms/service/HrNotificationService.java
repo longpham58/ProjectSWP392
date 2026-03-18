@@ -1,7 +1,6 @@
 package com.itms.service;
 
 import com.itms.common.NotificationPriority;
-import com.itms.common.NotificationType;
 import com.itms.dto.HrNotificationDto;
 import com.itms.entity.Notification;
 import com.itms.entity.User;
@@ -71,7 +70,7 @@ public class HrNotificationService {
         String title = require(dto.getTitle(), "Tiêu đề không được để trống");
         String status = normalizeStatus(dto.getStatus());
 
-        entity.setType(NotificationType.GENERAL);
+        entity.setType("GENERAL");
         entity.setPriority(NotificationPriority.NORMAL);
         entity.setTitle(title);
         entity.setMessage(dto.getContent() == null ? "" : dto.getContent().trim());

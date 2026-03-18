@@ -1,15 +1,15 @@
 import api from '../lib/axios';
 
-export interface TrainerScheduleDto {
+// Matches backend TrainerScheduleDto exactly
+export type TrainerScheduleDto = {
   sessionId: number;
-  sessionName?: string;
   sessionNumber: number;
-  date: string;
-  timeStart: string;
-  timeEnd: string;
+  date: string;        // "YYYY-MM-DD"
+  timeStart: string;   // "HH:mm:ss"
+  timeEnd: string;     // "HH:mm:ss"
   location: string;
-  locationType: 'ONLINE' | 'OFFLINE' | 'HYBRID';
-  status: 'SCHEDULED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+  locationType: string;
+  status: string;
   meetingLink?: string;
   courseId: number;
   courseCode: string;
@@ -19,25 +19,18 @@ export interface TrainerScheduleDto {
   maxCapacity: number;
   currentEnrolled: number;
   dayOfWeek?: number;
-}
+};
 
-export interface ApiResponse<T> {
+// Alias
+export type TrainerSchedule = TrainerScheduleDto;
+
+export type ApiResponse<T> = {
   success: boolean;
   message: string;
   data: T;
-}
-
-export const getTrainerSchedule = async (): Promise<TrainerScheduleDto[]> => {
-  const response = await api.get<ApiResponse<TrainerScheduleDto[]>>('/trainer/schedule');
-  return response.data.data;
 };
 
-export const getTrainerScheduleByDateRange = async (
-  startDate: string,
-  endDate: string
-): Promise<TrainerScheduleDto[]> => {
-  const response = await api.get<ApiResponse<TrainerScheduleDto[]>>('/trainer/schedule', {
-    params: { startDate, endDate }
-  });
+export const getTrainerSchedule = async (): Promise<TrainerScheduleDto[]> => {
+  const response = await api.get<ApiResponse<TrainerScheduleDto[]>>('trainer/schedule');
   return response.data.data;
 };

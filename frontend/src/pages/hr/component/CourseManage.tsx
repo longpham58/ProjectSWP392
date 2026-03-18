@@ -4,7 +4,7 @@ import courseApi, { type HrTrainerOption } from '../../../api/course.api.wrapper
 import type { CourseDto } from '../../../api/course.api';
 
 type CourseManagePageProps = {
-  onCoursesChanged?: () => void;
+  onCoursesChanged?: (newCourseId?: number) => void;
 };
 
 export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesChanged }) => {
@@ -259,8 +259,10 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
                       trainerUsername: trainer?.username,
                       departmentName: formDepartment,
                     });
+                    await fetchCourses();
+                    onCoursesChanged?.();
                   } else {
-                    await courseApi.addCourse({
+                    const created = await courseApi.addCourse({
                     code: formCode.trim() || undefined,
                     title: formTitle.trim(),
                     name: formTitle.trim(),
@@ -271,9 +273,9 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
                     trainerUsername: trainer?.username,
                     departmentName: formDepartment,
                     });
+                    await fetchCourses();
+                    onCoursesChanged?.(created?.id);
                   }
-                  await fetchCourses();
-                  onCoursesChanged?.();
                   setModalOpen(false);
                   setFormCode('');
                   setFormTitle('');

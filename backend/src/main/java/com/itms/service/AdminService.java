@@ -2,7 +2,6 @@ package com.itms.service;
 
 import com.itms.common.CourseStatus;
 import com.itms.common.NotificationPriority;
-import com.itms.common.NotificationType;
 import com.itms.dto.AdminAnalyticsDto;
 import com.itms.dto.AdminClassDto;
 import com.itms.dto.AdminCourseDto;
@@ -466,13 +465,9 @@ public class AdminService {
         }
         
         // Parse type safely
-        NotificationType type = NotificationType.GENERAL;
+        String type = "GENERAL";
         if (dto.getType() != null && !dto.getType().isEmpty()) {
-            try {
-                type = NotificationType.valueOf(dto.getType().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                log.warn("Invalid notification type: {}, defaulting to GENERAL", dto.getType());
-            }
+            type = dto.getType().toUpperCase();
         }
         
         // Parse priority safely
@@ -508,7 +503,7 @@ public class AdminService {
         
         if (dto.getTitle() != null) notification.setTitle(dto.getTitle());
         if (dto.getContent() != null) notification.setMessage(dto.getContent());
-        if (dto.getType() != null) notification.setType(com.itms.common.NotificationType.valueOf(dto.getType()));
+        if (dto.getType() != null) notification.setType(dto.getType().toUpperCase());
         if (dto.getPriority() != null) notification.setPriority(com.itms.common.NotificationPriority.valueOf(dto.getPriority()));
         if (dto.getTargetRole() != null) notification.setRecipientType(dto.getTargetRole());
         if (dto.getExpiresAt() != null) notification.setExpiresAt(dto.getExpiresAt().atStartOfDay());
@@ -538,7 +533,7 @@ public class AdminService {
                 .id(n.getId())
                 .title(n.getTitle())
                 .content(n.getMessage())
-                .type(n.getType() != null ? n.getType().name() : null)
+                .type(n.getType())
                 .priority(n.getPriority() != null ? n.getPriority().name() : null)
                 .targetRole(n.getRecipientType())
                 .sentDate(n.getSentDate() != null ? n.getSentDate().toLocalDate() : null)
