@@ -3,7 +3,7 @@ import '@/assets/styles/SchedulePage.css';
 import courseApi from '../../../api/course.api.wrapper';
 import type { CourseDto } from '../../../api/course.api';
 import { hrClassService, hrScheduleService } from '../../../services/api/hr';
-import type { HRSchedule } from '../../../types/hr.types';
+import type { HRSchedule, HRClassroom } from '../../../types/hr.types';
 
 type SchedulePageProps = {
   onSchedulesChanged?: () => void;
@@ -33,7 +33,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
   const [createdSchedules, setCreatedSchedules] = useState<HRSchedule[]>([]);
   const [availableCourses, setAvailableCourses] = useState<CourseDto[]>([]);
   const [availableTrainers, setAvailableTrainers] = useState<Array<{ username: string; fullName: string }>>([]);
-  const [availableRooms, setAvailableRooms] = useState<Array<{ classCode: string; className: string }>>([]);
+  const [availableRooms, setAvailableRooms] = useState<HRClassroom[]>([]);
 
   const handleCourseChange = (nextCourseCode: string) => {
     setNewCourseCode(nextCourseCode);
@@ -372,7 +372,9 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
                 onChange={(e) => setNewClassCode(e.target.value)}
               >
                 <option value="">Choose class</option>
-                {availableRooms.map((room) => (
+                {availableRooms
+                  .filter((room) => !newCourseCode || room.courseCode === newCourseCode)
+                  .map((room) => (
                   <option key={room.classCode} value={room.classCode}>
                     {room.classCode} - {room.className}
                   </option>

@@ -31,6 +31,7 @@ com\itms\dto\QuizSubmitRequest$QuizSubmitRequestBuilder.class
 com\itms\controller\HrScheduleController.class
 com\itms\config\WebConfig.class
 com\itms\service\CertificateService.class
+com\itms\service\UserService$1.class
 com\itms\repository\UserRepository.class
 com\itms\entity\Material.class
 com\itms\controller\AttendanceController.class
@@ -133,10 +134,12 @@ com\itms\repository\SessionRepository.class
 com\itms\dto\HrScheduleDto$HrScheduleDtoBuilder.class
 com\itms\ItmsApplication.class
 com\itms\service\EmployeeDashboardService.class
+com\itms\service\ExcelImportService$1.class
 com\itms\dto\HrNotificationDto$HrNotificationDtoBuilder.class
 com\itms\dto\UserProfileStatsDto$UserProfileStatsDtoBuilder.class
 com\itms\dto\QuizDto$QuizDtoBuilder.class
 com\itms\entity\Role$RoleBuilder.class
+com\itms\service\HrClassMemberService$1.class
 com\itms\common\CompletionStatus.class
 com\itms\common\LocationType.class
 com\itms\dto\ModuleProgressDto$ModuleProgressDtoBuilder.class

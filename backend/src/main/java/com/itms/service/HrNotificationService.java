@@ -1,22 +1,21 @@
 package com.itms.service;
 
 import com.itms.common.NotificationPriority;
-import com.itms.dto.HrNotificationDto;
+import com.itms.dto.TrainerNotificationDto;
+import com.itms.dto.TrainerNotificationRequest;
 import com.itms.entity.Notification;
 import com.itms.entity.User;
+import com.itms.repository.ClassMemberRepository;
 import com.itms.repository.NotificationRepository;
 import com.itms.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,182 +23,197 @@ public class HrNotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final ClassMemberRepository classMemberRepository;
 
-    public List<HrNotificationDto> getAllBySender(Integer senderId) {
-        return notificationRepository.findByUserIdOrderBySentDateDesc(senderId).stream()
-                .map(this::toDto)
-                .toList();
+    public List<TrainerNotificationDto> getNotificationsByCategory(Integer hrId, String category) {
+        List<Notification> notifications;
+        switch (category.toLowerCase()) {
+            case "sent":
+                notifications = notificationRepository.findSentBySenderId(hrId);
+                break;
+            case "draft":
+                notifications = notificationRepository.findDraftsBySenderId(hrId);
+                break;
+            case "inbox":
+            default:
+                notifications = notificationRepository.findByUserIdOrderBySentDateDesc(hrId);
+                break;
+        }
+        return notifications.stream()
+                .map(n -> convertToDto(n, category))
+                .collect(Collectors.toList());
     }
 
     @Transactional
-    public HrNotificationDto create(Integer senderId, HrNotificationDto dto) {
-        User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người gửi"));
+    public TrainerNotificationDto createNotification(Integer hrId, TrainerNotificationRequest request) {
+        User hrUser = userRepository.findById(hrId)
+                .orElseThrow(() -> new RuntimeException("HR user not found"));
 
-        Notification entity = new Notification();
-        entity.setSender(sender);
-        entity.setUser(sender); // keep non-null recipient with existing schema
-        applyDto(entity, dto);
-        return toDto(notificationRepository.save(entity));
+        Notification notification = Notification.builder()
+                .sender(hrUser)
+                .user(hrUser)
+                .title(request.getTitle())
+                .message(request.getMessage())
+                .priority(request.getPriority() != null ? request.getPriority() : NotificationPriority.NORMAL)
+                .recipientType(request.getRecipientType())
+                .classCodes(request.getClassCodes() != null ? String.join(",", request.getClassCodes()) : null)
+                .isDraft(request.getIsDraft() != null ? request.getIsDraft() : false)
+                .type("GENERAL")
+                .isRead(true)
+                .build();
+
+        Notification saved = notificationRepository.save(notification);
+
+        if (!saved.getIsDraft()) {
+            sendNotificationToRecipients(saved);
+        }
+
+        return convertToDto(saved, Boolean.TRUE.equals(saved.getIsDraft()) ? "draft" : "sent");
     }
 
     @Transactional
-    public HrNotificationDto update(Integer senderId, Integer id, HrNotificationDto dto) {
-        Notification entity = notificationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thông báo với id: " + id));
+    public TrainerNotificationDto updateNotification(Integer notificationId, Integer hrId, TrainerNotificationRequest request) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
 
-        if (entity.getSender() == null || !entity.getSender().getId().equals(senderId)) {
-            throw new IllegalArgumentException("Bạn không có quyền cập nhật thông báo này");
+        if (notification.getSender() == null || !notification.getSender().getId().equals(hrId)) {
+            throw new RuntimeException("Unauthorized to update this notification");
         }
 
-        applyDto(entity, dto);
-        return toDto(notificationRepository.save(entity));
+        notification.setTitle(request.getTitle());
+        notification.setMessage(request.getMessage());
+        notification.setPriority(request.getPriority() != null ? request.getPriority() : notification.getPriority());
+        notification.setRecipientType(request.getRecipientType());
+        notification.setClassCodes(request.getClassCodes() != null ? String.join(",", request.getClassCodes()) : null);
+
+        Notification updated = notificationRepository.save(notification);
+        return convertToDto(updated, Boolean.TRUE.equals(updated.getIsDraft()) ? "draft" : "sent");
     }
 
     @Transactional
-    public void delete(Integer senderId, Integer id) {
-        Notification entity = notificationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thông báo với id: " + id));
-        if (entity.getSender() == null || !entity.getSender().getId().equals(senderId)) {
-            throw new IllegalArgumentException("Bạn không có quyền xóa thông báo này");
+    public void sendNotification(Integer notificationId, Integer hrId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        if (notification.getSender() == null || !notification.getSender().getId().equals(hrId)) {
+            throw new RuntimeException("Unauthorized to send this notification");
         }
-        notificationRepository.delete(entity);
+
+        notification.setIsDraft(false);
+        notification.setSentDate(LocalDateTime.now());
+        notificationRepository.save(notification);
+        sendNotificationToRecipients(notification);
     }
 
-    private void applyDto(Notification entity, HrNotificationDto dto) {
-        String title = require(dto.getTitle(), "Tiêu đề không được để trống");
-        String status = normalizeStatus(dto.getStatus());
+    @Transactional
+    public void deleteNotification(Integer notificationId, Integer hrId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
 
-        entity.setType("GENERAL");
-        entity.setPriority(NotificationPriority.NORMAL);
-        entity.setTitle(title);
-        entity.setMessage(dto.getContent() == null ? "" : dto.getContent().trim());
-        entity.setIsRead(false);
+        boolean isSender = notification.getSender() != null && notification.getSender().getId().equals(hrId);
+        boolean isReceiver = notification.getUser() != null && notification.getUser().getId().equals(hrId);
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime sentAt = parseDateTime(dto.getSentAt());
-        LocalDateTime scheduledAt = parseDateTime(dto.getScheduledAt());
-        if ("Sent".equals(status)) {
-            entity.setSentDate(sentAt != null ? sentAt : now);
-            entity.setIsDraft(false);
-        } else if ("Scheduled".equals(status)) {
-            entity.setSentDate(scheduledAt != null ? scheduledAt : now);
-            entity.setIsDraft(false);
-        } else if ("Cancelled".equals(status)) {
-            entity.setSentDate(now);
-            entity.setIsDraft(false);
-        } else {
-            entity.setSentDate(now);
-            entity.setIsDraft(true);
+        if (!isSender && !isReceiver) {
+            throw new RuntimeException("Unauthorized to delete this notification");
         }
 
-        Map<String, String> meta = new HashMap<>();
-        meta.put("channel", defaultString(dto.getChannel(), "In-app"));
-        meta.put("status", status);
-        meta.put("sentTo", defaultString(dto.getSentTo(), ""));
-        meta.put("creator", defaultString(dto.getCreator(), "HR"));
-        meta.put("scheduledAt", dto.getScheduledAt() == null ? "" : dto.getScheduledAt());
-        meta.put("sentAt", dto.getSentAt() == null ? "" : dto.getSentAt());
-        entity.setDetailContent(encodeMeta(meta));
+        notificationRepository.delete(notification);
     }
 
-    private HrNotificationDto toDto(Notification entity) {
-        Map<String, String> meta = decodeMeta(entity.getDetailContent());
-        String status = normalizeStatus(meta.get("status"));
-        String sentAt = meta.get("sentAt");
-        String scheduledAt = meta.get("scheduledAt");
-        String channel = defaultString(meta.get("channel"), "In-app");
-        String sentTo = defaultString(meta.get("sentTo"), defaultString(entity.getRecipientType(), ""));
-        String creator = defaultString(meta.get("creator"),
-                entity.getSender() != null ? defaultString(entity.getSender().getFullName(), "HR") : "HR");
+    @Transactional
+    public void markAsRead(Integer notificationId) {
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+        notification.setIsRead(true);
+        notification.setReadAt(LocalDateTime.now());
+        notificationRepository.save(notification);
+    }
 
-        if ((sentAt == null || sentAt.isBlank()) && "Sent".equals(status) && entity.getSentDate() != null) {
-            sentAt = entity.getSentDate().toString();
+    private void sendNotificationToRecipients(Notification sourceNotification) {
+        String recipientType = sourceNotification.getRecipientType();
+        if ("STUDENTS".equals(recipientType) && sourceNotification.getClassCodes() != null) {
+            List<String> classCodes = Arrays.asList(sourceNotification.getClassCodes().split(","));
+            sendToStudentsByClassCodes(sourceNotification, classCodes);
+        } else if ("TRAINERS".equals(recipientType)) {
+            sendToTrainers(sourceNotification);
+        } else if ("HR".equals(recipientType)) {
+            sendToHR(sourceNotification);
         }
-        if ((scheduledAt == null || scheduledAt.isBlank()) && "Scheduled".equals(status) && entity.getSentDate() != null) {
-            scheduledAt = entity.getSentDate().toString();
+        // ALL / others: do nothing extra (already saved under sender)
+    }
+
+    private void sendToStudentsByClassCodes(Notification source, List<String> classCodes) {
+        for (String classCode : classCodes) {
+            List<com.itms.entity.ClassMember> members = classMemberRepository.findByClassRoomClassCode(classCode.trim());
+            members.forEach(member -> {
+                if (member.getUser() != null) {
+                    createNotificationForUser(member.getUser(), source);
+                }
+            });
         }
-        if (status.isBlank()) {
-            status = Boolean.TRUE.equals(entity.getIsDraft()) ? "Draft" : "Sent";
+    }
+
+    private void sendToTrainers(Notification source) {
+        List<User> trainers = userRepository.findAllActiveTrainers();
+        for (User trainer : trainers) {
+            createNotificationForUser(trainer, source);
+        }
+    }
+
+    private void sendToHR(Notification source) {
+        List<User> hrUsers = userRepository.findByRoleName("Human Resources");
+        for (User hr : hrUsers) {
+            createNotificationForUser(hr, source);
+        }
+    }
+
+    private void createNotificationForUser(User recipient, Notification source) {
+        Notification notif = Notification.builder()
+                .user(recipient)
+                .sender(source.getSender())
+                .type(source.getType() != null ? source.getType() : "GENERAL")
+                .title(source.getTitle())
+                .message(source.getMessage())
+                .priority(source.getPriority())
+                .recipientType(source.getRecipientType())
+                .isRead(false)
+                .isDraft(false)
+                .sentDate(LocalDateTime.now())
+                .build();
+        notificationRepository.save(notif);
+    }
+
+    private TrainerNotificationDto convertToDto(Notification n, String category) {
+        List<String> recipients = null;
+        String sender = null;
+
+        if (n.getClassCodes() != null && !n.getClassCodes().isEmpty()) {
+            recipients = Arrays.asList(n.getClassCodes().split(","));
+        } else if ("TRAINERS".equals(n.getRecipientType())) {
+            recipients = List.of("Giảng viên");
+        } else if ("HR".equals(n.getRecipientType())) {
+            recipients = List.of("HR", "Quản lý");
         }
 
-        return HrNotificationDto.builder()
-                .id(entity.getId())
-                .title(defaultString(entity.getTitle(), ""))
-                .content(defaultString(entity.getMessage(), ""))
-                .channel(channel)
-                .sentTo(sentTo)
-                .scheduledAt(scheduledAt)
-                .sentAt(sentAt)
-                .creator(creator)
-                .status(status)
+        if ("inbox".equals(category) && n.getSender() != null) {
+            sender = n.getSender().getFullName() != null ? n.getSender().getFullName() : "Hệ thống";
+        } else if ("inbox".equals(category)) {
+            sender = "Hệ thống";
+        }
+
+        return TrainerNotificationDto.builder()
+                .id(n.getId())
+                .title(n.getTitle())
+                .message(n.getMessage())
+                .sentDate(n.getSentDate() != null ? n.getSentDate() : n.getCreatedAt())
+                .isRead(n.getIsRead())
+                .type(n.getType())
+                .priority(n.getPriority())
+                .category(category)
+                .recipients(recipients)
+                .sender(sender)
+                .createdAt(n.getCreatedAt())
+                .updatedAt(n.getUpdatedAt())
                 .build();
     }
-
-    private String encodeMeta(Map<String, String> meta) {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, String> entry : meta.entrySet()) {
-            if (sb.length() > 0) {
-                sb.append(';');
-            }
-            sb.append(entry.getKey()).append('=').append(entry.getValue() == null ? "" : entry.getValue().replace(";", ","));
-        }
-        return sb.toString();
-    }
-
-    private Map<String, String> decodeMeta(String value) {
-        Map<String, String> result = new HashMap<>();
-        if (value == null || value.isBlank()) {
-            return result;
-        }
-        String[] parts = value.split(";");
-        for (String part : parts) {
-            int idx = part.indexOf('=');
-            if (idx <= 0) {
-                continue;
-            }
-            String key = part.substring(0, idx).trim();
-            String data = part.substring(idx + 1).trim();
-            if (!key.isEmpty()) {
-                result.put(key, data);
-            }
-        }
-        return result;
-    }
-
-    private String normalizeStatus(String status) {
-        if (status == null || status.isBlank()) {
-            return "Draft";
-        }
-        String normalized = status.trim().toLowerCase(Locale.ROOT);
-        return switch (normalized) {
-            case "sent" -> "Sent";
-            case "scheduled" -> "Scheduled";
-            case "cancelled" -> "Cancelled";
-            default -> "Draft";
-        };
-    }
-
-    private LocalDateTime parseDateTime(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        try {
-            return LocalDateTime.parse(value);
-        } catch (DateTimeParseException ex) {
-            return null;
-        }
-    }
-
-    private String require(String value, String message) {
-        if (value == null || value.trim().isEmpty()) {
-            throw new IllegalArgumentException(message);
-        }
-        return value.trim();
-    }
-
-    private String defaultString(String value, String fallback) {
-        return value == null || value.isBlank() ? fallback : value;
-    }
-
 }

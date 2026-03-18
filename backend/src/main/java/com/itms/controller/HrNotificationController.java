@@ -1,22 +1,15 @@
 package com.itms.controller;
 
-import com.itms.dto.HrNotificationDto;
+import com.itms.dto.TrainerNotificationDto;
+import com.itms.dto.TrainerNotificationRequest;
 import com.itms.dto.common.ResponseDto;
 import com.itms.security.CustomUserDetails;
 import com.itms.service.HrNotificationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -29,38 +22,55 @@ public class HrNotificationController {
     private final HrNotificationService hrNotificationService;
 
     @GetMapping
-    public ResponseEntity<ResponseDto<List<HrNotificationDto>>> getAll(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        List<HrNotificationDto> notifications = hrNotificationService.getAllBySender(userDetails.getId());
-        return ResponseEntity.ok(ResponseDto.success(notifications, "HR notifications retrieved"));
+    public ResponseEntity<ResponseDto<List<TrainerNotificationDto>>> getNotifications(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(defaultValue = "inbox") String category) {
+        Integer hrId = userDetails.getId();
+        List<TrainerNotificationDto> notifications = hrNotificationService.getNotificationsByCategory(hrId, category);
+        return ResponseEntity.ok(ResponseDto.success(notifications, "Retrieved " + category + " notifications successfully"));
     }
 
     @PostMapping
-    public ResponseEntity<ResponseDto<HrNotificationDto>> create(
+    public ResponseEntity<ResponseDto<TrainerNotificationDto>> createNotification(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody HrNotificationDto request
-    ) {
-        HrNotificationDto created = hrNotificationService.create(userDetails.getId(), request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ResponseDto.success(created, "Notification created"));
+            @RequestBody TrainerNotificationRequest request) {
+        Integer hrId = userDetails.getId();
+        TrainerNotificationDto notification = hrNotificationService.createNotification(hrId, request);
+        return ResponseEntity.ok(ResponseDto.success(notification,
+                Boolean.TRUE.equals(request.getIsDraft()) ? "Draft saved successfully" : "Notification sent successfully"));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseDto<HrNotificationDto>> update(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+    public ResponseEntity<ResponseDto<TrainerNotificationDto>> updateNotification(
             @PathVariable Integer id,
-            @RequestBody HrNotificationDto request
-    ) {
-        HrNotificationDto updated = hrNotificationService.update(userDetails.getId(), id, request);
-        return ResponseEntity.ok(ResponseDto.success(updated, "Notification updated"));
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody TrainerNotificationRequest request) {
+        Integer hrId = userDetails.getId();
+        TrainerNotificationDto notification = hrNotificationService.updateNotification(id, hrId, request);
+        return ResponseEntity.ok(ResponseDto.success(notification, "Notification updated successfully"));
+    }
+
+    @PostMapping("/{id}/send")
+    public ResponseEntity<ResponseDto<Void>> sendNotification(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer hrId = userDetails.getId();
+        hrNotificationService.sendNotification(id, hrId);
+        return ResponseEntity.ok(ResponseDto.success(null, "Notification sent successfully"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseDto<Void>> delete(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Integer id
-    ) {
-        hrNotificationService.delete(userDetails.getId(), id);
-        return ResponseEntity.ok(ResponseDto.success(null, "Notification deleted"));
+    public ResponseEntity<ResponseDto<Void>> deleteNotification(
+            @PathVariable Integer id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Integer hrId = userDetails.getId();
+        hrNotificationService.deleteNotification(id, hrId);
+        return ResponseEntity.ok(ResponseDto.success(null, "Notification deleted successfully"));
+    }
+
+    @PutMapping("/{id}/read")
+    public ResponseEntity<ResponseDto<Void>> markAsRead(@PathVariable Integer id) {
+        hrNotificationService.markAsRead(id);
+        return ResponseEntity.ok(ResponseDto.success(null, "Notification marked as read"));
     }
 }

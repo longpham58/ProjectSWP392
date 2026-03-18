@@ -1,33 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import type { NotificationDto, NotificationRequest } from '../../../../api/notification-hr.api';
 import * as hrNotificationApi from '../../../../api/notification-hr.api';
 
-interface EditDraftModalProps {
-  draft: NotificationDto;
+interface CreateNotificationModalProps {
   onClose: () => void;
-  onSave: (id: number, updatedData: NotificationRequest) => void;
-  onSend: (id: number) => void;
+  onSuccess?: () => void;
 }
 
-const EditDraftModal: React.FC<EditDraftModalProps> = ({ draft, onClose, onSave, onSend }) => {
-  const isTrainerDraft = draft.recipientType === 'TRAINERS' || (draft.recipients && draft.recipients.some((r: string) => r.includes('Trainer')));
+const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClose, onSuccess }) => {
+  const [loading, setLoading] = useState(false);
   
-  const [recipient, setRecipient] = useState<'STUDENTS' | 'TRAINERS'>(isTrainerDraft ? 'TRAINERS' : 'STUDENTS');
-  
-  // Try mapping draft classCodes and trainerIds
-  const initialClasses = draft.classCodes ? draft.classCodes.split(',').map(s => s.trim()) : [];
-  const initialTrainers = draft.recipients && isTrainerDraft ? draft.recipients.map(r => r.split('|')[0] || r) : []; // heuristic to get Trainer ID
-
-  const [selectedClasses, setSelectedClasses] = useState<string[]>(initialClasses);
-  const [selectedTrainers, setSelectedTrainers] = useState<string[]>(initialTrainers);
-  
-  const [priority, setPriority] = useState<'NORMAL' | 'HIGH' | 'LOW'>(
-    draft.priority === 'HIGH' ? 'HIGH' : draft.priority === 'LOW' ? 'LOW' : 'NORMAL'
-  );
-  const [title, setTitle] = useState(draft.title || '');
-  const [content, setContent] = useState(draft.message || draft.content || '');
+  const [recipient, setRecipient] = useState<'STUDENTS' | 'TRAINERS'>('STUDENTS');
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+  const [selectedTrainers, setSelectedTrainers] = useState<string[]>([]);
+  const [priority, setPriority] = useState<'NORMAL' | 'HIGH' | 'LOW'>('NORMAL');
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
+  
   const [availableClasses, setAvailableClasses] = useState<Array<{ code: string; name: string }>>([]);
   const [availableTrainers, setAvailableTrainers] = useState<Array<{ id: string; fullName: string; username: string }>>([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
@@ -38,16 +27,34 @@ const EditDraftModal: React.FC<EditDraftModalProps> = ({ draft, onClose, onSave,
       setLoadingCourses(true);
       try {
         const response = await hrNotificationApi.getHrClasses();
-        if (response && Array.isArray(response)) setAvailableClasses(response);
-      } catch (err) { } finally { setLoadingCourses(false); }
+        if (response && Array.isArray(response)) {
+          setAvailableClasses(response);
+        } else {
+          setAvailableClasses([]);
+        }
+      } catch (err: any) {
+        setAvailableClasses([]);
+      } finally {
+        setLoadingCourses(false);
+      }
     };
+
     const fetchTrainers = async () => {
       setLoadingTrainers(true);
       try {
         const response = await hrNotificationApi.getHrTrainers();
-        if (response && Array.isArray(response)) setAvailableTrainers(response);
-      } catch (err) { } finally { setLoadingTrainers(false); }
+        if (response && Array.isArray(response)) {
+          setAvailableTrainers(response);
+        } else {
+          setAvailableTrainers([]);
+        }
+      } catch (err: any) {
+        setAvailableTrainers([]);
+      } finally {
+        setLoadingTrainers(false);
+      }
     };
+
     fetchClasses();
     fetchTrainers();
   }, []);
@@ -56,16 +63,27 @@ const EditDraftModal: React.FC<EditDraftModalProps> = ({ draft, onClose, onSave,
     setSelectedClasses(prev => prev.includes(classCode) ? prev.filter(c => c !== classCode) : [...prev, classCode]);
     setErrors({ ...errors, selectedClasses: '' });
   };
+
   const toggleAllClasses = () => {
-    if (selectedClasses.length === availableClasses.length) setSelectedClasses([]); else setSelectedClasses(availableClasses.map(c => c.code));
+    if (selectedClasses.length === availableClasses.length) {
+      setSelectedClasses([]);
+    } else {
+      setSelectedClasses(availableClasses.map(c => c.code));
+    }
     setErrors({ ...errors, selectedClasses: '' });
   };
+
   const toggleTrainer = (id: string) => {
     setSelectedTrainers(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
     setErrors({ ...errors, selectedTrainers: '' });
   };
+
   const toggleAllTrainers = () => {
-    if (selectedTrainers.length === availableTrainers.length) setSelectedTrainers([]); else setSelectedTrainers(availableTrainers.map(t => t.id));
+    if (selectedTrainers.length === availableTrainers.length) {
+      setSelectedTrainers([]);
+    } else {
+      setSelectedTrainers(availableTrainers.map(t => t.id));
+    }
     setErrors({ ...errors, selectedTrainers: '' });
   };
 
@@ -79,7 +97,7 @@ const EditDraftModal: React.FC<EditDraftModalProps> = ({ draft, onClose, onSave,
     return Object.keys(newErrors).length === 0;
   };
 
-  const buildPayload = (isDraft: boolean): NotificationRequest => ({
+  const buildPayload = (isDraft: boolean) => ({
     title,
     message: content,
     type: 'GENERAL',
@@ -90,20 +108,36 @@ const EditDraftModal: React.FC<EditDraftModalProps> = ({ draft, onClose, onSave,
     isDraft
   });
 
-  const handleSave = () => {
-    if (title.trim() || content.trim()) {
-      onSave(draft.id, buildPayload(true));
-      alert('Đã cập nhật bản nháp thành công!');
-    } else {
-      alert('Vui lòng nhập ít nhất tiêu đề hoặc nội dung');
+  const handleSend = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      await hrNotificationApi.createHrNotification(buildPayload(false));
+      alert('Đã gửi thông báo thành công!');
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (err: any) {
+      alert('Gửi thông báo thất bại! ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSend = () => {
-    if (validate()) {
-      onSave(draft.id, buildPayload(false));
-      onSend(draft.id);
-      alert('Đã gửi thông báo thành công!');
+  const handleSaveDraft = async () => {
+    if (!title.trim() && !content.trim()) {
+      alert('Vui lòng nhập ít nhất tiêu đề hoặc nội dung');
+      return;
+    }
+    setLoading(true);
+    try {
+      await hrNotificationApi.createHrNotification(buildPayload(true));
+      alert('Đã lưu nháp thành công!');
+      if (onSuccess) onSuccess();
+      onClose();
+    } catch (err: any) {
+      alert('Lưu nháp thất bại! ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -111,8 +145,8 @@ const EditDraftModal: React.FC<EditDraftModalProps> = ({ draft, onClose, onSave,
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center text-white text-xl font-bold">E</div>
-          <h2 className="text-2xl font-bold text-gray-900">Chỉnh sửa bản nháp</h2>
+          <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xl font-bold">N</div>
+          <h2 className="text-2xl font-bold text-gray-900">Soạn thông báo mới</h2>
         </div>
 
         <div className="mb-6">
@@ -223,13 +257,13 @@ const EditDraftModal: React.FC<EditDraftModalProps> = ({ draft, onClose, onSave,
         </div>
 
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium">Hủy</button>
-          <button onClick={handleSave} className="px-6 py-3 border-2 border-orange-500 text-orange-600 rounded-lg hover:bg-orange-50 transition font-medium">Lưu thay đổi</button>
-          <button onClick={handleSend} className="flex-1 px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition font-medium">Gửi ngay</button>
+          <button onClick={onClose} className="flex-1 px-6 py-3 border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition font-medium" disabled={loading}>Hủy</button>
+          <button onClick={handleSaveDraft} className="px-6 py-3 border-2 border-orange-500 text-orange-600 rounded-lg hover:bg-orange-50 transition font-medium" disabled={loading}>Lưu nháp</button>
+          <button onClick={handleSend} className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium disabled:opacity-50" disabled={loading}>{loading ? 'Đang gửi...' : 'Gửi ngay'}</button>
         </div>
       </div>
     </div>
   );
 };
 
-export default EditDraftModal;
+export default CreateNotificationModal;

@@ -3,7 +3,7 @@ import { Header, HrBrand } from '../../components/Header';
 import { CourseManagePage } from './component/CourseManage';
 import { ClassManagePage } from './component/ClassManage';
 import { SchedulePage } from './component/Schedule';
-import { NotificationPage } from './component/Notification';
+import NotificationSection from './components/NotificationSection';
 import { UserAccountManagePage } from './component/UserAccountManage';
 import { Footer } from '../../components/Footer';
 import { DashboardAnalytics } from './components/DashboardAnalytics';
@@ -143,7 +143,7 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
             />
           )}
           {currentPage === 'schedule' && <SchedulePage onSchedulesChanged={notifyHrDataChanged} />}
-          {currentPage === 'notification' && <NotificationPage onNotificationsChanged={notifyHrDataChanged} />}
+          {currentPage === 'notification' && <NotificationSection />}
           {currentPage === 'useraccount' && <UserAccountManagePage refreshToken={hrRefreshToken} />}
         </main>
       </div>

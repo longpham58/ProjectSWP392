@@ -54,3 +54,23 @@ export const hrClassService = {
   remove: (id: number) => axios.delete<ApiResponse<void>>(`/hr/classes/${id}`),
 };
 
+export const hrClassMemberService = {
+  getMembers: (classId: number | string) => 
+    axios.get<ApiResponse<any[]>>(`/hr/classes/${classId}/members`),
+  getAvailableEmployees: (classId: number | string) => 
+    axios.get<ApiResponse<any[]>>(`/hr/classes/${classId}/members/available-employees`),
+  addMember: (classId: number | string, userId: number | string) => 
+    axios.post<ApiResponse<any>>(`/hr/classes/${classId}/members/${userId}`),
+  removeMember: (classId: number | string, memberId: number | string) => 
+    axios.delete<ApiResponse<void>>(`/hr/classes/${classId}/members/${memberId}`),
+  importMembers: (classId: number | string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return axios.post<ApiResponse<any>>(`/hr/classes/${classId}/members/import`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  downloadTemplate: (classId: number | string) => 
+    axios.get(`/hr/classes/${classId}/members/template`, { responseType: 'blob' }),
+};
+
