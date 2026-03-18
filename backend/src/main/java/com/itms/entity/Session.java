@@ -51,7 +51,9 @@ public class Session {
 
     /* =========================
        Session Info
-    ========================= */
+    ========================= *
+     */
+
 
     @Column(nullable = false)
     private LocalDate date;

@@ -191,10 +191,29 @@ public class AdminService {
         }
         
         // ========== 4. Session Activities ==========
+        // Get recent sessions first
         List<Session> recentSessions = sessionRepository.findRecentSessions(PageRequest.of(0, PAGE_SIZE));
+        
+        // Get unique course IDs from recent sessions
+        Set<Integer> courseIds = recentSessions.stream()
+            .filter(s -> s.getClassRoom() != null && s.getClassRoom().getCourse() != null)
+            .map(s -> s.getClassRoom().getCourse().getId())
+            .collect(Collectors.toSet());
+        
+        // Fetch sessions for these courses, ordered by date
+        Map<Long, Integer> sessionNumberMap = new HashMap<>();
+        for (Integer courseId : courseIds) {
+            List<Session> courseSessions = sessionRepository.findByCourseIdOrderByDateAsc(courseId.intValue());
+            int number = 1;
+            for (Session s : courseSessions) {
+                sessionNumberMap.put(s.getId(), number++);
+            }
+        }
+        
         for (Session session : recentSessions) {
             if (session.getCreatedAt() != null) {
-                String sessionName = session.getSessionName() != null ? session.getSessionName() : "Session #" + session.getId();
+                Integer sessionNum = sessionNumberMap.get(session.getId());
+                String sessionName = sessionNum != null ? "Session " + sessionNum : "Session #" + session.getId();
                 String className = session.getClassRoom() != null ? session.getClassRoom().getClassName() : "Unknown";
                 String courseName = session.getClassRoom() != null && session.getClassRoom().getCourse() != null
                         ? session.getClassRoom().getCourse().getName() : "";
@@ -225,7 +244,7 @@ public class AdminService {
         List<Notification> recentNotifications = notificationRepository.findTopRecentNotifications(PageRequest.of(0, PAGE_SIZE));
         for (Notification notification : recentNotifications) {
             if (notification.getSentDate() != null) {
-                String type = notification.getType() != null ? notification.getType().name() : "SYSTEM";
+                String type = notification.getType() != null ? notification.getType() : "SYSTEM";
                 String title = notification.getTitle() != null ? notification.getTitle() : "Notification";
                 activities.add(RecentActivity.builder()
                         .description("Notification sent: " + type + " - " + title)

@@ -1,4 +1,4 @@
-fpackage com.itms.repository;
+package com.itms.repository;
 
 import com.itms.dto.SessionAttendanceDto;
 import com.itms.entity.Session;
