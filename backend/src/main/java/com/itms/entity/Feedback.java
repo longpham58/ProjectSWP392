@@ -11,13 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        name = "Feedback",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "UQ_Feedback_Enrollment",
-                        columnNames = {"enrollment_id"})
-        }
-)
+@Table(name = "Feedback")
 public class Feedback {
 
     @Id
@@ -26,10 +20,11 @@ public class Feedback {
 
     /* =========================
        Relationships
+       Note: enrollment_id NULL = System Feedback, NOT NULL = Course Feedback
     ========================= */
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "enrollment_id", nullable = false)
+    @JoinColumn(name = "enrollment_id")
     private Enrollment enrollment;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -41,7 +36,7 @@ public class Feedback {
     private User user;
 
     /* =========================
-       Ratings
+       Ratings (for course feedback)
     ========================= */
 
     @Column(name = "course_rating")
@@ -78,4 +73,11 @@ public class Feedback {
 
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        if (submittedAt == null) {
+            submittedAt = LocalDateTime.now();
+        }
+    }
 }

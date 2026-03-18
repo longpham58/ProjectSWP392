@@ -1,6 +1,7 @@
 package com.itms.repository;
 
 import com.itms.entity.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -113,4 +114,11 @@ List<Object[]> countNewUsersByMonth(@Param("startDate") LocalDateTime startDate)
     /** Get all departments with user counts */
     @Query("SELECT u.department.name, COUNT(u) FROM User u WHERE u.department IS NOT NULL GROUP BY u.department.name")
     List<Object[]> countUsersGroupByDepartment();
+    // ==================== Audit Log Methods ====================
+    
+    /**
+     * Get recent user registrations for admin audit logs
+     */
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.department ORDER BY u.createdAt DESC")
+    List<User> findRecentUsers(Pageable pageable);
 }

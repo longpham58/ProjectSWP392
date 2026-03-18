@@ -193,10 +193,10 @@ export default function AdminDashboard() {
 
         <div className="bg-white p-6 rounded-2xl shadow">
           <h3 className="text-lg font-semibold mb-4">
-            Open Feedback Tickets
+            Open System Feedback Tickets
           </h3>
           <p className="text-sm text-gray-600">
-            {stats?.openFeedback ?? 0} pending feedback reports awaiting review.
+            {stats?.openFeedback ?? 0} pending system feedback tickets awaiting review.
           </p>
         </div>
       </div>

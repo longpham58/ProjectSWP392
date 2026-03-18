@@ -1,6 +1,7 @@
 package com.itms.repository;
 
 import com.itms.entity.ClassMember;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -44,4 +45,16 @@ public interface ClassMemberRepository extends JpaRepository<ClassMember, Intege
      * Count active students in a specific class
      */
     long countByClassRoomIdAndStatus(Integer classRoomId, String status);
+    
+    // ==================== Audit Log Methods ====================
+    
+    /**
+     * Get recent enrollment activities for admin audit logs
+     */
+    @Query("SELECT cm FROM ClassMember cm " +
+           "JOIN FETCH cm.user u " +
+           "JOIN FETCH cm.classRoom cr " +
+           "JOIN FETCH cr.course c " +
+           "ORDER BY cm.joinedAt DESC")
+    List<ClassMember> findRecentEnrollments(Pageable pageable);
 }

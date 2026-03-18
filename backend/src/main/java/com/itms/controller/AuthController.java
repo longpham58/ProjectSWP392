@@ -3,7 +3,6 @@ package com.itms.controller;
 import com.itms.dto.UserInfo;
 import com.itms.dto.auth.*;
 import com.itms.dto.common.ResponseDto;
-import com.itms.repository.UserRepository;
 import com.itms.service.OtpService;
 import com.itms.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;

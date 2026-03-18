@@ -1,331 +1,303 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useAdminStore } from "../../stores/admin.store";
 
-type Role = "Admin" | "HR" | "Trainer" | "Employee";
-
-type ActionType =
-  | "Login"
-  | "Logout"
-  | "Assigned Course"
-  | "Completed Course"
-  | "Updated Role"
-  | "Generated Certificate";
-
-interface AuditLog {
-  id: number;
-  user: string;
-  role: Role;
-  action: ActionType;
-  target: string;
-  date: string; // ISO string format recommended
+// Type for recent activity from backend
+interface RecentActivity {
+  description: string;
+  timeAgo: string;
+  count?: number;
 }
 
-const ITEMS_PER_PAGE = 5;
+type ActionType = "All" | "notification" | "enrollment" | "course" | "user" | "certificate" | "quiz" | "session";
+
+const ITEMS_PER_PAGE = 6;
 
 export default function AuditLogsPage() {
+  const { dashboardStats, fetchDashboardStats, loading, error } = useAdminStore();
+  
   const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState<Role | "All">("All");
- const [actionFilter, setActionFilter] = useState<string>("All");
-  const [dateFilter, setDateFilter] = useState<
-    "All" | "7days" | "30days"
-  >("All");
+  const [actionFilter, setActionFilter] = useState<string>("All");
+  const [dateFilter, setDateFilter] = useState<"All" | "7days" | "30days">("All");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 🔹 Sample Data
-  const logs: AuditLog[] = [
-    {
-      id: 1,
-      user: "John Doe",
-      role: "Employee",
-      action: "Completed Course",
-      target: "Compliance Training",
-      date: "2026-02-25",
-    },
-    {
-      id: 2,
-      user: "Sarah Smith",
-      role: "Trainer",
-      action: "Assigned Course",
-      target: "React Basics",
-      date: "2026-02-20",
-    },
-    {
-      id: 3,
-      user: "Admin User",
-      role: "Admin",
-      action: "Updated Role",
-      target: "Michael → Trainer",
-      date: "2026-02-18",
-    },
-    {
-      id: 4,
-      user: "Emily Chen",
-      role: "Employee",
-      action: "Generated Certificate",
-      target: "Soft Skills",
-      date: "2026-02-10",
-    },
-    {
-      id: 5,
-      user: "David Lee",
-      role: "Trainer",
-      action: "Login",
-      target: "System",
-      date: "2026-02-24",
-    },
-    {
-      id: 6,
-      user: "David Lee",
-      role: "Trainer",
-      action: "Logout",
-      target: "System",
-      date: "2026-02-24",
-    },
-  ];
+  // Fetch data on mount
+  useEffect(() => {
+    if (!dashboardStats) {
+      fetchDashboardStats();
+    }
+  }, [dashboardStats, fetchDashboardStats]);
 
-  // 🔎 Filtering Logic
-  const filteredLogs = useMemo(() => {
-    return logs.filter((log) => {
+  const activities: RecentActivity[] = dashboardStats?.recentActivities || [];
+
+  // Determine activity type from description for filtering and color coding
+  const getActivityType = (description: string): string => {
+    const lowerDesc = description.toLowerCase();
+    if (lowerDesc.includes("notification") || lowerDesc.includes("sent")) {
+      return "notification";
+    }
+    if (lowerDesc.includes("enrollment") || lowerDesc.includes("enrolled")) {
+      return "enrollment";
+    }
+    if (lowerDesc.includes("course")) {
+      return "course";
+    }
+    if (lowerDesc.includes("user") || lowerDesc.includes("register")) {
+      return "user";
+    }
+    if (lowerDesc.includes("certificate")) {
+      return "certificate";
+    }
+    if (lowerDesc.includes("quiz") || lowerDesc.includes("attempt")) {
+      return "quiz";
+    }
+    if (lowerDesc.includes("session") || lowerDesc.includes("class")) {
+      return "session";
+    }
+    return "default";
+  };
+
+  // Get color based on activity type
+  const getActivityColor = (description: string): string => {
+    const type = getActivityType(description);
+    switch (type) {
+      case "notification":
+        return "bg-blue-500";
+      case "enrollment":
+        return "bg-green-500";
+      case "course":
+        return "bg-purple-500";
+      case "user":
+        return "bg-orange-500";
+      case "certificate":
+        return "bg-yellow-500";
+      case "quiz":
+        return "bg-red-500";
+      case "session":
+        return "bg-indigo-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  // Get icon based on activity type
+  const getActivityIcon = (description: string): string => {
+    const type = getActivityType(description);
+    switch (type) {
+      case "notification":
+        return "📢";
+      case "enrollment":
+        return "📝";
+      case "course":
+        return "📚";
+      case "user":
+        return "👤";
+      case "certificate":
+        return "🏆";
+      case "quiz":
+        return "📋";
+      case "session":
+        return "🗓️";
+      default:
+        return "📌";
+    }
+  };
+
+  // Filtering Logic
+  const filteredActivities = useMemo(() => {
+    return activities.filter((activity) => {
       const matchesSearch =
-        log.user.toLowerCase().includes(search.toLowerCase()) ||
-        log.action.toLowerCase().includes(search.toLowerCase()) ||
-        log.target.toLowerCase().includes(search.toLowerCase());
-
-      const matchesRole =
-        roleFilter === "All" || log.role === roleFilter;
+        search === "" ||
+        activity.description.toLowerCase().includes(search.toLowerCase());
 
       const matchesAction =
-        actionFilter === "All" || log.action === actionFilter;
+        actionFilter === "All" || getActivityType(activity.description) === actionFilter;
 
       const matchesDate = (() => {
         if (dateFilter === "All") return true;
-
-        const logDate = new Date(log.date);
-        const today = new Date();
-        const diffTime = today.getTime() - logDate.getTime();
-        const diffDays = diffTime / (1000 * 60 * 60 * 24);
-
-        if (dateFilter === "7days") return diffDays <= 7;
-        if (dateFilter === "30days") return diffDays <= 30;
-
+        
+        // Parse timeAgo to determine if it's within the date range
+        const timeAgo = activity.timeAgo.toLowerCase();
+        
+        if (dateFilter === "7days") {
+          if (timeAgo.includes("hour") || timeAgo.includes("minute")) return true;
+          if (timeAgo.includes("day") && !timeAgo.includes("week")) {
+            const days = parseInt(timeAgo.match(/\d+/)?.[0] || "0");
+            return days <= 7;
+          }
+          return false;
+        }
+        
+        if (dateFilter === "30days") {
+          if (timeAgo.includes("hour") || timeAgo.includes("minute")) return true;
+          if (timeAgo.includes("day")) {
+            const days = parseInt(timeAgo.match(/\d+/)?.[0] || "0");
+            return days <= 30;
+          }
+          if (timeAgo.includes("week")) return true;
+          return false;
+        }
+        
         return true;
       })();
 
-      return (
-        matchesSearch &&
-        matchesRole &&
-        matchesAction &&
-        matchesDate
-      );
+      return matchesSearch && matchesAction && matchesDate;
     });
-  }, [search, roleFilter, actionFilter, dateFilter]);
+  }, [activities, search, actionFilter, dateFilter]);
 
-  // 📄 Pagination Logic
-  const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE);
+  // Pagination Logic
+  const totalPages = Math.ceil(filteredActivities.length / ITEMS_PER_PAGE);
 
-  const paginatedLogs = filteredLogs.slice(
+  const paginatedActivities = filteredActivities.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
-const renderActivityMessage = (log: AuditLog) => {
-  switch (log.action) {
-    case "Completed Course":
-      return (
-        <>
-          <span className="font-semibold">{log.user}</span> completed{" "}
-          <span className="font-medium">{log.target}</span>
-        </>
-      );
 
-    case "Assigned Course":
-      return (
-        <>
-          <span className="font-semibold">{log.user}</span> assigned{" "}
-          <span className="font-medium">{log.target}</span>
-        </>
-      );
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, actionFilter, dateFilter]);
 
-    case "Updated Role":
-      return (
-        <>
-          <span className="font-semibold">{log.user}</span> updated role:{" "}
-          <span className="font-medium">{log.target}</span>
-        </>
-      );
+  // Handle refresh
+  const handleRefresh = () => {
+    fetchDashboardStats();
+  };
 
-    case "Generated Certificate":
-      return (
-        <>
-          <span className="font-semibold">{log.user}</span> generated a
-          certificate for{" "}
-          <span className="font-medium">{log.target}</span>
-        </>
-      );
-
-    case "Login":
-      return (
-        <>
-          <span className="font-semibold">{log.user}</span> logged into
-          the system
-        </>
-      );
-
-    case "Logout":
-      return (
-        <>
-          <span className="font-semibold">{log.user}</span> logged out of
-          the system
-        </>
-      );
-
-    default:
-      return (
-        <>
-          <span className="font-semibold">{log.user}</span> performed{" "}
-          {log.action}
-        </>
-      );
-  }
-};const getActionColor = (action: ActionType) => {
-  switch (action) {
-    case "Completed Course":
-      return "bg-green-500";
-    case "Assigned Course":
-      return "bg-blue-500";
-    case "Updated Role":
-      return "bg-yellow-500";
-    case "Generated Certificate":
-      return "bg-purple-500";
-    case "Login":
-      return "bg-gray-400";
-    case "Logout":
-      return "bg-red-400";
-    default:
-      return "bg-gray-300";
-  }
-};
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-6">System Activity</h2>
+      <h2 className="text-2xl font-bold mb-6">System Activities</h2>
 
       {/* Filters Section */}
       <div className="flex flex-wrap gap-4 mb-6 items-center">
-
         {/* Search */}
         <input
           type="text"
-          placeholder="Search user, action, target..."
+          placeholder="Search activities..."
           className="border rounded-lg px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setCurrentPage(1);
-          }}
+          onChange={(e) => setSearch(e.target.value)}
         />
 
-        {/* Role Filter */}
-        <select
-          className="border rounded-lg px-4 py-2"
-          value={roleFilter}
-          onChange={(e) => {
-            setRoleFilter(e.target.value as Role | "All");
-            setCurrentPage(1);
-          }}
-        >
-          <option value="All">All Roles</option>
-          <option value="Admin">Admin</option>
-          <option value="HR">HR</option>
-          <option value="Trainer">Trainer</option>
-          <option value="Employee">Employee</option>
-        </select>
-
-        {/* Action Filter */}
+        {/* Action Type Filter */}
         <select
           className="border rounded-lg px-4 py-2"
           value={actionFilter}
-          onChange={(e) => {
-            setActionFilter(e.target.value);
-            setCurrentPage(1);
-          }}
+          onChange={(e) => setActionFilter(e.target.value)}
         >
-          <option value="All">All Actions</option>
-          <option value="Login">Login</option>
-          <option value="Logout">Logout</option>
-          <option value="Assigned Course">Assigned Course</option>
-          <option value="Completed Course">Completed Course</option>
-          <option value="Updated Role">Updated Role</option>
-          <option value="Generated Certificate">Generated Certificate</option>
+          <option value="All">All Types</option>
+          <option value="notification">Notifications</option>
+          <option value="enrollment">Enrollments</option>
+          <option value="course">Courses</option>
+          <option value="user">Users</option>
+          <option value="certificate">Certificates</option>
+          <option value="quiz">Quizzes</option>
+          <option value="session">Sessions</option>
         </select>
 
         {/* Date Filter */}
         <select
           className="border rounded-lg px-4 py-2"
           value={dateFilter}
-          onChange={(e) => {
-            setDateFilter(e.target.value as "All" | "7days" | "30days");
-            setCurrentPage(1);
-          }}
+          onChange={(e) => setDateFilter(e.target.value as "All" | "7days" | "30days")}
         >
           <option value="All">All Dates</option>
           <option value="7days">Last 7 Days</option>
           <option value="30days">Last 30 Days</option>
         </select>
+
+        {/* Refresh Button */}
+        <button
+          onClick={handleRefresh}
+          disabled={loading}
+          className="border rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors disabled:opacity-50"
+        >
+          {loading ? "Loading..." : "🔄 Refresh"}
+        </button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow p-6">
-  <h3 className="text-lg font-semibold mb-6">Recent Activity</h3>
-
-  <div className="space-y-6">
-    {paginatedLogs.map((log, index) => (
-      <div key={log.id} className="flex items-start gap-4">
-
-        {/* Timeline Dot */}
-      <div
-  className={`w-3 h-3 rounded-full ${getActionColor(log.action)} mt-2`}
-/>
-
-        {/* Content */}
-        <div className="flex-1">
-          <p className="text-sm text-gray-800">
-            {renderActivityMessage(log)}
-          </p>
-
-          <p className="text-xs text-gray-500 mt-1">
-            {new Date(log.date).toLocaleDateString()} • {log.role}
-          </p>
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
         </div>
-      </div>
-    ))}
+      )}
 
-    {paginatedLogs.length === 0 && (
-      <div className="text-center text-gray-500 py-6">
-        No activity found.
-      </div>
-    )}
-  </div>
-</div>
+      {/* Error State */}
+      {error && !loading && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+          {error}
+        </div>
+      )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex justify-center items-center gap-4 mt-6">
-          <button
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((prev) => prev - 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
+      {/* Content */}
+      {!loading && !error && (
+        <div className="bg-white rounded-2xl shadow p-6">
+          <h3 className="text-lg font-semibold mb-6">
+            Recent Activity ({filteredActivities.length})
+          </h3>
 
-          <span className="text-sm">
-            Page {currentPage} of {totalPages}
-          </span>
+          <div className="space-y-4">
+            {paginatedActivities.map((activity, index) => (
+              <div
+                key={index}
+                className="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                {/* Icon */}
+                <div className="text-2xl">{getActivityIcon(activity.description)}</div>
 
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >
-            Next
-          </button>
+                {/* Timeline Dot */}
+                <div
+                  className={`w-3 h-3 rounded-full ${getActivityColor(activity.description)} mt-2`}
+                />
+
+                {/* Content */}
+                <div className="flex-1">
+                  <p className="text-sm text-gray-800 font-medium">
+                    {activity.description}
+                  </p>
+
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-gray-500">{activity.timeAgo}</p>
+                    {activity.count && activity.count > 1 && (
+                      <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">
+                        {activity.count} events
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {paginatedActivities.length === 0 && (
+              <div className="text-center text-gray-500 py-6">
+                No activities found.
+              </div>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-4 mt-6">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => prev - 1)}
+                className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+              >
+                Previous
+              </button>
+
+              <span className="text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+                className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

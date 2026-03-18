@@ -11,8 +11,15 @@ import com.itms.dto.AdminDashboardDto;
 import com.itms.dto.AdminNotificationDto;
 import com.itms.dto.AdminDashboardDto.MonthlyCompletion;
 import com.itms.dto.AdminDashboardDto.RecentActivity;
-import com.itms.entity.Notification;
+import com.itms.dto.FeedbackDto;
+import com.itms.entity.Certificate;
+import com.itms.entity.Course;
+import com.itms.entity.Feedback;
+import com.itms.entity.QuizAttempt;
+import com.itms.entity.Session;
 import com.itms.entity.User;
+import com.itms.entity.ClassMember;
+import com.itms.entity.Notification;
 import com.itms.repository.*;
 import com.itms.security.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +50,9 @@ public class AdminService {
     private final UserModuleProgressRepository userModuleProgressRepository;
     private final NotificationRepository notificationRepository;
     private final MaterialRepository materialRepository;
+    private final CertificateRepository certificateRepository;
+    private final QuizAttemptRepository quizAttemptRepository;
+    private final SessionRepository sessionRepository;
 
     public AdminDashboardDto getDashboardStats() {
         LocalDateTime now = LocalDateTime.now();
@@ -63,7 +73,8 @@ public class AdminService {
         long totalEnrollments = classMemberRepository.count();
         
         // ========== FEEDBACK ==========
-        long openFeedback = feedbackRepository.count();
+        // Count system feedback (where enrollment_id is NULL = system feedback)
+        long openFeedback = feedbackRepository.countByEnrollmentIsNull();
         
         // ========== CHARTS DATA ==========
         // Role distribution
@@ -137,72 +148,98 @@ public class AdminService {
 
     private List<RecentActivity> getRecentActivities() {
         List<RecentActivity> activities = new ArrayList<>();
-
-        // Get recent notifications as activities
-        List<Notification> recentNotifications = notificationRepository.findTopRecentNotifications(PageRequest.of(0, 50));
-
-        if (!recentNotifications.isEmpty()) {
-            // Group notifications by type and count them
-            Map<String, List<Notification>> groupedByType = recentNotifications.stream()
-                    .collect(Collectors.groupingBy(n -> {
-                        // Group by type + first part of title for meaningful grouping
-                        String type = n.getType() != null ? n.getType().name() : "SYSTEM";
-                        return type;
-                    }));
-
-            // Create grouped activities
-            for (Map.Entry<String, List<Notification>> entry : groupedByType.entrySet()) {
-                String type = entry.getKey();
-                List<Notification> notifications = entry.getValue();
-                long count = notifications.size();
-
-                // Get the most recent notification's time for this group
-                Notification mostRecent = notifications.stream()
-                        .max(Comparator.comparing(Notification::getSentDate))
-                        .orElse(null);
-                String timeAgo = mostRecent != null ? calculateTimeAgo(mostRecent.getSentDate()) : "Unknown";
-
-                // Create descriptive message based on notification type
-                String description = createActivityDescription(type, count);
-
+        final int PAGE_SIZE = 20;
+        
+        // ========== 1. User Registration Activities ==========
+        List<User> recentUsers = userRepository.findRecentUsers(PageRequest.of(0, PAGE_SIZE));
+        for (User user : recentUsers) {
+            if (user.getCreatedAt() != null) {
                 activities.add(RecentActivity.builder()
-                        .description(description)
-                        .timeAgo(timeAgo)
-                        .count(count)
-                        .build());
-            }
-        }
-
-        // If no notifications, generate some default activities based on data
-        if (activities.isEmpty()) {
-            long courseCount = courseRepository.count();
-            if (courseCount > 0) {
-                activities.add(RecentActivity.builder()
-                        .description(courseCount + " courses available in system")
-                        .timeAgo("1 day ago")
-                        .count(courseCount)
-                        .build());
-            }
-
-            long userCount = userRepository.count();
-            if (userCount > 0) {
-                activities.add(RecentActivity.builder()
-                        .description(userCount + " users registered in system")
-                        .timeAgo("1 day ago")
-                        .count(userCount)
-                        .build());
-            }
-
-            if (activities.isEmpty()) {
-                activities.add(RecentActivity.builder()
-                        .description("System initialized")
-                        .timeAgo("Just now")
+                        .description("New user registered: " + user.getFullName() + " (" + user.getEmail() + ")")
+                        .timeAgo(calculateTimeAgo(user.getCreatedAt()))
                         .count(1L)
                         .build());
             }
         }
-
-        return activities.stream().limit(6).collect(Collectors.toList());
+        
+        // ========== 2. Course Creation Activities ==========
+        List<Course> recentCourses = courseRepository.findRecentCourses(PageRequest.of(0, PAGE_SIZE));
+        for (Course course : recentCourses) {
+            if (course.getCreatedAt() != null) {
+                String status = course.getStatus() != null ? course.getStatus().name() : "DRAFT";
+                activities.add(RecentActivity.builder()
+                        .description("Course created: " + course.getName() + " (" + status + ")")
+                        .timeAgo(calculateTimeAgo(course.getCreatedAt()))
+                        .count(1L)
+                        .build());
+            }
+        }
+        
+        // ========== 3. Enrollment Activities ==========
+        List<ClassMember> recentEnrollments = classMemberRepository.findRecentEnrollments(PageRequest.of(0, PAGE_SIZE));
+        for (ClassMember cm : recentEnrollments) {
+            if (cm.getJoinedAt() != null) {
+                String userName = cm.getUser() != null ? cm.getUser().getFullName() : "Unknown";
+                String className = cm.getClassRoom() != null ? cm.getClassRoom().getClassName() : "Unknown";
+                String courseName = cm.getClassRoom() != null && cm.getClassRoom().getCourse() != null 
+                        ? cm.getClassRoom().getCourse().getName() : "";
+                activities.add(RecentActivity.builder()
+                        .description("User enrolled: " + userName + " in " + className + " (" + courseName + ")")
+                        .timeAgo(calculateTimeAgo(cm.getJoinedAt()))
+                        .count(1L)
+                        .build());
+            }
+        }
+        
+        // ========== 4. Session Activities ==========
+        List<Session> recentSessions = sessionRepository.findRecentSessions(PageRequest.of(0, PAGE_SIZE));
+        for (Session session : recentSessions) {
+            if (session.getCreatedAt() != null) {
+                String sessionName = session.getSessionName() != null ? session.getSessionName() : "Session #" + session.getId();
+                String className = session.getClassRoom() != null ? session.getClassRoom().getClassName() : "Unknown";
+                String courseName = session.getClassRoom() != null && session.getClassRoom().getCourse() != null
+                        ? session.getClassRoom().getCourse().getName() : "";
+                String status = session.getStatus() != null ? session.getStatus().name() : "SCHEDULED";
+                activities.add(RecentActivity.builder()
+                        .description("Session scheduled: " + sessionName + " for " + className + " - " + courseName + " (" + status + ")")
+                        .timeAgo(calculateTimeAgo(session.getCreatedAt()))
+                        .count(1L)
+                        .build());
+            }
+        }
+        
+        // ========== 5. Certificate Activities ==========
+        List<Certificate> recentCertificates = certificateRepository.findRecentCertificates(PageRequest.of(0, PAGE_SIZE));
+        for (Certificate cert : recentCertificates) {
+            if (cert.getCreatedAt() != null) {
+                String userName = cert.getUser() != null ? cert.getUser().getFullName() : "Unknown";
+                String courseName = cert.getCourse() != null ? cert.getCourse().getName() : "Unknown Course";
+                activities.add(RecentActivity.builder()
+                        .description("Certificate issued: " + userName + " completed " + courseName)
+                        .timeAgo(calculateTimeAgo(cert.getCreatedAt()))
+                        .count(1L)
+                        .build());
+            }
+        }
+        
+        // ========== 6. Notification Activities ==========
+        List<Notification> recentNotifications = notificationRepository.findTopRecentNotifications(PageRequest.of(0, PAGE_SIZE));
+        for (Notification notification : recentNotifications) {
+            if (notification.getSentDate() != null) {
+                String type = notification.getType() != null ? notification.getType().name() : "SYSTEM";
+                String title = notification.getTitle() != null ? notification.getTitle() : "Notification";
+                activities.add(RecentActivity.builder()
+                        .description("Notification sent: " + type + " - " + title)
+                        .timeAgo(calculateTimeAgo(notification.getSentDate()))
+                        .count(1L)
+                        .build());
+            }
+        }
+        
+        // Sort all activities and limit to 50
+        return activities.stream()
+                .limit(50)
+                .collect(Collectors.toList());
     }
 
     private String createActivityDescription(String type, long count) {
@@ -510,6 +547,59 @@ public class AdminService {
                 .status(n.getIsDraft() != null && n.getIsDraft() ? "DRAFT" : "SENT")
                 .senderName(n.getSender() != null ? n.getSender().getFullName() : null)
                 .senderId(n.getSender() != null ? n.getSender().getId() : null)
+                .build();
+    }
+
+    // ========== SYSTEM FEEDBACK METHODS ==========
+    
+    /**
+     * Get all system feedback (enrollment_id IS NULL)
+     * Both admin and employees can view this
+     */
+    public List<FeedbackDto> getSystemFeedback() {
+        List<Feedback> feedbacks = feedbackRepository.findByEnrollmentIsNullOrderBySubmittedAtDesc();
+        return feedbacks.stream()
+                .map(this::mapToFeedbackDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Submit system feedback
+     * Any authenticated user (admin, employee, trainer) can submit
+     * If isAnonymous is true, user info is hidden
+     */
+    public FeedbackDto submitSystemFeedback(FeedbackDto dto, CustomUserDetails userDetails) {
+        Feedback feedback = Feedback.builder()
+                .comments(dto.getComments())
+                .suggestions(dto.getSuggestions())
+                .isAnonymous(dto.getIsAnonymous() != null ? dto.getIsAnonymous() : false)
+                .build();
+        
+        // Set user if authenticated and not anonymous
+        if (userDetails != null && !Boolean.TRUE.equals(dto.getIsAnonymous())) {
+            feedback.setUser(userDetails.getUser());
+        }
+        
+        Feedback saved = feedbackRepository.save(feedback);
+        return mapToFeedbackDto(saved);
+    }
+
+    /**
+     * Delete feedback (admin only)
+     */
+    public void deleteFeedback(Long id) {
+        feedbackRepository.deleteById(id);
+    }
+
+    private FeedbackDto mapToFeedbackDto(Feedback feedback) {
+        return FeedbackDto.builder()
+                .id(feedback.getId())
+                .comments(feedback.getComments())
+                .suggestions(feedback.getSuggestions())
+                .isAnonymous(feedback.getIsAnonymous())
+                .userName(feedback.getIsAnonymous() != null && feedback.getIsAnonymous() ? null : (feedback.getUser() != null ? feedback.getUser().getFullName() : null))
+                .userEmail(feedback.getIsAnonymous() != null && feedback.getIsAnonymous() ? null : (feedback.getUser() != null ? feedback.getUser().getEmail() : null))
+                .submittedAt(feedback.getSubmittedAt())
                 .build();
     }
 }

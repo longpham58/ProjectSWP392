@@ -71,4 +71,16 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
      */
     long count();
     
+    // ==================== System Feedback Methods ====================
+    
+    /**
+     * Find system feedback (where enrollment_id is NULL)
+     */
+    List<Feedback> findByEnrollmentIsNullOrderBySubmittedAtDesc();
+    
+    /**
+     * Count system feedback (where enrollment_id is NULL)
+     */
+    long countByEnrollmentIsNull();
+    
 }

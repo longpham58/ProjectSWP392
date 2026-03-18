@@ -61,7 +61,7 @@ export default function MyCoursesPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white border rounded-lg p-4">
           <div className="text-gray-600 text-sm font-medium mb-1">Tổng số khóa</div>
-          <div className="text-3xl font-bold text-blue-700">{courses.length}</div>
+          <div className="text-3xl font-bold text-blue-700">{myCourses.length}</div>
         </div>
         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
           <div className="text-green-600 text-sm font-medium mb-1">Đang hoạt động</div>

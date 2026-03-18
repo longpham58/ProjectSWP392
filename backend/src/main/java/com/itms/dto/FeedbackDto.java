@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class FeedbackDto {
 
     private Long id;
+    
     private Integer courseId;
     
     // Rating fields

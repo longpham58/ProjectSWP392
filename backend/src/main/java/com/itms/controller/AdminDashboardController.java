@@ -7,8 +7,10 @@ import com.itms.dto.AdminCourseDto;
 import com.itms.dto.AdminCourseDetailDto;
 import com.itms.dto.AdminDashboardDto;
 import com.itms.dto.AdminNotificationDto;
+import com.itms.dto.FeedbackDto;
 import com.itms.dto.common.ResponseDto;
 import com.itms.service.AdminService;
+import com.itms.service.FeedbackService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminDashboardController {
     private final AdminService adminService;
+    private final FeedbackService feedbackService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<ResponseDto<AdminDashboardDto>> getDashboardStats() {
@@ -122,6 +125,15 @@ public class AdminDashboardController {
         adminService.deleteNotification(id);
         return ResponseEntity.ok(
                 ResponseDto.success(null, "Notification deleted successfully")
+        );
+    }
+
+    // ========== FEEDBACK ==========
+    @GetMapping("/feedback")
+    public ResponseEntity<ResponseDto<List<FeedbackDto>>> getAllFeedback() {
+        List<FeedbackDto> feedback = feedbackService.getAllFeedback();
+        return ResponseEntity.ok(
+                ResponseDto.success(feedback, "Feedback retrieved successfully")
         );
     }
 }

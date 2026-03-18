@@ -1,12 +1,13 @@
 import { create } from "zustand";
 import { adminApi, AdminCourseDto, AdminClassDto, AdminCourseDetailDto } from "../api/admin.api";
-import { coursesApi, Course } from "../api/courses.api";
+import { coursesApi, Course, CourseModule } from "../api/courses.api";
 
 interface CourseState {
   courses: AdminCourseDto[];
   myCourses: Course[];
   classes: AdminClassDto[];
   currentCourse: AdminCourseDetailDto | null;
+  modules: CourseModule[];
   loading: boolean;
   error: string | null;
   
@@ -18,6 +19,9 @@ interface CourseState {
   // My Courses (for employees)
   fetchMyCourses: () => Promise<void>;
   
+  // Employee Course Detail
+  fetchCourseDetail: (courseId: number) => Promise<void>;
+  
   // Classes
   fetchClasses: () => Promise<void>;
 }
@@ -27,6 +31,7 @@ export const useCourseStore = create<CourseState>((set) => ({
   myCourses: [],
   classes: [],
   currentCourse: null,
+  modules: [],
   loading: false,
   error: null,
 
@@ -55,7 +60,7 @@ export const useCourseStore = create<CourseState>((set) => ({
   },
 
   clearCurrentCourse: () => {
-    set({ currentCourse: null });
+    set({ currentCourse: null, modules: [] });
   },
 
   fetchMyCourses: async () => {
@@ -65,6 +70,25 @@ export const useCourseStore = create<CourseState>((set) => ({
       set({ myCourses: res.data.data || [] });
     } catch (err: any) {
       set({ error: err.response?.data?.message || "Failed to fetch my courses" });
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  fetchCourseDetail: async (courseId: number) => {
+    set({ loading: true, error: null });
+    try {
+      const [courseRes, modulesRes] = await Promise.all([
+        coursesApi.getCourseById(courseId),
+        coursesApi.getCourseModules(courseId)
+      ]);
+      // For employee course detail, we store it in currentCourse but as Course type
+      set({ 
+        currentCourse: courseRes.data.data as any, 
+        modules: modulesRes.data.data || [] 
+      });
+    } catch (err: any) {
+      set({ error: err.response?.data?.message || "Failed to fetch course detail" });
     } finally {
       set({ loading: false });
     }

@@ -1,6 +1,7 @@
 package com.itms.repository;
 
 import com.itms.entity.Course;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -43,4 +44,12 @@ public interface CourseRepository extends JpaRepository<Course, Integer> {
             "(SELECT COUNT(cm2) FROM ClassMember cm2 JOIN cm2.classRoom cl2 WHERE cl2.course = c AND cm2.status = 'COMPLETED') " +
             "FROM Course c")
     List<Object[]> getCourseCompletionStats();
+    
+    // ==================== Audit Log Methods ====================
+    
+    /**
+     * Get recent course activities for admin audit logs
+     */
+    @Query("SELECT c FROM Course c ORDER BY c.createdAt DESC")
+    List<Course> findRecentCourses(Pageable pageable);
 }

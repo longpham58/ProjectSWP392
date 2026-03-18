@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { adminApi, AdminDashboardStats, AdminCourseDto, AdminClassDto, AdminAnalyticsDto, AdminNotificationDto } from "../api/admin.api";
+import { adminApi, AdminDashboardStats, AdminCourseDto, AdminClassDto, AdminAnalyticsDto, AdminNotificationDto, FeedbackDto } from "../api/admin.api";
 
 interface AdminState {
   dashboardStats: AdminDashboardStats | null;
@@ -9,6 +9,10 @@ interface AdminState {
   currentCourse: AdminCourseDto | null;
   loading: boolean;
   error: string | null;
+  
+  // Feedback
+  feedbackList: FeedbackDto[];
+  fetchAllFeedback: () => Promise<void>;
   
   // Dashboard
   fetchDashboardStats: () => Promise<void>;
@@ -42,6 +46,7 @@ export const useAdminStore = create<AdminState>((set, get) => ({
   loading: false,
   error: null,
   notifications: [],
+  feedbackList: [],
 
   fetchDashboardStats: async () => {
     set({ loading: true, error: null });
@@ -173,6 +178,17 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     } catch (err: any) {
       set({ error: err.response?.data?.message || "Failed to delete notification", loading: false });
       throw err;
+    }
+  },
+
+  // Feedback
+  fetchAllFeedback: async () => {
+    set({ loading: true, error: null });
+    try {
+      const res = await adminApi.getAllFeedback();
+      set({ feedbackList: res.data.data || [], loading: false });
+    } catch (err: any) {
+      set({ error: err.response?.data?.message || "Failed to fetch feedback", loading: false });
     }
   },
 }));

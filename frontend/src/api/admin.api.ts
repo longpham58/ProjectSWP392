@@ -66,6 +66,30 @@ export interface AdminNotificationDto {
   senderId: number;
 }
 
+// Feedback DTO
+
+export type FeedbackStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
+
+export interface FeedbackDto {
+  id: number;
+  status?: FeedbackStatus;
+  adminResponse?: string;
+  // Course feedback fields
+  courseId?: number;
+  courseRating?: number;
+  trainerRating?: number;
+  contentRating?: number;
+  overallRating?: number;
+  userId?: number;
+  comments?: string;
+  suggestions?: string;
+  wouldRecommend?: boolean;
+  isAnonymous: boolean;
+  userName?: string;
+  userEmail?: string;
+  submittedAt?: string;
+}
+
 export type CourseStatus = "DRAFT" | "ACTIVE" | "INACTIVE" | "ARCHIVED";
 export type Level = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
@@ -189,4 +213,15 @@ export const adminApi = {
 
   deleteNotification: (id: number) =>
     axios.delete<ApiResponse<void>>(`/admin/notifications/${id}`),
+
+  // Feedback
+  getAllFeedback: () =>
+    axios.get<ApiResponse<FeedbackDto[]>>("/admin/feedback"),
+
+  // System Feedback (new)
+  getSystemFeedback: () =>
+    axios.get<ApiResponse<FeedbackDto[]>>("/admin/feedback/system"),
+
+  createSystemFeedback: (data: Partial<FeedbackDto>) =>
+    axios.post<ApiResponse<FeedbackDto>>("/admin/feedback/system", data),
 };

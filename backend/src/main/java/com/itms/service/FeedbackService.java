@@ -121,4 +121,14 @@ public class FeedbackService {
         // TODO: This functionality requires database schema changes to add trainer_reply and replied_at columns
         throw new RuntimeException("Trainer reply functionality not yet implemented - requires database schema update");
     }
+
+    /**
+     * Get all feedback for admin
+     */
+    public List<FeedbackDto> getAllFeedback() {
+        List<Feedback> feedbacks = feedbackRepository.findAll();
+        return feedbacks.stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
 }

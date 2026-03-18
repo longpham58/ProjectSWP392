@@ -1,6 +1,7 @@
 package com.itms.repository;
 
 import com.itms.entity.QuizAttempt;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -15,4 +16,11 @@ public interface QuizAttemptRepository extends JpaRepository<QuizAttempt, Intege
     
     // Find attempt by ID
     Optional<QuizAttempt> findById(Integer attemptId);
+    
+    // ==================== Audit Log Methods ====================
+    
+    /**
+     * Get recent quiz attempt activities for admin audit logs
+     */
+    List<QuizAttempt> findTopByOrderByStartedAtDesc(Pageable pageable);
 }

@@ -2,6 +2,7 @@ package com.itms.repository;
 
 
 import com.itms.entity.Certificate;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -36,4 +37,12 @@ public interface CertificateRepository extends JpaRepository<Certificate, Intege
      */
     @Query("SELECT COUNT(c) FROM Certificate c WHERE c.user.id = :userId AND c.isValid = true")
     Integer countByUserId(@Param("userId") Integer userId);
+    
+    // ==================== Audit Log Methods ====================
+    
+    /**
+     * Get recent certificate activities for admin audit logs
+     */
+    @Query("SELECT cert FROM Certificate cert LEFT JOIN FETCH cert.user LEFT JOIN FETCH cert.course ORDER BY cert.createdAt DESC")
+    List<Certificate> findRecentCertificates(Pageable pageable);
 }

@@ -1,7 +1,8 @@
-package com.itms.repository;
+fpackage com.itms.repository;
 
 import com.itms.dto.SessionAttendanceDto;
 import com.itms.entity.Session;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -242,4 +243,15 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
      */
     @Query("SELECT DISTINCT s.course FROM Session s WHERE s.trainer.id = :trainerId")
     List<com.itms.entity.Course> getTrainerCourses(@Param("trainerId") Integer trainerId);
+    
+    // ==================== Audit Log Methods ====================
+    
+    /**
+     * Get recent session activities for admin audit logs
+     */
+    @Query("SELECT s FROM Session s " +
+           "JOIN FETCH s.classRoom cr " +
+           "JOIN FETCH cr.course c " +
+           "ORDER BY s.createdAt DESC")
+    List<Session> findRecentSessions(Pageable pageable);
 }
