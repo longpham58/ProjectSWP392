@@ -34,8 +34,8 @@ public class QuizController {
      */
     @GetMapping("/course/{courseId}/user/{userId}")
     public ResponseEntity<ResponseDto<List<QuizDto>>> getQuizzesByCourse(
-            @PathVariable Integer courseId,
-            @PathVariable Integer userId) {
+            @PathVariable("courseId") Integer courseId,
+            @PathVariable("userId") Integer userId) {
         List<QuizDto> quizzes = quizService.getQuizzesByCourse(courseId, userId);
         return ResponseEntity.ok(ResponseDto.success(quizzes, "Quizzes retrieved successfully"));
     }
@@ -45,8 +45,8 @@ public class QuizController {
      */
     @GetMapping("/{quizId}/user/{userId}")
     public ResponseEntity<ResponseDto<QuizDto>> getQuizById(
-            @PathVariable Integer quizId,
-            @PathVariable Integer userId) {
+            @PathVariable("quizId") Integer quizId,
+            @PathVariable("userId") Integer userId) {
         QuizDto quiz = quizService.getQuizById(quizId, userId);
         return ResponseEntity.ok(ResponseDto.success(quiz, "Quiz retrieved successfully"));
     }
@@ -85,8 +85,8 @@ public class QuizController {
      */
     @GetMapping("/attempts/user/{userId}/quiz/{quizId}")
     public ResponseEntity<ResponseDto<List<QuizAttemptDto>>> getUserQuizAttempts(
-            @PathVariable Integer userId,
-            @PathVariable Integer quizId) {
+            @PathVariable("userId") Integer userId,
+            @PathVariable("quizId") Integer quizId) {
         List<QuizAttemptDto> attempts = quizService.getUserQuizAttempts(userId, quizId);
         return ResponseEntity.ok(ResponseDto.success(attempts, "Attempts retrieved successfully"));
     }
@@ -96,8 +96,8 @@ public class QuizController {
      */
     @GetMapping("/attempts/user/{userId}/course/{courseId}")
     public ResponseEntity<ResponseDto<List<QuizAttemptDto>>> getUserQuizAttemptsInCourse(
-            @PathVariable Integer userId,
-            @PathVariable Integer courseId) {
+            @PathVariable("userId") Integer userId,
+            @PathVariable("courseId") Integer courseId) {
         List<QuizAttemptDto> attempts = quizService.getUserQuizAttemptsInCourse(userId, courseId);
         return ResponseEntity.ok(ResponseDto.success(attempts, "Attempts retrieved successfully"));
     }
@@ -111,8 +111,8 @@ public class QuizController {
      */
     @GetMapping("/course/{courseId}/user/{userId}/status")
     public ResponseEntity<ResponseDto<Map<String, Object>>> getCourseQuizStatus(
-            @PathVariable Integer courseId,
-            @PathVariable Integer userId) {
+            @PathVariable("courseId") Integer courseId,
+            @PathVariable("userId") Integer userId) {
         Map<String, Object> status = quizService.getCourseQuizStatus(courseId, userId);
         return ResponseEntity.ok(ResponseDto.success(status, "Course quiz status retrieved successfully"));
     }
@@ -212,7 +212,7 @@ public class QuizController {
      */
     @GetMapping("/module/{moduleId}")
     public ResponseEntity<ResponseDto<List<QuizDto>>> getQuizzesByModule(
-            @PathVariable Integer moduleId) {
+            @PathVariable("moduleId") Integer moduleId) {
         List<QuizDto> quizzes = quizService.getQuizzesByModule(moduleId);
         return ResponseEntity.ok(ResponseDto.success(quizzes, "Quizzes retrieved successfully"));
     }
@@ -222,7 +222,7 @@ public class QuizController {
      */
     @GetMapping("/{quizId}/details")
     public ResponseEntity<ResponseDto<QuizDto>> getQuizDetails(
-            @PathVariable Integer quizId) {
+            @PathVariable("quizId") Integer quizId) {
         QuizDto quiz = quizService.getQuizWithQuestions(quizId);
         return ResponseEntity.ok(ResponseDto.success(quiz, "Quiz details retrieved successfully"));
     }
@@ -249,7 +249,7 @@ public class QuizController {
      */
     @PatchMapping("/{quizId}/toggle-status")
     public ResponseEntity<ResponseDto<QuizDto>> toggleQuizStatus(
-            @PathVariable Integer quizId) {
+            @PathVariable("quizId") Integer quizId) {
         try {
             QuizDto quiz = quizService.toggleQuizStatus(quizId);
             return ResponseEntity.ok(ResponseDto.success(quiz, "Quiz status updated successfully"));
@@ -263,7 +263,7 @@ public class QuizController {
      * Delete quiz
      */
     @DeleteMapping("/{quizId}")
-    public ResponseEntity<ResponseDto<Void>> deleteQuiz(@PathVariable Integer quizId) {
+    public ResponseEntity<ResponseDto<Void>> deleteQuiz(@PathVariable("quizId") Integer quizId) {
         try {
             quizService.deleteQuiz(quizId);
             return ResponseEntity.ok(ResponseDto.success(null, "Quiz deleted successfully"));

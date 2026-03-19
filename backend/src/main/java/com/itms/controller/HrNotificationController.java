@@ -24,7 +24,7 @@ public class HrNotificationController {
     @GetMapping
     public ResponseEntity<ResponseDto<List<TrainerNotificationDto>>> getNotifications(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(defaultValue = "inbox") String category) {
+            @RequestParam(value = "category", defaultValue = "inbox") String category) {
         Integer hrId = userDetails.getId();
         List<TrainerNotificationDto> notifications = hrNotificationService.getNotificationsByCategory(hrId, category);
         return ResponseEntity.ok(ResponseDto.success(notifications, "Retrieved " + category + " notifications successfully"));
@@ -42,7 +42,7 @@ public class HrNotificationController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ResponseDto<TrainerNotificationDto>> updateNotification(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody TrainerNotificationRequest request) {
         Integer hrId = userDetails.getId();
@@ -52,7 +52,7 @@ public class HrNotificationController {
 
     @PostMapping("/{id}/send")
     public ResponseEntity<ResponseDto<Void>> sendNotification(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Integer hrId = userDetails.getId();
         hrNotificationService.sendNotification(id, hrId);
@@ -61,7 +61,7 @@ public class HrNotificationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDto<Void>> deleteNotification(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Integer hrId = userDetails.getId();
         hrNotificationService.deleteNotification(id, hrId);
@@ -69,7 +69,7 @@ public class HrNotificationController {
     }
 
     @PutMapping("/{id}/read")
-    public ResponseEntity<ResponseDto<Void>> markAsRead(@PathVariable Integer id) {
+    public ResponseEntity<ResponseDto<Void>> markAsRead(@PathVariable("id") Integer id) {
         hrNotificationService.markAsRead(id);
         return ResponseEntity.ok(ResponseDto.success(null, "Notification marked as read"));
     }

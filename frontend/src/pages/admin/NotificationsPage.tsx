@@ -19,10 +19,9 @@ export default function AdminNotificationsPage() {
   const [showForm, setShowForm] = useState(false);
   const [formTitle, setFormTitle] = useState("");
   const [formMessage, setFormMessage] = useState("");
-  const [formType, setFormType] = useState<"GENERAL" | "ALERT" | "APPROVAL" | "REMINDER">("GENERAL");
+  const [formType, setFormType] = useState<"ANNOUNCEMENT" | "SYSTEM" | "APPROVAL" | "REMINDER">("ANNOUNCEMENT");
   const [formPriority, setFormPriority] = useState<"LOW" | "NORMAL" | "HIGH" | "URGENT">("NORMAL");
   const [formTarget, setFormTarget] = useState<"ALL" | "EMPLOYEE" | "TRAINER" | "HR">("ALL");
-  const [formExpiresAt, setFormExpiresAt] = useState("");
   const [selectedNotification, setSelectedNotification] =
     useState<AdminNotificationDto | null>(null);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -48,10 +47,9 @@ export default function AdminNotificationsPage() {
   const resetForm = () => {
     setFormTitle("");
     setFormMessage("");
-    setFormType("GENERAL");
+    setFormType("ANNOUNCEMENT");
     setFormPriority("NORMAL");
     setFormTarget("ALL");
-    setFormExpiresAt("");
     setFormError(null);
     setModalMode("create");
   };
@@ -72,7 +70,6 @@ export default function AdminNotificationsPage() {
         type: formType,
         priority: formPriority,
         targetRole: formTarget,
-        expiresAt: formExpiresAt || undefined,
       };
 
       if (sendNow) {
@@ -111,7 +108,6 @@ export default function AdminNotificationsPage() {
         type: formType,
         priority: formPriority,
         targetRole: formTarget,
-        expiresAt: formExpiresAt || undefined,
       });
       
       resetForm();
@@ -146,10 +142,9 @@ export default function AdminNotificationsPage() {
     setSelectedNotification(notif);
     setFormTitle(notif.title || "");
     setFormMessage(notif.content || "");
-    setFormType(notif.type as "GENERAL" | "ALERT" | "APPROVAL" | "REMINDER");
-    setFormPriority(notif.priority as "LOW" | "NORMAL" | "HIGH" | "URGENT");
-    setFormTarget(notif.targetRole as "ALL" | "EMPLOYEE" | "TRAINER" | "HR");
-    setFormExpiresAt(notif.expiresAt || "");
+    setFormType(notif.type === "GENERAL" ? "ANNOUNCEMENT" : notif.type as any);
+    setFormPriority(notif.priority as any);
+    setFormTarget(notif.targetRole as any);
     setShowViewModal(true);
   };
 
@@ -157,10 +152,9 @@ export default function AdminNotificationsPage() {
     setSelectedNotification(notif);
     setFormTitle(notif.title || "");
     setFormMessage(notif.content || "");
-    setFormType(notif.type as "GENERAL" | "ALERT" | "APPROVAL" | "REMINDER");
-    setFormPriority(notif.priority as "LOW" | "NORMAL" | "HIGH" | "URGENT");
-    setFormTarget(notif.targetRole as "ALL" | "EMPLOYEE" | "TRAINER" | "HR");
-    setFormExpiresAt(notif.expiresAt || "");
+    setFormType(notif.type === "GENERAL" ? "ANNOUNCEMENT" : notif.type as any);
+    setFormPriority(notif.priority as any);
+    setFormTarget(notif.targetRole as any);
     setModalMode("edit");
     setShowForm(true);
   };
@@ -243,36 +237,34 @@ export default function AdminNotificationsPage() {
 
             <div className="grid grid-cols-2 gap-5 mb-6">
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-600">
+                <label className="text-sm font-medium text-gray-700">
                   Notification Type
                 </label>
                 <select
                   value={formType}
                   onChange={(e) =>
-                    setFormType(e.target.value as "GENERAL" | "ALERT" | "APPROVAL" | "REMINDER")
+                    setFormType(e.target.value as any)
                   }
-                  className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 border-gray-200 transition-all font-medium"
                   disabled={modalMode === "view"}
                 >
-                  <option value="GENERAL">General</option>
-                  <option value="ALERT">Alert</option>
+                  <option value="ANNOUNCEMENT">Announcement</option>
+                  <option value="SYSTEM">System Alert</option>
                   <option value="APPROVAL">Approval</option>
                   <option value="REMINDER">Reminder</option>
                 </select>
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-600">
+                <label className="text-sm font-medium text-gray-700">
                   Priority Level
                 </label>
                 <select
                   value={formPriority}
                   onChange={(e) =>
-                    setFormPriority(
-                      e.target.value as "LOW" | "NORMAL" | "HIGH" | "URGENT"
-                    )
+                    setFormPriority(e.target.value as any)
                   }
-                  className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 border-gray-200 transition-all font-medium"
                   disabled={modalMode === "view"}
                 >
                   <option value="LOW">Low</option>
@@ -283,37 +275,22 @@ export default function AdminNotificationsPage() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-600">
+                <label className="text-sm font-medium text-gray-700">
                   Target Audience
                 </label>
                 <select
                   value={formTarget}
                   onChange={(e) =>
-                    setFormTarget(
-                      e.target.value as "ALL" | "EMPLOYEE" | "TRAINER" | "HR"
-                    )
+                    setFormTarget(e.target.value as any)
                   }
-                  className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 border-gray-200 transition-all font-medium"
                   disabled={modalMode === "view"}
                 >
                   <option value="ALL">All Users</option>
-                  <option value="EMPLOYEE">Employees</option>
+                  <option value="EMPLOYEE">Employees (Students)</option>
                   <option value="TRAINER">Trainers</option>
-                  <option value="HR">HR</option>
+                  <option value="HR">HR Managers</option>
                 </select>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-600">
-                  Expiration Date
-                </label>
-                <input
-                  type="date"
-                  value={formExpiresAt}
-                  onChange={(e) => setFormExpiresAt(e.target.value)}
-                  className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none"
-                  disabled={modalMode === "view"}
-                />
               </div>
             </div>
 

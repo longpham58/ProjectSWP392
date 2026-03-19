@@ -20,9 +20,9 @@ public class HrEmployeeController {
 
     @GetMapping
     public ResponseEntity<ResponseDto<List<HrEmployeeDto>>> getEmployees(
-            @RequestParam(required = false) String role,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String keyword
+            @RequestParam(value = "role", required = false) String role,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "keyword", required = false) String keyword
     ) {
         return ResponseEntity.ok(ResponseDto.success(
                 hrEmployeeService.getEmployees(role, status, keyword),

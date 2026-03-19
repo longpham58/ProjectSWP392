@@ -74,11 +74,30 @@ public class Feedback {
     @Column(name = "would_recommend")
     private Boolean wouldRecommend;
 
+    @Builder.Default
     @Column(name = "is_anonymous", nullable = false)
     private Boolean isAnonymous = false;
 
     @Column(name = "submitted_at")
     private LocalDateTime submittedAt;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
+    private FeedbackType type = FeedbackType.COURSE_FEEDBACK;
+
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private FeedbackStatus status = FeedbackStatus.OPEN;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recipient_id")
+    private User recipient;
+
+    @Builder.Default
+    @Column(name = "is_violation")
+    private Boolean isViolation = false;
     
     @PrePersist
     protected void onCreate() {

@@ -26,7 +26,7 @@ public class HrClassMemberController {
     private final HrClassMemberService hrClassMemberService;
 
     @GetMapping
-    public ResponseEntity<ResponseDto<List<ClassMemberDto>>> getMembers(@PathVariable Integer classId) {
+    public ResponseEntity<ResponseDto<List<ClassMemberDto>>> getMembers(@PathVariable("classId") Integer classId) {
         return ResponseEntity.ok(ResponseDto.success(hrClassMemberService.getMembers(classId), "Class members retrieved"));
     }
 
@@ -37,8 +37,8 @@ public class HrClassMemberController {
 
     @PostMapping("/{userId}")
     public ResponseEntity<ResponseDto<ClassMemberDto>> addMember(
-            @PathVariable Integer classId,
-            @PathVariable Integer userId,
+            @PathVariable("classId") Integer classId,
+            @PathVariable("userId") Integer userId,
             Authentication auth) {
         Integer addedById = getUserId(auth);
         ClassMemberDto added = hrClassMemberService.addMember(classId, userId, addedById);
@@ -48,15 +48,15 @@ public class HrClassMemberController {
 
     @DeleteMapping("/{memberId}")
     public ResponseEntity<ResponseDto<Void>> removeMember(
-            @PathVariable Integer classId,
-            @PathVariable Integer memberId) {
+            @PathVariable("classId") Integer classId,
+            @PathVariable("memberId") Integer memberId) {
         hrClassMemberService.removeMember(classId, memberId);
         return ResponseEntity.ok(ResponseDto.success(null, "Member removed successfully"));
     }
 
     @PostMapping(value = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ResponseDto<HrClassMemberService.ImportResult>> importFromExcel(
-            @PathVariable Integer classId,
+            @PathVariable("classId") Integer classId,
             @RequestParam("file") MultipartFile file,
             Authentication auth) {
         try {

@@ -39,6 +39,12 @@ public class FeedbackDto {
     // Submission time
     private LocalDateTime submittedAt;
 
+    private String type;
+    private String status;
+    private Integer recipientId;
+    private String recipientName;
+    private Boolean isViolation;
+
     /**
      * Build FeedbackDto from Feedback entity
      */
@@ -54,6 +60,11 @@ public class FeedbackDto {
                 .wouldRecommend(feedback.getWouldRecommend())
                 .isAnonymous(feedback.getIsAnonymous())
                 .submittedAt(feedback.getSubmittedAt())
+                .type(feedback.getType() != null ? feedback.getType().name() : null)
+                .status(feedback.getStatus() != null ? feedback.getStatus().name() : null)
+                .recipientId(feedback.getRecipient() != null ? feedback.getRecipient().getId() : null)
+                .recipientName(feedback.getRecipient() != null ? feedback.getRecipient().getFullName() : null)
+                .isViolation(feedback.getIsViolation())
                 .build();
     }
 

@@ -57,9 +57,10 @@ public class HrNotificationService {
                 .priority(request.getPriority() != null ? request.getPriority() : NotificationPriority.NORMAL)
                 .recipientType(request.getRecipientType())
                 .classCodes(request.getClassCodes() != null ? String.join(",", request.getClassCodes()) : null)
-                .isDraft(request.getIsDraft() != null ? request.getIsDraft() : false)
-                .type("GENERAL")
+                .type("ANNOUNCEMENT")
                 .isRead(true)
+                .isDraft(request.getIsDraft() != null ? request.getIsDraft() : false)
+                .sentDate(LocalDateTime.now())
                 .build();
 
         Notification saved = notificationRepository.save(notification);
@@ -171,7 +172,7 @@ public class HrNotificationService {
         Notification notif = Notification.builder()
                 .user(recipient)
                 .sender(source.getSender())
-                .type(source.getType() != null ? source.getType() : "GENERAL")
+                .type(source.getType() != null && !source.getType().equals("GENERAL") ? source.getType() : "ANNOUNCEMENT")
                 .title(source.getTitle())
                 .message(source.getMessage())
                 .priority(source.getPriority())

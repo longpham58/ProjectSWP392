@@ -22,8 +22,8 @@ public class ModuleProgressController {
      */
     @GetMapping("/user/{userId}/course/{courseId}")
     public ResponseEntity<ResponseDto<List<ModuleProgressDto>>> getModuleProgress(
-            @PathVariable Integer userId,
-            @PathVariable Integer courseId) {
+            @PathVariable("userId") Integer userId,
+            @PathVariable("courseId") Integer courseId) {
         List<ModuleProgressDto> progress = moduleProgressService.getModuleProgressByCourse(userId, courseId);
         return ResponseEntity.ok(ResponseDto.success(progress, "Module progress retrieved successfully"));
     }
@@ -58,8 +58,8 @@ public class ModuleProgressController {
      */
     @GetMapping("/check/{userId}/{moduleId}")
     public ResponseEntity<Map<String, Boolean>> isModuleCompleted(
-            @PathVariable Integer userId,
-            @PathVariable Integer moduleId) {
+            @PathVariable("userId") Integer userId,
+            @PathVariable("moduleId") Integer moduleId) {
         boolean completed = moduleProgressService.isModuleCompleted(userId, moduleId);
         return ResponseEntity.ok(Map.of("isCompleted", completed));
     }
@@ -69,8 +69,8 @@ public class ModuleProgressController {
      */
     @GetMapping("/count/{userId}/{courseId}")
     public ResponseEntity<Map<String, Integer>> getCompletedModulesCount(
-            @PathVariable Integer userId,
-            @PathVariable Integer courseId) {
+            @PathVariable("userId") Integer userId,
+            @PathVariable("courseId") Integer courseId) {
         int count = moduleProgressService.getCompletedModulesCount(userId, courseId);
         return ResponseEntity.ok(Map.of("count", count));
     }
@@ -80,8 +80,8 @@ public class ModuleProgressController {
      */
     @GetMapping("/quiz-unlocked/{userId}/{moduleId}")
     public ResponseEntity<Map<String, Boolean>> isQuizUnlocked(
-            @PathVariable Integer userId,
-            @PathVariable Integer moduleId) {
+            @PathVariable("userId") Integer userId,
+            @PathVariable("moduleId") Integer moduleId) {
         boolean unlocked = moduleProgressService.isQuizUnlocked(userId, moduleId);
         return ResponseEntity.ok(Map.of("unlocked", unlocked));
     }
@@ -91,8 +91,8 @@ public class ModuleProgressController {
      */
     @GetMapping("/final-exam-unlocked/{userId}/{courseId}")
     public ResponseEntity<Map<String, Boolean>> isFinalExamUnlocked(
-            @PathVariable Integer userId,
-            @PathVariable Integer courseId) {
+            @PathVariable("userId") Integer userId,
+            @PathVariable("courseId") Integer courseId) {
         // Default: require 2/3 tests passed
         boolean unlocked = moduleProgressService.isFinalExamUnlocked(userId, courseId, 2);
         return ResponseEntity.ok(Map.of("unlocked", unlocked));
@@ -103,8 +103,8 @@ public class ModuleProgressController {
      */
     @GetMapping("/course-progress/{userId}/{courseId}")
     public ResponseEntity<ResponseDto<Map<String, Object>>> getCourseProgress(
-            @PathVariable Integer userId,
-            @PathVariable Integer courseId) {
+            @PathVariable("userId") Integer userId,
+            @PathVariable("courseId") Integer courseId) {
         Map<String, Object> progress = moduleProgressService.getCourseProgress(userId, courseId);
         return ResponseEntity.ok(ResponseDto.success(progress, "Course progress retrieved successfully"));
     }

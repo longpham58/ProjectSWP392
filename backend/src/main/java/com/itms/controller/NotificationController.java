@@ -40,7 +40,7 @@ public class NotificationController {
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDto<Void>> deleteNotification(
-            @PathVariable Integer id
+            @PathVariable("id") Integer id
             ) {
 
         notificationService.deleteNotification(id);
@@ -64,7 +64,7 @@ public class NotificationController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto<NotificationDto>> getNotificationById(
-            @PathVariable Integer id) {
+            @PathVariable("id") Integer id) {
 
         NotificationDto notification = notificationService.getNotificationById(id);
 

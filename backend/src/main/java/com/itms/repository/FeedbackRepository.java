@@ -1,6 +1,7 @@
 package com.itms.repository;
 
 import com.itms.entity.Feedback;
+import com.itms.entity.FeedbackType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -83,4 +84,29 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
      */
     long countByEnrollmentIsNull();
     
+    /**
+     * Find feedback by recipient
+     */
+    List<Feedback> findByRecipientId(Integer recipientId);
+
+    /**
+     * Find feedback by type
+     */
+    List<Feedback> findByType(FeedbackType type);
+
+    /**
+     * Find feedback by type and recipient
+     */
+    List<Feedback> findByTypeAndRecipientId(FeedbackType type, Integer recipientId);
+
+    /**
+     * Find feedback by type and sender
+     */
+    List<Feedback> findByTypeAndUserId(FeedbackType type, Integer userId);
+    
+    /**
+     * Find reports to HR
+     */
+    @Query("SELECT f FROM Feedback f WHERE f.type = 'REPORT_TO_HR'")
+    List<Feedback> findAllReports();
 }

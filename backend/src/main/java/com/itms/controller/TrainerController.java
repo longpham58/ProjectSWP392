@@ -3,7 +3,6 @@ package com.itms.controller;
 import com.itms.dto.*;
 import com.itms.dto.CourseDto;
 import com.itms.dto.common.ResponseDto;
-import com.itms.entity.Course;
 import com.itms.security.CustomUserDetails;
 import com.itms.service.*;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/trainer")
@@ -60,7 +58,7 @@ public class TrainerController {
      */
     @GetMapping("/attendance/session/{sessionId}")
     public ResponseEntity<ResponseDto<List<SessionAttendanceDto>>> getSessionAttendance(
-            @PathVariable Long sessionId,
+            @PathVariable("sessionId") Long sessionId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         List<SessionAttendanceDto> attendance = attendanceService.getSessionAttendance(sessionId);
@@ -83,8 +81,8 @@ public class TrainerController {
      */
     @GetMapping("/attendance/class/{classCode}")
     public ResponseEntity<ResponseDto<ClassAttendanceDto>> getClassAttendance(
-            @PathVariable String classCode,
-            @RequestParam(required = false) String date,
+            @PathVariable("classCode") String classCode,
+            @RequestParam(value = "date", required = false) String date,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         LocalDate attendanceDate = (date != null && !date.isEmpty())
@@ -100,8 +98,8 @@ public class TrainerController {
      */
     @PostMapping("/attendance/class/{classCode}")
     public ResponseEntity<ResponseDto<String>> saveClassAttendance(
-            @PathVariable String classCode,
-            @RequestParam(required = false) String date,
+            @PathVariable("classCode") String classCode,
+            @RequestParam(value = "date", required = false) String date,
             @RequestBody SaveAttendanceRequest body,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
@@ -118,7 +116,7 @@ public class TrainerController {
      */
     @PostMapping("/attendance/session/{sessionId}")
     public ResponseEntity<ResponseDto<String>> updateAttendance(
-            @PathVariable Long sessionId,
+            @PathVariable("sessionId") Long sessionId,
             @RequestBody List<AttendanceUpdateRequest> attendanceUpdates,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
@@ -145,7 +143,7 @@ public class TrainerController {
      */
     @PostMapping("/feedback/{feedbackId}/reply")
     public ResponseEntity<ResponseDto<String>> replyToFeedback(
-            @PathVariable Long feedbackId,
+            @PathVariable("feedbackId") Long feedbackId,
             @RequestBody FeedbackReplyRequest replyRequest,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
@@ -213,5 +211,31 @@ public class TrainerController {
         public void setCode(String code) { this.code = code; }
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
+    }
+
+    /**
+     * Submit feedback to student
+     */
+    @PostMapping("/feedback/student")
+    public ResponseEntity<ResponseDto<FeedbackDto>> submitToStudent(
+            @RequestBody FeedbackDto feedbackDto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        feedbackDto.setUserId(userDetails.getId());
+        FeedbackDto saved = feedbackService.submitTrainerToStudentFeedback(feedbackDto);
+        return ResponseEntity.ok(ResponseDto.success(saved, "Gửi feedback cho học viên thành công"));
+    }
+
+    /**
+     * Report violation to HR
+     */
+    @PostMapping("/feedback/report-hr")
+    public ResponseEntity<ResponseDto<FeedbackDto>> reportToHr(
+            @RequestBody FeedbackDto feedbackDto,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        feedbackDto.setUserId(userDetails.getId());
+        FeedbackDto saved = feedbackService.reportToHr(feedbackDto);
+        return ResponseEntity.ok(ResponseDto.success(saved, "Gửi báo cáo vi phạm cho HR thành công"));
     }
 }

@@ -139,13 +139,13 @@ export default function AdminSystemFeedbackPage() {
                     Rating
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     User
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Comments
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Suggestions
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
@@ -176,42 +176,44 @@ export default function AdminSystemFeedbackPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-medium text-gray-900">
+                            {fb.type?.replace(/_/g, ' ') || 'COURSE FEEDBACK'}
+                          </span>
+                          {fb.isViolation && (
+                            <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] rounded uppercase font-bold w-fit">
+                              Báo cáo vi phạm
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         {fb.isAnonymous ? (
                           <span className="text-gray-500 italic">Anonymous</span>
                         ) : (
                           <div>
-                            <div className="font-medium">{fb.userName || "Unknown"}</div>
+                            <div className="font-medium text-sm">{fb.userName || "Unknown"}</div>
                             <div className="text-xs text-gray-500">{fb.userEmail}</div>
                           </div>
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs truncate">
+                        <div className="text-sm text-gray-900 max-w-xs truncate" title={fb.comments}>
                           {fb.comments || "-"}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs truncate">
-                          {fb.suggestions || "-"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                            status
+                            fb.status || status
                           )}`}
                         >
-                          {status}
+                          {fb.status || status}
                         </span>
-                        {fb.wouldRecommend !== undefined && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            {fb.wouldRecommend ? "✓ Would recommend" : "✗ Would not recommend"}
-                          </div>
-                        )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {fb.submittedAt
-                          ? new Date(fb.submittedAt).toLocaleDateString()
+                          ? new Date(fb.submittedAt).toLocaleDateString('vi-VN')
                           : "-"}
                       </td>
                     </tr>

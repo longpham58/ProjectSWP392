@@ -65,8 +65,9 @@ public class TrainerNotificationService {
                 .recipientType(request.getRecipientType())
                 .classCodes(request.getClassCodes() != null ? String.join(",", request.getClassCodes()) : null)
                 .isDraft(request.getIsDraft() != null ? request.getIsDraft() : false)
-                .type("GENERAL")
+                .type("ANNOUNCEMENT")
                 .isRead(true) // Trainer's own notifications are "read"
+                .sentDate(LocalDateTime.now())
                 .build();
 
         Notification saved = notificationRepository.save(notification);

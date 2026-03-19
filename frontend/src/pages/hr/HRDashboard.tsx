@@ -5,13 +5,14 @@ import { ClassManagePage } from './component/ClassManage';
 import { SchedulePage } from './component/Schedule';
 import NotificationSection from './components/NotificationSection';
 import { UserAccountManagePage } from './component/UserAccountManage';
+import HrFeedbackSection from './components/HrFeedbackSection';
 import { Footer } from '../../components/Footer';
 import { DashboardAnalytics } from './components/DashboardAnalytics';
 import courseApi from '../../api/course.api.wrapper';
 import type { CourseDto } from '../../api/course.api';
 import '@/assets/styles/HRDashboardPage.css';
 
-type CurrentPageId = 'dashboard' | 'course' | 'classroom' | 'schedule' | 'notification' | 'useraccount';
+type CurrentPageId = 'dashboard' | 'course' | 'classroom' | 'schedule' | 'notification' | 'useraccount' | 'feedback';
 
 const SIDEBAR_ITEMS: ReadonlyArray<{ id: CurrentPageId; label: string }> = [
   { id: 'dashboard', label: 'Dashboard' },
@@ -20,6 +21,7 @@ const SIDEBAR_ITEMS: ReadonlyArray<{ id: CurrentPageId; label: string }> = [
   { id: 'schedule', label: 'Schedule Management' },
   { id: 'notification', label: 'Notification Management' },
   { id: 'useraccount', label: 'User Account Management' },
+  { id: 'feedback', label: 'Feedback Management' },
 ];
 
 interface HRDashboardPageProps {
@@ -144,7 +146,8 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
           )}
           {currentPage === 'schedule' && <SchedulePage onSchedulesChanged={notifyHrDataChanged} />}
           {currentPage === 'notification' && <NotificationSection />}
-          {currentPage === 'useraccount' && <UserAccountManagePage refreshToken={hrRefreshToken} />}
+          { currentPage === 'useraccount' && <UserAccountManagePage refreshToken={hrRefreshToken} />}
+          { currentPage === 'feedback' && <HrFeedbackSection />}
         </main>
       </div>
       <Footer />
