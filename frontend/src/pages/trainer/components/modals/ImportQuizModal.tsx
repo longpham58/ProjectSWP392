@@ -89,25 +89,9 @@ export const ImportQuizModal: React.FC<ImportQuizModalProps> = ({
     setError('');
 
     try {
-      // Parse Excel file using a mock parser (you'll need to implement this)
-      const formData = new FormData();
-      formData.append('file', file);
-      
-      // Call a new API endpoint to parse Excel without creating quiz
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/quizzes/parse-excel`, {
-        method: 'POST',
-        body: formData,
-      });
+      const data = await quizImportApi.parseExcel(file);
 
-      if (!response.ok) {
-        throw new Error('Failed to parse Excel file');
-      }
-
-      const result = await response.json();
-      const data = result.data;
-
-      // Set parsed data
-      setParsedData(data);
+      setParsedData(data as any);
       setEditableQuizData({
         title: data.title || '',
         description: data.description || '',
@@ -116,14 +100,17 @@ export const ImportQuizModal: React.FC<ImportQuizModalProps> = ({
         maxAttempts: data.maxAttempts || 3,
         passingScore: data.passingScore || 70,
         randomizeQuestions: data.randomizeQuestions || false,
-        showCorrectAnswers: data.showCorrectAnswers || true,
+        showCorrectAnswers: data.showCorrectAnswers !== false,
       });
       setEditableQuestions(data.questions || []);
-      
+
       setCurrentStep(2);
     } catch (error: any) {
       console.error('Error parsing Excel:', error);
-      setError('Có lỗi xảy ra khi đọc file Excel. Vui lòng kiểm tra định dạng file.');
+      const serverMsg = error?.response?.data?.message;
+      setError(serverMsg
+        ? `Lỗi: ${serverMsg}`
+        : 'Có lỗi xảy ra khi đọc file Excel. Vui lòng kiểm tra định dạng file.');
     } finally {
       setIsUploading(false);
     }

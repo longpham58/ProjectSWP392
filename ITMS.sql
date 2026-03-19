@@ -701,8 +701,8 @@ GO
 -- =====================================================
 CREATE TABLE Feedback (
     id              INT          IDENTITY(1,1) PRIMARY KEY,
-    enrollment_id   INT          NULL,
-    session_id      INT          NULL,
+    enrollment_id   INT          NOT NULL,
+    session_id      INT          NOT NULL,
     user_id         INT          NOT NULL,
     course_rating   INT          NULL CHECK (course_rating   BETWEEN 1 AND 5),
     trainer_rating  INT          NULL CHECK (trainer_rating  BETWEEN 1 AND 5),
@@ -714,8 +714,14 @@ CREATE TABLE Feedback (
     submitted_at    DATETIME     NOT NULL DEFAULT GETDATE(),
     is_anonymous    BIT          NOT NULL DEFAULT 0,
 
+    CONSTRAINT FK_Feedback_Enrollment
+        FOREIGN KEY (enrollment_id) REFERENCES Enrollment(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Feedback_Session
+        FOREIGN KEY (session_id)    REFERENCES Session(id)    ON DELETE NO ACTION,
     CONSTRAINT FK_Feedback_User
-        FOREIGN KEY (user_id)       REFERENCES [User](id)     ON DELETE NO ACTION
+        FOREIGN KEY (user_id)       REFERENCES [User](id)     ON DELETE NO ACTION,
+    CONSTRAINT UQ_Feedback_EnrollmentSession
+        UNIQUE (enrollment_id, session_id)
 );
 GO
 

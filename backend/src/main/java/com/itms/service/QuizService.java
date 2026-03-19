@@ -144,25 +144,40 @@ public class QuizService {
                 .orElseThrow(() -> new RuntimeException("Attempt not found"));
 
         Quiz quiz = attempt.getQuiz();
+        List<QuizQuestion> questions = quizQuestionRepository.findByQuizIdOrderByDisplayOrderAsc(quiz.getId());
+        Map<Integer, QuizQuestion> questionMap = new HashMap<>();
+        for (QuizQuestion q : questions) {
+            questionMap.put(q.getId(), q);
+        }
 
         // Calculate score
-        int correctAnswers = 0;
         BigDecimal totalMarksObtained = BigDecimal.ZERO;
 
-        for (QuizAttemptDto.QuizAnswerDto answer : answers) {
-            // In a real system, we'd have quiz questions stored in DB
-            // For now, we'll calculate based on simple logic
-            if (answer.getIsCorrect() != null && answer.getIsCorrect()) {
-                correctAnswers++;
+        for (QuizAttemptDto.QuizAnswerDto answerDto : answers) {
+            QuizQuestion question = questionMap.get(answerDto.getQuestionId());
+            if (question == null) continue;
+
+            int correctIndex = convertAnswerToIndex(question.getCorrectAnswer());
+            boolean isCorrect = answerDto.getSelectedAnswerIndex() != null && answerDto.getSelectedAnswerIndex() == correctIndex;
+
+            answerDto.setIsCorrect(isCorrect);
+            if (isCorrect) {
+                BigDecimal marks = question.getMarks() != null ? question.getMarks() : BigDecimal.ONE;
+                totalMarksObtained = totalMarksObtained.add(marks);
+                answerDto.setMarksObtained(marks);
+            } else {
+                answerDto.setMarksObtained(BigDecimal.ZERO);
             }
         }
 
-        // Calculate percentage
-        BigDecimal score = BigDecimal.valueOf(correctAnswers)
-                .divide(BigDecimal.valueOf(answers.size()), 2, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100));
+        // Calculate percentage (score)
+        BigDecimal score = BigDecimal.ZERO;
+        if (quiz.getTotalMarks() != null && quiz.getTotalMarks().compareTo(BigDecimal.ZERO) > 0) {
+            score = totalMarksObtained.divide(quiz.getTotalMarks(), 4, RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+        }
 
-        boolean passed = score.compareTo(quiz.getPassingScore()) >= 0;
+        boolean passed = score.compareTo(quiz.getPassingScore() != null ? quiz.getPassingScore() : BigDecimal.valueOf(70)) >= 0;
 
         // Update attempt
         attempt.setScore(score);
@@ -171,11 +186,13 @@ public class QuizService {
         attempt.setPassed(passed);
         attempt.setSubmittedAt(LocalDateTime.now());
         attempt.setTimeTakenMinutes(timeTakenMinutes);
-        attempt.setStatus(passed ? "GRADED" : "SUBMITTED");
+        attempt.setStatus("COMPLETED");
 
         attempt = quizAttemptRepository.save(attempt);
 
-        return mapAttemptToDto(attempt);
+        QuizAttemptDto result = mapAttemptToDto(attempt);
+        result.setAnswers(answers);
+        return result;
     }
 
     /**
@@ -205,14 +222,20 @@ public class QuizService {
         return allAttempts;
     }
 
-    /**
-     * Import quiz from Excel file
-     */
     @Transactional
     public QuizDto importQuizFromExcel(MultipartFile file, Integer courseId, Integer moduleId, Integer createdBy) {
         try {
             QuizImportDto importDto = excelImportService.importQuizFromExcel(file);
             
+            // Validate import data
+            if (importDto.getQuizTitle() == null || importDto.getQuizTitle().trim().isEmpty()) {
+                throw new IllegalArgumentException("Quiz title is missing in the Excel file");
+            }
+            
+            if (importDto.getQuestions() == null || importDto.getQuestions().isEmpty()) {
+                throw new IllegalArgumentException("No valid questions found in the Excel file. Please ensure questions start from row 7 (column A must not be empty).");
+            }
+
             // Get course and module
             Course course = new Course();
             course.setId(courseId);
@@ -600,9 +623,15 @@ public class QuizService {
                 QuizQuestionDto qdto = QuizQuestionDto.builder()
                     .id(q.getId())
                     .questionText(q.getQuestionText())
-                    .questionType("SINGLE_CHOICE")
-                    .options(Arrays.asList(q.getOptionA(), q.getOptionB(), q.getOptionC(), q.getOptionD()))
-                    .correctAnswerIndex(q.getCorrectAnswer() != null ? convertAnswerToIndex(q.getCorrectAnswer()) : 0)
+                    .questionType(q.getQuestionType() != null ? q.getQuestionType() : "MULTIPLE_CHOICE")
+                    .optionA(q.getOptionA())
+                    .optionB(q.getOptionB())
+                    .optionC(q.getOptionC())
+                    .optionD(q.getOptionD())
+                    .correctAnswer(q.getCorrectAnswer())
+                    .marks(q.getMarks())
+                    .explanation(q.getExplanation())
+                    .displayOrder(q.getDisplayOrder())
                     .build();
                 questionDtos.add(qdto);
             }

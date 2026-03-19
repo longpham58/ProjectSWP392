@@ -25,6 +25,7 @@ public class CourseModuleService {
     private final QuizRepository quizRepository;
     private final MaterialRepository materialRepository;
 
+    @Transactional(readOnly = true)
     public List<CourseModuleDto> getModulesByCourseId(int courseId) {
         List<CourseModule> modules = courseModuleRepository.findByCourseIdOrderByDisplayOrderAsc(courseId);
         

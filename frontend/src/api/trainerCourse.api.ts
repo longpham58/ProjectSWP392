@@ -17,11 +17,22 @@ export interface MaterialDto {
   id: number;
   title: string;
   description?: string;
-  type: string;
+  type: string;  // Serialized from backend MaterialType enum e.g. 'PDF', 'VIDEO', 'DOCUMENT'
   fileUrl?: string;
   fileSize?: number;
   displayOrder?: number;
   createdAt?: string;
+}
+
+export interface QuizSummary {
+  id: number;
+  title: string;
+  description?: string;
+  quizType?: string;
+  totalQuestions?: number;
+  durationMinutes?: number;
+  maxAttempts?: number;
+  passingScore?: number;
 }
 
 export interface ModuleDto {
@@ -30,6 +41,7 @@ export interface ModuleDto {
   description?: string;
   displayOrder?: number;
   materials: MaterialDto[];
+  quizzes?: QuizSummary[];
 }
 
 interface ApiResponse<T> {
