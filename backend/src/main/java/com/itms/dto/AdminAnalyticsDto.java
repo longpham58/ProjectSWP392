@@ -15,14 +15,23 @@ public class AdminAnalyticsDto {
     
     // KPIs
     private Long totalEmployees;
+    private Long activeUsers7d;
     private Long totalCourses;
     private Long activeCourses;
     private Long totalClasses;
     private Long totalEnrollments;
+    private Long enrollmentGrowth;
+    private Long completionRate;
     private Long securityAlerts;
     
     // Monthly completion trend
     private List<MonthlyCompletionDto> monthlyCompletion;
+    
+    // Monthly attendance trend
+    private List<MonthlyCompletionDto> monthlyAttendance;
+    
+    // Monthly enrollment trend
+    private List<MonthlyCompletionDto> monthlyEnrollment;
     
     // Department completion
     private List<DepartmentCompletionDto> departmentCompletion;
@@ -32,6 +41,9 @@ public class AdminAnalyticsDto {
     
     // Training hours trend
     private List<TrainingHoursDto> trainingHours;
+    
+    // Employee performance distribution
+    private List<EmployeePerformanceDto> employeePerformance;
     
     @Data
     @Builder
@@ -72,5 +84,14 @@ public class AdminAnalyticsDto {
         private String month;
         private Double totalHours;
         private Double avgHoursPerUser;
+    }
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class EmployeePerformanceDto {
+        private String level;
+        private Long value;
     }
 }

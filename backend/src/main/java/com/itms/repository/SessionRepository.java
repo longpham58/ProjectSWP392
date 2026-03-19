@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -253,4 +254,14 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
            "JOIN FETCH cr.course c " +
            "ORDER BY s.createdAt DESC")
     List<Session> findRecentSessions(Pageable pageable);
+    
+    /**
+     * Get total training hours (sum of session durations) for a date range
+     */
+    @Query(value = """
+        SELECT COALESCE(SUM(DATEDIFF(MINUTE, s.time_start, s.time_end)), 0) / 60.0
+        FROM Session s
+        WHERE s.date BETWEEN :startDate AND :endDate
+    """, nativeQuery = true)
+    List<Object[]> getSessionTrainingHours(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

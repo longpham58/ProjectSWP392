@@ -15,6 +15,7 @@ interface LessonModalProps {
   enrollmentStatus: string | null;
   courseId: string;
   userId: number;
+  courseQuizStatus?: any;
   onClose: () => void;
   onMarked: (lessonId: number, newProgress: number) => void;
 }

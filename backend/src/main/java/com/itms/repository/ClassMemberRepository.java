@@ -63,4 +63,21 @@ public interface ClassMemberRepository extends JpaRepository<ClassMember, Intege
            "JOIN FETCH cr.course c " +
            "ORDER BY cm.joinedAt DESC")
     List<ClassMember> findRecentEnrollments(Pageable pageable);
+    
+    // ==================== Analytics Methods ====================
+    
+    /**
+     * Count class members by status
+     */
+    long countByStatus(String status);
+    
+    /**
+     * Count class members joined after a date
+     */
+    long countByJoinedAtAfter(java.time.LocalDateTime date);
+    
+    /**
+     * Count class members joined between dates
+     */
+    long countByJoinedAtBetween(java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
 }

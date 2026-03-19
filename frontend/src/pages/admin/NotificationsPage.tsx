@@ -34,12 +34,19 @@ export default function AdminNotificationsPage() {
   }, [fetchNotifications]);
 
   // Filter notifications by status (using targetRole to determine sent/draft)
-  const filteredNotifications = notifications.filter((notif) => {
-    // Check if status contains "SENT" to determine sent vs draft
-    const isSent = notif.status && notif.status.includes("SENT");
-    if (activeTab === "Sent") return isSent;
-    return !isSent;
-  });
+  const filteredNotifications = notifications
+    .filter((notif) => {
+      // Check if status contains "SENT" to determine sent vs draft
+      const isSent = notif.status && notif.status.includes("SENT");
+      if (activeTab === "Sent") return isSent;
+      return !isSent;
+    })
+    .sort((a, b) => {
+      // Sort by sentDate descending (latest first)
+      const dateA = a.sentDate ? new Date(a.sentDate).getTime() : 0;
+      const dateB = b.sentDate ? new Date(b.sentDate).getTime() : 0;
+      return dateB - dateA;
+    });
 
   const sentCount = notifications.filter(n => n.status && n.status.includes("SENT")).length;
   const draftCount = notifications.filter(n => n.status && !n.status.includes("SENT")).length;

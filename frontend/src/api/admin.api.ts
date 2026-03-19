@@ -39,15 +39,26 @@ export interface TrainingHours {
 
 export interface AdminAnalyticsDto {
   totalEmployees: number;
+  activeUsers7d: number;
   totalCourses: number;
   activeCourses: number;
   totalClasses: number;
   totalEnrollments: number;
+  enrollmentGrowth: number;
+  completionRate: number;
   securityAlerts: number;
   monthlyCompletion: MonthlyCompletion[];
+  monthlyAttendance: MonthlyCompletion[];
+  monthlyEnrollment: MonthlyCompletion[];
   departmentCompletion: DepartmentCompletion[];
   courseCompletion: CourseCompletion[];
   trainingHours: TrainingHours[];
+  employeePerformance: EmployeePerformance[];
+}
+
+export interface EmployeePerformance {
+  level: string;
+  value: number;
 }
 
 // Notification DTO

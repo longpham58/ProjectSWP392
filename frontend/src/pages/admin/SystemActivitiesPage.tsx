@@ -6,6 +6,7 @@ interface RecentActivity {
   description: string;
   timeAgo: string;
   count?: number;
+  timestamp?: number; // Unix timestamp for sorting
 }
 
 type ActionType = "All" | "notification" | "enrollment" | "course" | "user" | "certificate" | "quiz" | "session";
@@ -102,9 +103,55 @@ export default function SystemActivitiesPage() {
     }
   };
 
+  // Helper to parse timeAgo to timestamp
+  const parseTimeAgoToTimestamp = (timeAgo: string): number => {
+    const now = new Date();
+    const timeStr = timeAgo.toLowerCase();
+    
+    if (timeStr.includes("just now") || timeStr.includes("minute")) {
+      const mins = parseInt(timeStr.match(/\d+/)?.[0] || "0");
+      return now.getTime() - mins * 60 * 1000;
+    }
+    if (timeStr.includes("hour")) {
+      const hours = parseInt(timeStr.match(/\d+/)?.[0] || "0");
+      return now.getTime() - hours * 60 * 60 * 1000;
+    }
+    if (timeStr.includes("day")) {
+      const days = parseInt(timeStr.match(/\d+/)?.[0] || "0");
+      return now.getTime() - days * 24 * 60 * 60 * 1000;
+    }
+    if (timeStr.includes("week")) {
+      const weeks = parseInt(timeStr.match(/\d+/)?.[0] || "0");
+      return now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000;
+    }
+    if (timeStr.includes("month")) {
+      const months = parseInt(timeStr.match(/\d+/)?.[0] || "0");
+      return now.getTime() - months * 30 * 24 * 60 * 60 * 1000;
+    }
+    return now.getTime(); // Default to now if can't parse
+  };
+
+  // Calculate timestamp for sorting
+  const activitiesWithTimestamp = useMemo(() => {
+    return activities.map(activity => ({
+      ...activity,
+      timestamp: parseTimeAgoToTimestamp(activity.timeAgo)
+    }));
+  }, [activities]);
+
+  // Group activities by type with counts
+  const activityTypeCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    activitiesWithTimestamp.forEach(activity => {
+      const type = getActivityType(activity.description);
+      counts[type] = (counts[type] || 0) + 1;
+    });
+    return counts;
+  }, [activitiesWithTimestamp]);
+
   // Filtering Logic
   const filteredActivities = useMemo(() => {
-    return activities.filter((activity) => {
+    const filtered = activitiesWithTimestamp.filter((activity) => {
       const matchesSearch =
         search === "" ||
         activity.description.toLowerCase().includes(search.toLowerCase());
@@ -142,7 +189,10 @@ export default function SystemActivitiesPage() {
 
       return matchesSearch && matchesAction && matchesDate;
     });
-  }, [activities, search, actionFilter, dateFilter]);
+    
+    // Sort by timestamp descending (latest first)
+    return filtered.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  }, [activitiesWithTimestamp, search, actionFilter, dateFilter]);
 
   // Pagination Logic
   const totalPages = Math.ceil(filteredActivities.length / ITEMS_PER_PAGE);
@@ -212,6 +262,16 @@ export default function SystemActivitiesPage() {
         >
           {loading ? "Loading..." : "🔄 Refresh"}
         </button>
+      </div>
+
+      {/* Activity Type Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-6">
+        {Object.entries(activityTypeCounts).map(([type, count]) => (
+          <div key={type} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <p className="text-sm text-gray-600 capitalize">{type}</p>
+            <p className="text-2xl font-bold text-gray-900">{count}</p>
+          </div>
+        ))}
       </div>
 
       {/* Loading State */}

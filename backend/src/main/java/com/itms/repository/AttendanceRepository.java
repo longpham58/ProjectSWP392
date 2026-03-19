@@ -138,4 +138,16 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
         AND a.attended = 1
     """, nativeQuery = true)
     Integer countByUserIdAndSessionIds(@Param("userId") Integer userId, @Param("sessionIds") List<Long> sessionIds);
+    
+    /**
+     * Count attendance records between dates
+     */
+    @Query(value = """
+        SELECT COUNT(a.id)
+        FROM Attendance a
+        JOIN Enrollment e ON a.enrollment_id = e.id
+        JOIN Session s ON e.session_id = s.id
+        WHERE CAST(s.date AS DATE) BETWEEN :startDate AND :endDate
+    """, nativeQuery = true)
+    long countByAttendanceDateBetween(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

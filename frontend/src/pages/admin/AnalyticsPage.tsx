@@ -64,70 +64,63 @@ export default function AnalyticsPage() {
 
   // KPI Values from analytics API
   const kpis = [
-    { title: "Total Employees", value: analytics?.totalEmployees || 0 },
-    { title: "Total Classes", value: analytics?.totalClasses || 0 },
-    { title: "Total Courses", value: analytics?.totalCourses || 0 },
+    { title: "Active Users (7d)", value: analytics?.activeUsers7d || 0 },
+    { title: "Enrollment Growth", value: (analytics?.enrollmentGrowth || 0) + "%" },
+    { title: "Completion Rate", value: (analytics?.completionRate || 0) + "%" },
     { title: "Total Enrollments", value: analytics?.totalEnrollments || 0 },
     { title: "Security Alerts", value: analytics?.securityAlerts || 0 },
   ];
 
   // 📊 Training trend data from analytics API
-  const trendData = analytics?.monthlyCompletion?.map((item) => ({
-    month: item.month,
-    completion: item.completions || 0,
-    attendance: Math.floor(Math.random() * 20) + 80, // Placeholder - not available in backend
-    enrollment: Math.floor(Math.random() * 50) + 100, // Placeholder - not available in backend
-  })) || [
-    { month: "Jan", completion: 70, attendance: 82, enrollment: 120 },
-    { month: "Feb", completion: 75, attendance: 85, enrollment: 140 },
-    { month: "Mar", completion: 72, attendance: 80, enrollment: 135 },
-    { month: "Apr", completion: 78, attendance: 88, enrollment: 160 },
-    { month: "May", completion: 80, attendance: 90, enrollment: 170 },
-    { month: "Jun", completion: 85, attendance: 92, enrollment: 180 },
-  ];
+  const getTrendData = () => {
+    if (!analytics?.monthlyCompletion) {
+      return [
+        { month: "Jan", completion: 0, attendance: 0, enrollment: 0 },
+        { month: "Feb", completion: 0, attendance: 0, enrollment: 0 },
+        { month: "Mar", completion: 0, attendance: 0, enrollment: 0 },
+        { month: "Apr", completion: 0, attendance: 0, enrollment: 0 },
+        { month: "May", completion: 0, attendance: 0, enrollment: 0 },
+        { month: "Jun", completion: 0, attendance: 0, enrollment: 0 },
+      ];
+    }
+    
+    return analytics.monthlyCompletion.map((item, index) => ({
+      month: item.month,
+      completion: item.completions || 0,
+      attendance: analytics.monthlyAttendance?.[index]?.completions || 0,
+      enrollment: analytics.monthlyEnrollment?.[index]?.completions || 0,
+    }));
+  };
+  
+  const trendData = getTrendData();
 
   // 🔹 Department Completion from analytics API
   const departmentData: DepartmentData[] = analytics?.departmentCompletion?.map((dept) => ({
     name: dept.name,
     completion: dept.completionRate,
-  })) || [
-    { name: "IT", completion: 92 },
-    { name: "HR", completion: 88 },
-    { name: "Sales", completion: 61 },
-    { name: "Marketing", completion: 74 },
-  ];
+  })) || [];
 
   // 🔹 Course Completion from analytics API (top 10)
   const courseData: CourseData[] = analytics?.courseCompletion?.map((course) => ({
     name: course.name,
     completion: course.completionRate,
-  })) || [
-    { name: "Workplace Compliance 2026", completion: 96 },
-    { name: "Data Security & GDPR", completion: 92 },
-    { name: "Health & Safety Training", completion: 89 },
-    { name: "Leadership Fundamentals", completion: 84 },
-    { name: "Advanced React Development", completion: 78 },
-  ];
+  })) || [];
 
   // 🔹 Training Hours from analytics API
   const trainingHoursData = analytics?.trainingHours?.map((item) => ({
     month: item.month,
-    totalHours: item.totalHours,
-    avgHours: item.avgHoursPerUser,
-  })) || [
-    { month: "Jan", totalHours: 420, avgHours: 3.2 },
-    { month: "Feb", totalHours: 510, avgHours: 4.1 },
-    { month: "Mar", totalHours: 610, avgHours: 5.0 },
-    { month: "Apr", totalHours: 580, avgHours: 4.8 },
-    { month: "May", totalHours: 640, avgHours: 5.3 },
-    { month: "Jun", totalHours: 720, avgHours: 6.0 },
-  ];
+    totalHours: item.totalHours || 0,
+    avgHours: item.avgHoursPerUser || 0,
+  })) || [];
 
-  // 🔹 Employee Performance Distribution (placeholder - not available)
-  const performanceData = [
-    { level: "High (80-100%)", value: 72 },
-    { level: "Medium (60-79%)", value: 38 },
-    { level: "Low (<60%)", value: 18 },
+  // 🔹 Employee Performance Distribution from analytics API
+  const performanceData = analytics?.employeePerformance?.map((item) => ({
+    level: item.level,
+    value: item.value,
+  })) || [
+    { level: "High (80-100%)", value: 0 },
+    { level: "Medium (60-79%)", value: 0 },
+    { level: "Low (<60%)", value: 0 },
   ];
 
   return (

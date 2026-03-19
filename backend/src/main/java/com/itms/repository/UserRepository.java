@@ -105,6 +105,10 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @Query("SELECT COUNT(u) FROM User u WHERE u.lockedUntil IS NOT NULL AND u.lockedUntil > :now")
     long countLockedUsers(@Param("now") LocalDateTime now);
     
+    /** Count active users updated in the last N days */
+    @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = true AND u.updatedAt > :date")
+    long countByIsActiveTrueAndUpdatedAtAfter(@Param("date") LocalDateTime date);
+    
     /** Count new users per month for the last N months */
    @Query("""
     SELECT MONTH(u.createdAt), COUNT(u)
