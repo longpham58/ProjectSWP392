@@ -4,13 +4,12 @@ import { useAuthStore } from "../stores/auth.store";
 import "../assets/styles/LoginPage.css";
 
 export default function LoginPage() {
-
-const { login, loading, error, setError} = useAuthStore();
+  const { login, loading, error, setError} = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const oauthError = params.get("error");
-{
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
@@ -27,7 +26,7 @@ const { login, loading, error, setError} = useAuthStore();
       case "TRAINER":
         return "/trainer";
       default:
-        return "/";
+        return "/login";
     }
   };
 
@@ -163,5 +162,4 @@ const { login, loading, error, setError} = useAuthStore();
       </div>
     </div>
   );
-}
 }

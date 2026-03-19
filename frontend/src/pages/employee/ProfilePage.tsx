@@ -1,48 +1,79 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuthStore } from '../../stores/auth.store';
-import { useProfileStore } from '../../stores/profile.store';
+import { employeeApi } from '../../api/employee.api';
 import { useToast } from '../../components/common/Toast';
+import { Camera, CheckCircle2, BookOpen, Trophy, Pencil, Save, Lock, Loader2 } from 'lucide-react';
 
 export default function ProfilePage() {
-  const { user } = useAuthStore();
-  const { profileStats, loading: loadingStats, fetchProfileStats } = useProfileStore();
+  const { user, refreshUser } = useAuthStore();
   const { showToast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [changingPw, setChangingPw] = useState(false);
+  const [localAvatar, setLocalAvatar] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      setLocalAvatar(localStorage.getItem(`avatar_${user.id}`));
+    }
+  }, [user?.id]);
+
   const [formData, setFormData] = useState({
-    fullName: user?.fullName || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    address: user?.address || '',
+    fullName: '',
+    email: '',
+    phone: '',
   });
+
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
 
-  // Fetch profile stats on page load
-  useEffect(() => {
-    fetchProfileStats();
-  }, [fetchProfileStats]);
+  // Stats from real API
+  const [stats, setStats] = useState({ total: 0, completed: 0, certificates: 0 });
 
-  // Update formData when user data is loaded
   useEffect(() => {
-    if (user) {
-      setFormData({
-        fullName: user.fullName || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        address: user.address || '',
+    if (!user?.id) return;
+    setFormData({
+      fullName: user.fullName || '',
+      email: user.email || '',
+      phone: user.phone || '',
+    });
+    // Load real stats
+    Promise.all([
+      employeeApi.getMyLearning(user.id),
+      employeeApi.getCertificates(user.id),
+    ]).then(([learningRes, certRes]) => {
+      const courses = learningRes.data;
+      const completed = courses.filter(c => c.progress >= 100).length;
+      setStats({ total: courses.length, completed, certificates: certRes.data.length });
+    }).catch(() => {});
+  }, [user?.id, user?.fullName, user?.phone]);
+
+  const handleSaveProfile = async () => {
+    if (!user?.id) return;
+    setSaving(true);
+    try {
+      await employeeApi.updateProfile(user.id, {
+        fullName: formData.fullName,
+        phone: formData.phone,
+        avatarUrl: user.avatarUrl,
       });
+      await refreshUser();
+      showToast('Cập nhật thông tin thành công!', 'success');
+      setIsEditing(false);
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Cập nhật thất bại!', 'error');
+    } finally {
+      setSaving(false);
     }
-  }, [user]);
-
-  const handleSaveProfile = () => {
-    showToast('Cập nhật thông tin thành công!', 'success');
-    setIsEditing(false);
   };
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
+    if (!user?.id) return;
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       showToast('Mật khẩu xác nhận không khớp!', 'error');
       return;
@@ -51,8 +82,43 @@ export default function ProfilePage() {
       showToast('Mật khẩu phải có ít nhất 8 ký tự!', 'warning');
       return;
     }
-    showToast('Đổi mật khẩu thành công!', 'success');
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    setChangingPw(true);
+    try {
+      await employeeApi.changePassword(user.id, {
+        oldPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
+      showToast('Đổi mật khẩu thành công!', 'success');
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Đổi mật khẩu thất bại!', 'error');
+    } finally {
+      setChangingPw(false);
+    }
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUrl = reader.result as string;
+      // Store avatar locally (base64 is too large for DB varchar(500))
+      localStorage.setItem(`avatar_${user.id}`, dataUrl);
+      setLocalAvatar(dataUrl);
+      // Also try to save a flag to backend so other devices know avatar exists
+      try {
+        await employeeApi.updateProfile(user.id, {
+          fullName: user.fullName,
+          phone: user.phone || '',
+          avatarUrl: 'local', // marker only
+        });
+      } catch { /* ignore */ }
+      // Force re-render by refreshing user
+      await refreshUser();
+      showToast('Cập nhật ảnh đại diện thành công!', 'success');
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -65,16 +131,34 @@ export default function ProfilePage() {
           {/* Avatar Card */}
           <div className="bg-white rounded-lg shadow p-6">
             <div className="text-center">
-              <div className="w-32 h-32 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-4xl font-bold mb-4">
-                {user?.fullName?.charAt(0) || 'E'}
-              </div>
+              {(localAvatar || user?.avatarUrl) ? (
+                <img
+                  src={localAvatar || user?.avatarUrl!}
+                  alt="Avatar"
+                  className="w-32 h-32 mx-auto rounded-full object-cover mb-4 border-4 border-blue-100"
+                />
+              ) : (
+                <div className="w-32 h-32 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-4xl font-bold mb-4">
+                  {user?.fullName?.charAt(0) || 'E'}
+                </div>
+              )}
               <h3 className="font-semibold text-lg">{user?.fullName}</h3>
               <p className="text-sm text-gray-600 mb-2">{user?.email}</p>
               <span className="inline-block bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">
-                {user?.roles[0]}
+                {user?.roles?.[0]}
               </span>
-              <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors text-sm">
-                📷 Đổi ảnh đại diện
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors text-sm flex items-center justify-center gap-2"
+              >
+                <Camera size={14} /> Đổi ảnh đại diện
               </button>
             </div>
           </div>
@@ -82,28 +166,20 @@ export default function ProfilePage() {
           {/* Stats Card */}
           <div className="bg-white rounded-lg shadow p-6">
             <h4 className="font-semibold mb-4">Thống kê học tập</h4>
-            {loadingStats ? (
-              <div className="text-center text-gray-500 text-sm">Đang tải...</div>
-            ) : (
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 text-sm">Khóa học</span>
-                  <span className="font-bold text-blue-600">{profileStats.totalCourses}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 text-sm">Hoàn thành</span>
-                  <span className="font-bold text-green-600">{profileStats.completedCourses}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 text-sm">Chứng chỉ</span>
-                  <span className="font-bold text-purple-600">{profileStats.certificates}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 text-sm">Điểm TB</span>
-                  <span className="font-bold text-orange-600">{profileStats.averageScore > 0 ? `${profileStats.averageScore}%` : 'N/A'}</span>
-                </div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 text-sm">Khóa học</span>
+                <span className="font-bold text-blue-600">{stats.total}</span>
               </div>
-            )}
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 text-sm">Hoàn thành</span>
+                <span className="font-bold text-green-600">{stats.completed}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600 text-sm">Chứng chỉ</span>
+                <span className="font-bold text-purple-600">{stats.certificates}</span>
+              </div>
+            </div>
           </div>
 
           {/* Activity Card */}
@@ -111,15 +187,15 @@ export default function ProfilePage() {
             <h4 className="font-semibold mb-3">Hoạt động gần đây</h4>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2">
-                <span className="text-green-600">✓</span>
-                <span className="text-gray-700">Hoàn thành Quiz 1</span>
+                <CheckCircle2 size={14} className="text-green-600" />
+                <span className="text-gray-700">Hoàn thành Quiz</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-blue-600">📚</span>
-                <span className="text-gray-700">Tham gia khóa mới</span>
+                <BookOpen size={14} className="text-blue-600" />
+                <span className="text-gray-700">Tham gia khóa học</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-purple-600">🏆</span>
+                <Trophy size={14} className="text-purple-600" />
                 <span className="text-gray-700">Nhận chứng chỉ</span>
               </div>
             </div>
@@ -137,21 +213,22 @@ export default function ProfilePage() {
                   onClick={() => setIsEditing(true)}
                   className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
                 >
-                  <span>✏️</span> Chỉnh sửa
+                  <Pencil size={14} /> Chỉnh sửa
                 </button>
               ) : (
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setIsEditing(false)}
+                    onClick={() => { setIsEditing(false); setFormData({ fullName: user?.fullName || '', email: user?.email || '', phone: user?.phone || '' }); }}
                     className="px-4 py-2 text-gray-600 hover:text-gray-700 text-sm border rounded"
                   >
                     Hủy
                   </button>
                   <button
                     onClick={handleSaveProfile}
-                    className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                    disabled={saving}
+                    className="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 flex items-center gap-1 disabled:opacity-60"
                   >
-                    💾 Lưu
+                    {saving ? <Loader2 size={13} className="animate-spin" /> : <Save size={13} />} Lưu
                   </button>
                 </div>
               )}
@@ -159,9 +236,7 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Họ và tên *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Họ và tên *</label>
                 <input
                   type="text"
                   value={formData.fullName}
@@ -172,9 +247,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
                 <input
                   type="email"
                   value={formData.email}
@@ -185,42 +258,24 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Số điện thoại
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Số điện thoại</label>
                 <input
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   disabled={!isEditing}
-                  placeholder={user?.phone || "Nhập số điện thoại"}
+                  placeholder="Nhập số điện thoại"
                   className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phòng ban
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Phòng ban</label>
                 <input
                   type="text"
                   value={user?.department?.name || 'Chưa có'}
                   disabled
                   className="w-full px-3 py-2 border rounded bg-gray-50 text-gray-600 cursor-not-allowed"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Địa chỉ
-                </label>
-                <textarea
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  disabled={!isEditing}
-                  placeholder="Nhập địa chỉ"
-                  rows={3}
-                  className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-600"
                 />
               </div>
             </div>
@@ -231,9 +286,7 @@ export default function ProfilePage() {
             <h3 className="text-lg font-semibold mb-6">Đổi mật khẩu</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mật khẩu hiện tại *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu hiện tại *</label>
                 <input
                   type="password"
                   value={passwordData.currentPassword}
@@ -244,9 +297,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Mật khẩu mới *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Mật khẩu mới *</label>
                 <input
                   type="password"
                   value={passwordData.newPassword}
@@ -258,9 +309,7 @@ export default function ProfilePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Xác nhận mật khẩu mới *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Xác nhận mật khẩu mới *</label>
                 <input
                   type="password"
                   value={passwordData.confirmPassword}
@@ -272,48 +321,11 @@ export default function ProfilePage() {
 
               <button
                 onClick={handleChangePassword}
-                className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition-colors font-medium"
+                disabled={changingPw}
+                className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-60"
               >
-                🔒 Đổi mật khẩu
+                {changingPw ? <Loader2 size={15} className="animate-spin" /> : <Lock size={15} />} Đổi mật khẩu
               </button>
-            </div>
-          </div>
-
-          {/* Notification Settings */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold mb-6">Cài đặt thông báo</h3>
-            <div className="space-y-4">
-              <label className="flex items-center justify-between cursor-pointer">
-                <div>
-                  <div className="font-medium">Email thông báo</div>
-                  <div className="text-sm text-gray-600">Nhận thông báo qua email</div>
-                </div>
-                <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600" />
-              </label>
-
-              <label className="flex items-center justify-between cursor-pointer">
-                <div>
-                  <div className="font-medium">Thông báo khóa học mới</div>
-                  <div className="text-sm text-gray-600">Khi có khóa học mới được phân công</div>
-                </div>
-                <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600" />
-              </label>
-
-              <label className="flex items-center justify-between cursor-pointer">
-                <div>
-                  <div className="font-medium">Nhắc nhở deadline</div>
-                  <div className="text-sm text-gray-600">Nhắc nhở trước deadline 1 ngày</div>
-                </div>
-                <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600" />
-              </label>
-
-              <label className="flex items-center justify-between cursor-pointer">
-                <div>
-                  <div className="font-medium">Thông báo kết quả</div>
-                  <div className="text-sm text-gray-600">Khi có kết quả quiz/exam</div>
-                </div>
-                <input type="checkbox" defaultChecked className="w-5 h-5 text-blue-600" />
-              </label>
             </div>
           </div>
         </div>

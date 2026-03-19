@@ -29,10 +29,13 @@ public class AuthController {
             @RequestBody LoginRequest request,
             HttpServletRequest httpRequest
     ) {
-        ResponseDto<LoginResponse> loginResponse =
-                userService.login(request, httpRequest);
-
-        return ResponseEntity.ok(loginResponse);
+        try {
+            ResponseDto<LoginResponse> loginResponse = userService.login(request, httpRequest);
+            return ResponseEntity.ok(loginResponse);
+        } catch (Exception e) {
+            return ResponseEntity.status(401)
+                    .body(ResponseDto.fail(e.getMessage()));
+        }
     }
 
     // --------------------------

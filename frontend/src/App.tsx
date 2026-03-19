@@ -85,11 +85,11 @@ function App() {
           {/* Public Routes */}
           <Route 
             path="/" 
-            element={user ? <Navigate to={getHomeByRole(user.roles?.[0] || '')} replace /> : <HomePage />} 
+            element={user ? <Navigate to={getHomeByRole(user.roles?.[0])} replace /> : <HomePage />} 
           />
           <Route
             path="/login"
-            element={user ? <Navigate to={getHomeByRole(user.roles?.[0] || '')} replace /> : <LoginPage />}
+            element={user ? <Navigate to={getHomeByRole(user.roles?.[0])} replace /> : <LoginPage />}
           />
  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
        <Route
@@ -142,9 +142,8 @@ function App() {
             <Route path="certificates" element={<CertificatesPage />} />
             <Route path="my-courses" element={<MyCoursesPage />} />
             <Route path="course/:courseId" element={<CourseDetailPage />} />
-            <Route path="quiz/:quizId" element={<QuizPage />} />
-            <Route path="final-exam/:courseId" element={<FinalExamPage />} />
-            <Route path="final-exam-result/:courseId" element={<FinalExamResultPage />} />
+            <Route path="course/:courseId/quiz/:quizId" element={<QuizPage />} />
+            <Route path="course/:courseId/final-exam/:quizId" element={<FinalExamPage />} />
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="notifications" element={<EmployeeNotificationsPage />} />
             <Route path="notification/:notificationId" element={<NotificationDetailPage />} />
@@ -183,7 +182,7 @@ function App() {
 export default App;
 
 // Helper function
-function getHomeByRole(role: string): string {
+function getHomeByRole(role?: string): string {
   switch (role) {
     case "ADMIN":
       return "/admin";
@@ -194,6 +193,6 @@ function getHomeByRole(role: string): string {
     case "TRAINER":
       return "/trainer";
     default:
-      return "/";
+      return "/login";
   }
 }

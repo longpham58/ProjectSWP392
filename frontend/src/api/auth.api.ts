@@ -21,6 +21,7 @@ export interface UserInfo {
   fullName: string;
   phone?: string;
   address?: string;
+  avatarUrl?: string;
   roles: string[];
   department?: {
     id: number;
