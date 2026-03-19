@@ -26,10 +26,10 @@ spring:
           timeout: 5000
           writetimeout: 5000
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=ITMS;encrypt=true;trustServerCertificate=true
-    username: sa
-    password: Tin10112003
-    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+       url: jdbc:sqlserver://localhost;instanceName=SQLEXPRESS01;databaseName=ITMS;encrypt=false;trustServerCertificate=true
+       username: sa
+       password: 123123
+       driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
 
   jpa:
     hibernate:
