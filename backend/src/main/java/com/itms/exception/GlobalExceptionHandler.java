@@ -109,6 +109,16 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, "OTP_ERROR", ex.getMessage());
     }
 
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<?> handleAccountLocked(AccountLockedException ex) {
+        return ResponseEntity.status(HttpStatus.LOCKED)
+                .body(Map.of(
+                        "error", "ACCOUNT_LOCKED",
+                        "message", ex.getMessage(),
+                        "lockedUntil", ex.getLockedUntil() != null ? ex.getLockedUntil().toString() : ""
+                ));
+    }
+
     // 400 - runtime business errors
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<?> handleRuntime(RuntimeException ex) {

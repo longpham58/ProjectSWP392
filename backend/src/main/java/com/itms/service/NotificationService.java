@@ -25,7 +25,7 @@ public class NotificationService {
     private final ClassMemberRepository classMemberRepository;
 
     public List<NotificationDto> getUserNotifications(Integer userId) {
-        return notificationRepository.findByUserIdOrderBySentDateDesc(userId)
+        return notificationRepository.findNotificationsForUser(userId)
                 .stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
@@ -78,7 +78,7 @@ public class NotificationService {
         String category;
         if (Boolean.TRUE.equals(n.getIsDraft())) {
             category = "draft";
-        } else if (n.getSender() != null && n.getSender().getId().equals(n.getUser().getId())) {
+        } else if (n.getUser() != null && n.getSender() != null && n.getSender().getId().equals(n.getUser().getId())) {
             category = "sent";
         } else {
             category = "inbox";

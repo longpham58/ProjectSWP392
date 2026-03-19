@@ -18,8 +18,9 @@ public interface ClassMemberRepository extends JpaRepository<ClassMember, Intege
      */
     List<ClassMember> findByUserId(Integer userId);
 
+
     /**
-     * Find all class members by class room ID
+     * Find all class members by class ID
      */
     List<ClassMember> findByClassRoomId(Integer classRoomId);
 

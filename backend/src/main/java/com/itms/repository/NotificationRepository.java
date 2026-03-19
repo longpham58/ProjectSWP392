@@ -13,6 +13,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     List<Notification> findByUserIdOrderBySentDateDesc(Integer userId);
 
+    // Get notifications for a user including broadcast notifications (where user is null)
+    @Query("SELECT n FROM Notification n WHERE (n.user.id = :userId OR n.user IS NULL) AND n.isDraft = false ORDER BY n.sentDate DESC")
+    List<Notification> findNotificationsForUser(@Param("userId") Integer userId);
+
     @Query("SELECT n FROM Notification n WHERE n.user.id = :userId AND n.isDraft = :isDraft ORDER BY n.sentDate DESC")
     List<Notification> findByUserIdAndIsDraftOrderBySentDateDesc(
             @Param("userId") Integer userId,

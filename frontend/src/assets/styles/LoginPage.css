@@ -34,6 +34,7 @@ body {
     width: 100vw;
     height: 100vh;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
 /* Ảnh nền tràn viền - bám viewport, không lề trắng */
@@ -144,6 +145,7 @@ body {
     padding: 40px;
     position: relative;
     z-index: 1;
+    overflow-x: hidden;
 }
 
 .login-container {
@@ -474,6 +476,7 @@ body {
 @media (max-width: 1024px) {
     .container {
         flex-direction: column;
+        overflow-x: hidden;
     }
 
     .left-section {

@@ -41,7 +41,7 @@ export interface Course {
   startDate?: string;
   endDate?: string;
   enrolled?: boolean;
-  progress?: number;
+  progress?: number; // Module completion progress
   score?: number;
   materials: Material[];
   feedbacks: Feedback[];
@@ -51,6 +51,11 @@ export interface Course {
   progressPercentage?: number;
   className?: string;
   classCode?: string;
+  classRoomId?: number;
+  // Additional fields from CourseDto
+  trainerId?: number;
+  start_date?: string;
+  end_date?: string;
 }
 
 export interface EmployeeClass {
@@ -65,6 +70,17 @@ export interface EmployeeClass {
   status: string;
   notes: string;
   joinedAt: string;
+}
+
+export interface ClassMember {
+  userId: number;
+  fullName: string;
+  email: string;
+  phone?: string;
+  department?: string;
+  role?: string;
+  joinedAt: string;
+  status: string;
 }
 
 export interface TrainerScheduleItem {
@@ -95,7 +111,11 @@ export const coursesApi = {
 
   // Get classes of current user
   getMyClasses: () =>
-    axios.get<ApiResponse<EmployeeClass[]>>("/employee/dashboard/classes"),
+    axios.get<ApiResponse<EmployeeClass[]>>("/employee/classes"),
+
+  // Get class members
+  getClassMembers: (classId: number) =>
+    axios.get<ApiResponse<ClassMember[]>>(`/employee/classes/${classId}/members`),
 
   // Get course by ID
   getCourseById: (courseId: number) =>

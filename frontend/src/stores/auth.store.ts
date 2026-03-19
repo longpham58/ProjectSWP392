@@ -172,11 +172,12 @@ resetPassword: async (newPassword: string) => {
   logout: async () => {
     try {
       await authApi.logout();
-    } catch {
-      // Ignore API errors in mock mode
+    } catch (error) {
+      // Ignore API errors - session might already be invalid
+      console.log("Logout API error (ignored):", error);
     }
     
-    // Clear all auth state and localStorage
+    // Clear all auth state and localStorage - always execute this
     localStorage.removeItem(AUTH_SESSION_HINT_KEY);
     set({
       user: null,
