@@ -30,6 +30,7 @@ public class QuizAttemptDto {
     private Integer timeTakenMinutes;
     private String status;
     private List<QuizAnswerDto> answers;
+    private Integer courseProgress; // overall course progress after this attempt
 
     @Data
     @NoArgsConstructor

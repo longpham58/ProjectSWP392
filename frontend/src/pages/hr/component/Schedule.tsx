@@ -352,7 +352,10 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
                 id="schedule-start-time"
                 type="time"
                 value={newStartTime}
-                onChange={(e) => setNewStartTime(e.target.value)}
+                onChange={(e) => {
+                  setNewStartTime(e.target.value);
+                  setFormMessage(null);
+                }}
               />
             </div>
             <div className="schedule-create-field">
@@ -361,7 +364,10 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
                 id="schedule-end-time"
                 type="time"
                 value={newEndTime}
-                onChange={(e) => setNewEndTime(e.target.value)}
+                onChange={(e) => {
+                  setNewEndTime(e.target.value);
+                  setFormMessage(null);
+                }}
               />
             </div>
             <div className="schedule-create-field">
@@ -440,8 +446,12 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
                   setFormMessage('Vui lòng nhập đầy đủ thông tin trước khi lưu.');
                   return;
                 }
-                if (newEndTime <= newStartTime) {
-                  setFormMessage('End time phải lớn hơn Start time.');
+                const toMinutes = (t: string) => {
+                  const [h, m] = t.split(':').map(Number);
+                  return h * 60 + m;
+                };
+                if (!newEndTime || !newStartTime || toMinutes(newEndTime) <= toMinutes(newStartTime)) {
+                  setFormMessage('End time phải lớn hơn Start time. (Ví dụ: bắt đầu 10:00, kết thúc 12:00)');
                   return;
                 }
 

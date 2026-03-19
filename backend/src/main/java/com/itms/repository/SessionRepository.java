@@ -217,14 +217,15 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     @Query(value = """
         SELECT CASE WHEN COUNT_BIG(s.id) > 0 THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END
         FROM Session s
-        WHERE s.trainer_id = :trainerId
+        JOIN [User] u ON u.id = s.trainer_id
+        WHERE u.username = :trainerUsername
           AND CAST(s.date AS DATE) = CAST(:date AS DATE)
           AND CAST(s.time_start AS TIME) < CAST(:endTime AS TIME)
           AND CAST(s.time_end AS TIME) > CAST(:startTime AS TIME)
           AND (:excludeId IS NULL OR s.id <> :excludeId)
     """, nativeQuery = true)
     boolean existsTrainerTimeConflict(
-            @Param("trainerId") String trainerId,
+            @Param("trainerUsername") String trainerUsername,
             @Param("date") LocalDate date,
             @Param("startTime") LocalTime startTime,
             @Param("endTime") LocalTime endTime,

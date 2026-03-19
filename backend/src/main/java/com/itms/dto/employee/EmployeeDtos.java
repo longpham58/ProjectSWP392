@@ -221,6 +221,10 @@ public class EmployeeDtos {
         private String meetingLink;
         private String trainerName;
         private String status; // "upcoming" | "completed" | "cancelled"
+        private String classCode;
+        private String className;
+        private String attendanceStatus; // null | "COMPLETED" | "ABSENT" | "IN_PROGRESS"
+        private Boolean attended; // true | false | null (not marked yet)
     }
 
     // ─── Quiz DTOs ────────────────────────────────────────────────────────────
