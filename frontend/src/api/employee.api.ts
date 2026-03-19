@@ -197,7 +197,7 @@ export const employeeApi = {
     axios.get<{ data: CourseSummary[] }>(`${BASE}/my-learning/${userId}`),
 
   markLessonCompleted: (courseId: number, userId: number, lessonId: number) =>
-    axios.put<{ data: EnrollmentResponse }>(`${BASE}/courses/${courseId}/lessons/complete`, { userId, lessonId }),
+    axios.put<{ data: { progress: number } }>(`${BASE}/courses/${courseId}/lessons/complete`, { userId, lessonId }),
 
   // Feedback
   getFeedbacks: (courseId: number) =>

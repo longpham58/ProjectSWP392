@@ -39,7 +39,7 @@ public class EmployeeDtos {
         private String trainerName;
         private long enrolledStudents;
         private Integer progress;
-        private EnrollmentStatus enrollmentStatus;
+        private String enrollmentStatus;  // String — class member status or null
     }
 
     @Data
@@ -50,8 +50,8 @@ public class EmployeeDtos {
         private Integer id;
         private String title;
         private Integer durationMinutes;
-        private CompletionStatus status;
-        private String type;           // VIDEO, DOCUMENT, etc.
+        private String status;           // "COMPLETED", "IN_PROGRESS", etc.
+        private String type;             // VIDEO, DOCUMENT, etc.
         private String fileUrl;
         @com.fasterxml.jackson.annotation.JsonProperty("isDownloadable")
         private Boolean isDownloadable;
@@ -81,7 +81,7 @@ public class EmployeeDtos {
         private Integer durationHours;
         private String trainerName;
         private long enrolledStudents;
-        private EnrollmentStatus enrollmentStatus;
+        private String enrollmentStatus;  // String — null for employees (HR assigns)
         private Integer progress;
         private List<ModuleDto> modules;
     }
@@ -100,7 +100,7 @@ public class EmployeeDtos {
         private Integer userId;
         private Integer courseId;
         private Integer progress;
-        private EnrollmentStatus status;
+        private String status;
         private LocalDateTime enrolledAt;
     }
 
@@ -108,6 +108,14 @@ public class EmployeeDtos {
     public static class MarkLessonRequest {
         private Integer userId;
         private Integer lessonId;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MarkLessonResponse {
+        private Integer progress;
     }
 
     @Data

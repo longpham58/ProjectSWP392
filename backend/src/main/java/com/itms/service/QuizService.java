@@ -36,28 +36,50 @@ public class QuizService {
     private final QuizQuestionRepository quizQuestionRepository;
 
     /**
-     * Get all quizzes for a course
+     * Get all quizzes for a course.
+     * Regular quizzes are always unlocked (employees are assigned by HR).
+     * Final exam is locked until ALL regular quizzes for the course are passed.
      */
     public List<QuizDto> getQuizzesByCourse(Integer courseId, Integer userId) {
         List<Quiz> quizzes = quizRepository.findByCourseIdAndQuizTypeIn(courseId);
         List<QuizDto> quizDtos = new ArrayList<>();
 
+        // Separate regular quizzes and final exams
+        List<Quiz> regularQuizzes = quizzes.stream()
+                .filter(q -> !Boolean.TRUE.equals(q.getIsFinalExam()))
+                .toList();
+        int totalRegular = regularQuizzes.size();
+
+        // Count how many regular quizzes the user has passed
+        int passedRegular = 0;
+        for (Quiz rq : regularQuizzes) {
+            List<QuizAttempt> attempts = quizAttemptRepository.findByQuizIdAndUserId(rq.getId(), userId);
+            if (attempts.stream().anyMatch(a -> Boolean.TRUE.equals(a.getPassed()))) {
+                passedRegular++;
+            }
+        }
+        boolean allRegularPassed = totalRegular > 0 && passedRegular >= totalRegular;
+
         for (Quiz quiz : quizzes) {
             QuizDto dto = mapToDto(quiz);
-            
-            // Check if quiz is unlocked based on module
-            if (quiz.getModule() != null) {
-                boolean isUnlocked = isModuleCompleted(userId, quiz.getModule().getId());
-                dto.setIsUnlocked(isUnlocked);
+
+            boolean isFinal = Boolean.TRUE.equals(quiz.getIsFinalExam());
+            if (isFinal) {
+                // Final exam unlocks only when ALL regular quizzes are passed
+                dto.setIsUnlocked(allRegularPassed);
             } else {
-                // No module requirement - quiz is always unlocked
+                // Regular quizzes are always unlocked for employees
                 dto.setIsUnlocked(true);
             }
 
             // Get attempt count and pass status
             List<QuizAttempt> attempts = quizAttemptRepository.findByQuizIdAndUserId(quiz.getId(), userId);
             dto.setAttemptsCount(attempts.size());
-            dto.setHasPassed(attempts.stream().anyMatch(QuizAttempt::getPassed));
+            dto.setHasPassed(attempts.stream().anyMatch(a -> Boolean.TRUE.equals(a.getPassed())));
+
+            // Attach regular quiz progress info (used by frontend for final exam lock message)
+            dto.setPassedRegularCount(passedRegular);
+            dto.setTotalRegularCount(totalRegular);
 
             quizDtos.add(dto);
         }
@@ -71,6 +93,10 @@ public class QuizService {
     public QuizDto getQuizById(Integer quizId, Integer userId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new RuntimeException("Quiz not found"));
+
+        // Eagerly load questions
+        List<QuizQuestion> questions = quizQuestionRepository.findByQuizIdOrderByDisplayOrderAsc(quizId);
+        quiz.setQuestions(questions);
 
         QuizDto dto = mapToDto(quiz);
 
@@ -186,7 +212,7 @@ public class QuizService {
         attempt.setPassed(passed);
         attempt.setSubmittedAt(LocalDateTime.now());
         attempt.setTimeTakenMinutes(timeTakenMinutes);
-        attempt.setStatus("COMPLETED");
+        attempt.setStatus("SUBMITTED"); // DB constraint: IN_PROGRESS, SUBMITTED, GRADED, ABANDONED
 
         attempt = quizAttemptRepository.save(attempt);
 
@@ -320,6 +346,9 @@ public class QuizService {
     public QuizDto getQuizWithQuestions(Integer quizId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new RuntimeException("Quiz not found"));
+        // Eagerly load questions
+        List<QuizQuestion> questions = quizQuestionRepository.findByQuizIdOrderByDisplayOrderAsc(quizId);
+        quiz.setQuestions(questions);
         return mapToDto(quiz);
     }
 

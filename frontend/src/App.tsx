@@ -142,9 +142,8 @@ function App() {
             <Route path="certificates" element={<CertificatesPage />} />
             <Route path="my-courses" element={<MyCoursesPage />} />
             <Route path="course/:courseId" element={<CourseDetailPage />} />
-            <Route path="quiz/:quizId" element={<QuizPage />} />
-            <Route path="final-exam/:courseId" element={<FinalExamPage />} />
-            <Route path="final-exam-result/:courseId" element={<FinalExamResultPage />} />
+            <Route path="course/:courseId/quiz/:quizId" element={<QuizPage />} />
+            <Route path="course/:courseId/final-exam/:quizId" element={<FinalExamPage />} />
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="notifications" element={<EmployeeNotificationsPage />} />
             <Route path="notification/:notificationId" element={<NotificationDetailPage />} />

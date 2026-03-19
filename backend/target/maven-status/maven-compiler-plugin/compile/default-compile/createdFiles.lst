@@ -1,3 +1,4 @@
+com\itms\dto\employee\EmployeeDtos$MarkLessonResponse$MarkLessonResponseBuilder.class
 com\itms\entity\Progress.class
 com\itms\controller\HrClassController.class
 com\itms\dto\employee\EmployeeDtos$FeedbackDto$FeedbackDtoBuilder.class
@@ -76,6 +77,7 @@ com\itms\dto\auth\LoginResponse$LoginResponseBuilder.class
 com\itms\dto\employee\EmployeeDtos$QuizQuestionDto.class
 com\itms\dto\auth\LoginRequest.class
 com\itms\dto\employee\EmployeeDtos$EnrollmentResponse.class
+com\itms\dto\employee\EmployeeDtos$MarkLessonResponse.class
 com\itms\dto\HrEmployeeDto$HrEmployeeDtoBuilder.class
 com\itms\dto\QuizQuestionDto$QuizQuestionDtoBuilder.class
 com\itms\service\AttendanceService.class

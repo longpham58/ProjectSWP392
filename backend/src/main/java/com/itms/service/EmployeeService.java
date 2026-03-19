@@ -4,7 +4,8 @@ import com.itms.common.EnrollmentStatus;
 import com.itms.dto.employee.EmployeeDtos.*;
 import com.itms.entity.*;
 import com.itms.repository.*;
-import lombok.RequiredArgsConstructor;import org.springframework.data.domain.Page;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +30,8 @@ public class EmployeeService {
     private final CertificateRepository certificateRepository;
     private final PasswordEncoder passwordEncoder;
     private final ClassMemberRepository classMemberRepository;
+    private final CourseModuleRepository courseModuleRepository;
+    private final UserModuleProgressRepository userModuleProgressRepository;
 
     // ─── Dashboard ────────────────────────────────────────────────────────────
 
@@ -73,6 +77,50 @@ public class EmployeeService {
     public CourseDetailResponse getCourseDetail(Integer courseId, Integer userId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found: " + courseId));
+
+        // Load modules with materials eagerly
+        List<CourseModule> modules = courseModuleRepository.findByCourseIdOrderByDisplayOrderAsc(courseId);
+
+        // Load user progress for each module
+        List<ModuleDto> moduleDtos = modules.stream().map(module -> {
+            List<LessonDto> lessons = module.getMaterials() != null
+                    ? module.getMaterials().stream().map(mat -> {
+                        // Determine completion status from UserModuleProgress
+                        String status = "IN_PROGRESS";
+                        Optional<UserModuleProgress> prog = userModuleProgressRepository
+                                .findByUserIdAndModuleId(userId, module.getId());
+                        if (prog.isPresent() && prog.get().getIsCompleted()) {
+                            status = "COMPLETED";
+                        }
+                        return LessonDto.builder()
+                                .id(mat.getId() != null ? mat.getId().intValue() : null)
+                                .title(mat.getTitle())
+                                .type(mat.getType() != null ? mat.getType().name() : "DOCUMENT")
+                                .fileUrl(mat.getFileUrl())
+                                .isDownloadable(mat.getIsDownloadable())
+                                .status(status)
+                                .build();
+                    }).collect(Collectors.toList())
+                    : List.of();
+
+            return ModuleDto.builder()
+                    .id(module.getId())
+                    .title(module.getTitle())
+                    .displayOrder(module.getDisplayOrder())
+                    .lessons(lessons)
+                    .build();
+        }).collect(Collectors.toList());
+
+        // Calculate progress: completed modules / total modules
+        long completedModules = modules.stream().filter(m -> {
+            Optional<UserModuleProgress> prog = userModuleProgressRepository
+                    .findByUserIdAndModuleId(userId, m.getId());
+            return prog.isPresent() && prog.get().getIsCompleted();
+        }).count();
+        int progress = modules.isEmpty() ? 0 : (int) (completedModules * 100 / modules.size());
+
+        long enrolledStudents = classMemberRepository.countActiveStudentsByCourseId(courseId);
+
         return CourseDetailResponse.builder()
                 .id(course.getId())
                 .title(course.getName())
@@ -80,10 +128,10 @@ public class EmployeeService {
                 .category(course.getCategory())
                 .durationHours(course.getDurationHours() != null ? course.getDurationHours().intValue() : null)
                 .trainerName(course.getTrainer() != null ? course.getTrainer().getFullName() : null)
-                .enrolledStudents(0)
-                .enrollmentStatus(null)
-                .progress(0)
-                .modules(List.of())
+                .enrolledStudents(enrolledStudents)
+                .enrollmentStatus(null) // Employees don't enroll — HR assigns them
+                .progress(progress)
+                .modules(moduleDtos)
                 .build();
     }
 
@@ -151,10 +199,54 @@ public class EmployeeService {
     }
 
     @Transactional
-    public EnrollmentResponse markLessonCompleted(Integer courseId, MarkLessonRequest request) {
-        Enrollment enrollment = enrollmentRepository.findByUserIdAndCourseId(request.getUserId(), courseId)
-                .orElseThrow(() -> new RuntimeException("Enrollment not found"));
-        return mapEnrollmentResponse(enrollment);
+    public MarkLessonResponse markLessonCompleted(Integer courseId, MarkLessonRequest request) {
+        Integer userId = request.getUserId();
+        Integer lessonId = request.getLessonId();
+
+        // Find which module this material belongs to
+        List<CourseModule> modules = courseModuleRepository.findByCourseIdOrderByDisplayOrderAsc(courseId);
+
+        CourseModule targetModule = null;
+        for (CourseModule m : modules) {
+            if (m.getMaterials() != null) {
+                boolean found = m.getMaterials().stream()
+                        .anyMatch(mat -> mat.getId() != null && mat.getId().intValue() == lessonId);
+                if (found) { targetModule = m; break; }
+            }
+        }
+
+        if (targetModule != null) {
+            final Integer moduleId = targetModule.getId();
+            Optional<UserModuleProgress> existing = userModuleProgressRepository
+                    .findByUserIdAndModuleId(userId, moduleId);
+            if (existing.isEmpty()) {
+                User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("User not found"));
+                UserModuleProgress prog = UserModuleProgress.builder()
+                        .user(user)
+                        .module(targetModule)
+                        .isCompleted(true)
+                        .completedAt(LocalDateTime.now())
+                        .progressPercentage(java.math.BigDecimal.valueOf(100))
+                        .timeSpentMinutes(0)
+                        .build();
+                userModuleProgressRepository.save(prog);
+            } else if (!Boolean.TRUE.equals(existing.get().getIsCompleted())) {
+                existing.get().setIsCompleted(true);
+                existing.get().setCompletedAt(LocalDateTime.now());
+                userModuleProgressRepository.save(existing.get());
+            }
+        }
+
+        // Recalculate progress
+        long completedModules = modules.stream().filter(m -> {
+            Optional<UserModuleProgress> prog = userModuleProgressRepository
+                    .findByUserIdAndModuleId(userId, m.getId());
+            return prog.isPresent() && prog.get().getIsCompleted();
+        }).count();
+        int progress = modules.isEmpty() ? 0 : (int) (completedModules * 100 / modules.size());
+
+        return MarkLessonResponse.builder().progress(progress).build();
     }
 
     // ─── Feedback ─────────────────────────────────────────────────────────────
@@ -358,7 +450,7 @@ public class EmployeeService {
                 .courseId(e.getSession() != null && e.getSession().getCourse() != null
                         ? e.getSession().getCourse().getId() : null)
                 .progress(e.getCompletionRate() != null ? e.getCompletionRate().intValue() : 0)
-                .status(e.getStatus())
+                .status(e.getStatus() != null ? e.getStatus().name() : null)
                 .enrolledAt(e.getRegisteredAt())
                 .build();
     }

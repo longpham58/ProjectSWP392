@@ -38,4 +38,6 @@ public class QuizDto {
     private Boolean hasPassed;
     private List<Integer> requiredModuleIds;
     private List<String> requiredModuleTitles;
+    private Integer passedRegularCount;
+    private Integer totalRegularCount;
 }

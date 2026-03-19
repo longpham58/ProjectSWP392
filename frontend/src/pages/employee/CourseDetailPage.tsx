@@ -25,7 +25,8 @@ function LessonModal({ lesson, enrollmentStatus, courseId, userId, onClose, onMa
   const isVideo = lesson.type === 'VIDEO';
   const hasFile = !!(lesson.fileUrl && lesson.fileUrl.trim().length > 0);
   const isYoutube = hasFile && lesson.fileUrl!.includes('youtube.com/embed');
-  const canMark = (enrollmentStatus === 'APPROVED' || enrollmentStatus === 'COMPLETED') && !marked;
+  // Employees are assigned courses by HR — no enrollment needed to mark lessons
+  const canMark = !marked;
 
   const handleMarkCompleted = async () => {
     if (!userId || !courseId || marking || marked) return;
@@ -210,7 +211,8 @@ export default function CourseDetailPage() {
   if (!course) return <div className="p-6">Không tìm thấy khóa học</div>;
 
   const certificateEarned = course.enrollmentStatus === 'COMPLETED';
-  const canAct = course.enrollmentStatus === 'APPROVED' || course.enrollmentStatus === 'COMPLETED' || course.enrollmentStatus === 'REGISTERED';
+  // Employees are assigned courses by HR — no enrollment needed to access content
+  const canAct = true;
 
   return (
     <div className="min-h-screen bg-gray-50">
