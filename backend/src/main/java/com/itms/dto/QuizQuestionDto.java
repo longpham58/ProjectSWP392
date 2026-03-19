@@ -16,6 +16,12 @@ public class QuizQuestionDto {
     private Integer id;
     private String questionText;
     private String questionType;
-    private List<String> options;
-    private Integer correctAnswerIndex;
+    private String optionA;
+    private String optionB;
+    private String optionC;
+    private String optionD;
+    private String correctAnswer;
+    private BigDecimal marks;
+    private String explanation;
+    private Integer displayOrder;
 }

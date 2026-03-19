@@ -189,36 +189,55 @@ const QuizQuestionsView: React.FC<{
 
         <div className="space-y-6">
           {quiz.questions.map((question, index) => (
-            <div key={question.id || index} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-3">
-                <h3 className="font-medium">Câu {index + 1}</h3>
-                <span className="text-sm text-gray-500">{question.marks} điểm</span>
+            <div key={question.id || index} className="border border-gray-200 rounded-lg p-5 bg-white shadow-sm">
+              <div className="flex justify-between items-center mb-4">
+                <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold">
+                  CÂU HỎI {index + 1}
+                </span>
+                <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                  {question.marks || 1} điểm
+                </span>
               </div>
               
-              <p className="mb-3 font-medium">{question.questionText}</p>
+              <p className="text-lg font-semibold text-gray-900 mb-4">{question.questionText}</p>
               
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <div className={`p-2 rounded ${question.correctAnswer === 'A' ? 'bg-green-100 border-green-300' : 'bg-gray-50'}`}>
-                  <span className="font-medium">A. </span>{question.optionA}
-                </div>
-                <div className={`p-2 rounded ${question.correctAnswer === 'B' ? 'bg-green-100 border-green-300' : 'bg-gray-50'}`}>
-                  <span className="font-medium">B. </span>{question.optionB}
-                </div>
-                <div className={`p-2 rounded ${question.correctAnswer === 'C' ? 'bg-green-100 border-green-300' : 'bg-gray-50'}`}>
-                  <span className="font-medium">C. </span>{question.optionC}
-                </div>
-                <div className={`p-2 rounded ${question.correctAnswer === 'D' ? 'bg-green-100 border-green-300' : 'bg-gray-50'}`}>
-                  <span className="font-medium">D. </span>{question.optionD}
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                {[
+                  { label: 'A', text: question.optionA },
+                  { label: 'B', text: question.optionB },
+                  { label: 'C', text: question.optionC },
+                  { label: 'D', text: question.optionD },
+                ].map((opt) => (
+                  <div 
+                    key={opt.label}
+                    className={`p-3 rounded-lg border flex items-center gap-3 transition ${
+                      question.correctAnswer === opt.label 
+                        ? 'bg-green-50 border-green-500 text-green-900 ring-1 ring-green-500' 
+                        : 'bg-gray-50 border-gray-200 text-gray-700'
+                    }`}
+                  >
+                    <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                      question.correctAnswer === opt.label 
+                        ? 'bg-green-500 text-white' 
+                        : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {opt.label}
+                    </span>
+                    <span className="flex-1">{opt.text}</span>
+                    {question.correctAnswer === opt.label && (
+                      <span className="text-green-600 font-bold ml-auto">✓</span>
+                    )}
+                  </div>
+                ))}
               </div>
               
-              <div className="text-sm text-green-600 font-medium mb-2">
-                ✓ Đáp án đúng: {question.correctAnswer}
-              </div>
-              
-              {question.explanation && (
-                <div className="text-sm text-gray-600 bg-blue-50 p-2 rounded">
-                  <strong>Giải thích:</strong> {question.explanation}
+              {(question.explanation && question.explanation.trim() !== "") && (
+                <div className="mt-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+                  <div className="flex items-center gap-2 text-blue-800 font-bold mb-1">
+                    <span className="text-xl">💡</span>
+                    <span>Giải thích:</span>
+                  </div>
+                  <p className="text-gray-700 text-sm italic">{question.explanation}</p>
                 </div>
               )}
             </div>

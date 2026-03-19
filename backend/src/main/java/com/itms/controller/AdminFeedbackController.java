@@ -17,14 +17,6 @@ public class AdminFeedbackController {
     private final AdminService adminService;
     private final com.itms.service.FeedbackService feedbackService;
 
-    /**
-     * Get all feedback (course, trainer-student, HR-admin, violations)
-     */
-    @GetMapping
-    public ResponseEntity<ResponseDto<java.util.List<FeedbackDto>>> getAllFeedback() {
-        java.util.List<FeedbackDto> feedbacks = feedbackService.getAllFeedback();
-        return ResponseEntity.ok(ResponseDto.success(feedbacks, "All feedback retrieved successfully"));
-    }
 
     /**
      * Get all system feedback (for admin and employees)
