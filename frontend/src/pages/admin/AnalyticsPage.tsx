@@ -65,8 +65,8 @@ export default function AnalyticsPage() {
   // KPI Values from analytics API
   const kpis = [
     { title: "Total Employees", value: analytics?.totalEmployees || 0 },
-    { title: "Locked Accounts", value: analytics?.lockedAccounts || 0 },
     { title: "Total Classes", value: analytics?.totalClasses || 0 },
+    { title: "Total Courses", value: analytics?.totalCourses || 0 },
     { title: "Total Enrollments", value: analytics?.totalEnrollments || 0 },
     { title: "Security Alerts", value: analytics?.securityAlerts || 0 },
   ];
@@ -217,3 +217,4 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+

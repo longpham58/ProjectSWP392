@@ -15,7 +15,8 @@ public class AdminAnalyticsDto {
     
     // KPIs
     private Long totalEmployees;
-    private Long lockedAccounts;
+    private Long totalCourses;
+    private Long activeCourses;
     private Long totalClasses;
     private Long totalEnrollments;
     private Long securityAlerts;

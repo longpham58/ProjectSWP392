@@ -370,9 +370,11 @@ public class AdminService {
 
         // KPIs
         long totalEmployees = userRepository.count();
-        long lockedAccounts = userRepository.countLockedUsers(now);
+        long totalCourses = courseRepository.count();
+        long activeCourses = courseRepository.countByStatus(CourseStatus.ACTIVE);
         long totalClasses = classRoomRepository.count();
         long totalEnrollments = classMemberRepository.count();
+        long lockedAccounts = userRepository.countLockedUsers(now);
         long securityAlerts = userRepository.countUsersWithFailedLoginAttempts() + lockedAccounts;
 
         // Monthly completion trend (last 6 months)
@@ -442,7 +444,8 @@ public class AdminService {
 
         return AdminAnalyticsDto.builder()
                 .totalEmployees(totalEmployees)
-                .lockedAccounts(lockedAccounts)
+                .totalCourses(totalCourses)
+                .activeCourses(activeCourses)
                 .totalClasses(totalClasses)
                 .totalEnrollments(totalEnrollments)
                 .securityAlerts(securityAlerts)

@@ -39,7 +39,8 @@ export interface TrainingHours {
 
 export interface AdminAnalyticsDto {
   totalEmployees: number;
-  lockedAccounts: number;
+  totalCourses: number;
+  activeCourses: number;
   totalClasses: number;
   totalEnrollments: number;
   securityAlerts: number;

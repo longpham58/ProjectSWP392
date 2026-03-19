@@ -46,13 +46,14 @@ export default function AdminDashboard() {
         { title: "Total Users", value: stats.totalUsers },
         { title: "Active Users", value: stats.activeUsers },
         { title: "Total Courses", value: stats.totalCourses },
-        { title: "Active Courses", value: stats.activeCourses },
+        { title: "Total Classes", value: stats.totalClasses },
       ]
     : [
         { title: "Total Users", value: 0 },
         { title: "Active Users", value: 0 },
         { title: "Total Courses", value: 0 },
         { title: "Active Courses", value: 0 },
+        { title: "Total Classes", value: 0 },
       ];
 
   // Course Completion Trend from API
@@ -80,9 +81,9 @@ export default function AdminDashboard() {
 
   const COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#9333ea"];
 
-  // Recent activities from API
+  // Recent activities from API (limited to 5)
   const activities = stats?.recentActivities
-    ? stats.recentActivities.map((activity: RecentActivity) => ({
+    ? stats.recentActivities.slice(0, 5).map((activity: RecentActivity) => ({
         description: activity.description,
         timeAgo: activity.timeAgo,
       }))
