@@ -1,6 +1,5 @@
 package com.itms.controller;
 
-import com.itms.dto.ModuleProgressDto;
 import com.itms.dto.QuizAttemptDto;
 import com.itms.dto.QuizDto;
 import com.itms.dto.QuizImportDto;
