@@ -484,9 +484,10 @@ public class AdminService {
         }
         
         // Parse type safely
-        String type = "GENERAL";
+        String type = "ANNOUNCEMENT";
         if (dto.getType() != null && !dto.getType().isEmpty()) {
             type = dto.getType().toUpperCase();
+            if (type.equals("GENERAL")) type = "ANNOUNCEMENT";
         }
         
         // Parse priority safely
@@ -505,6 +506,7 @@ public class AdminService {
                 .type(type)
                 .priority(priority)
                 .recipientType(dto.getTargetRole())
+                .user(sender)
                 .sender(sender)
                 .sentDate(java.time.LocalDateTime.now())
                 .expiresAt(dto.getExpiresAt() != null ? dto.getExpiresAt().atStartOfDay() : null)
@@ -513,6 +515,12 @@ public class AdminService {
                 .build();
         
         notification = notificationRepository.save(notification);
+        
+        // If not draft, fan out to recipients
+        if (notification.getIsDraft() != null && !notification.getIsDraft()) {
+            sendNotificationToRecipients(notification);
+        }
+        
         return mapToAdminNotificationDto(notification);
     }
 
@@ -522,7 +530,11 @@ public class AdminService {
         
         if (dto.getTitle() != null) notification.setTitle(dto.getTitle());
         if (dto.getContent() != null) notification.setMessage(dto.getContent());
-        if (dto.getType() != null) notification.setType(dto.getType().toUpperCase());
+        if (dto.getType() != null) {
+            String type = dto.getType().toUpperCase();
+            if (type.equals("GENERAL")) type = "ANNOUNCEMENT";
+            notification.setType(type);
+        }
         if (dto.getPriority() != null) notification.setPriority(com.itms.common.NotificationPriority.valueOf(dto.getPriority()));
         if (dto.getTargetRole() != null) notification.setRecipientType(dto.getTargetRole());
         if (dto.getExpiresAt() != null) notification.setExpiresAt(dto.getExpiresAt().atStartOfDay());
@@ -544,6 +556,10 @@ public class AdminService {
         notification.setSentDate(java.time.LocalDateTime.now());
         
         notification = notificationRepository.save(notification);
+        
+        // Fan out to recipients
+        sendNotificationToRecipients(notification);
+        
         return mapToAdminNotificationDto(notification);
     }
 
@@ -562,6 +578,48 @@ public class AdminService {
                 .senderName(n.getSender() != null ? n.getSender().getFullName() : null)
                 .senderId(n.getSender() != null ? n.getSender().getId() : null)
                 .build();
+    }
+
+    private void sendNotificationToRecipients(Notification source) {
+        String target = source.getRecipientType();
+        log.info("Fanning out admin notification to target: {}", target);
+        
+        List<User> recipients = new ArrayList<>();
+        
+        if (target == null || target.equalsIgnoreCase("ALL")) {
+            recipients = userRepository.findAll().stream()
+                    .filter(u -> Boolean.TRUE.equals(u.getIsActive()))
+                    .collect(Collectors.toList());
+        } else if (target.equalsIgnoreCase("EMPLOYEE")) {
+            recipients = userRepository.findAllActiveEmployees();
+        } else if (target.equalsIgnoreCase("TRAINER")) {
+            recipients = userRepository.findAllActiveTrainers();
+        } else if (target.equalsIgnoreCase("HR")) {
+            recipients = userRepository.findByRoleName("Human Resources");
+        }
+
+        log.info("Found {} recipients for notification", recipients.size());
+        
+        for (User recipient : recipients) {
+            // Don't send to the sender again if they are in the list
+            if (source.getSender() != null && recipient.getId().equals(source.getSender().getId())) {
+                continue;
+            }
+            
+            Notification notif = Notification.builder()
+                    .user(recipient)
+                    .sender(source.getSender())
+                    .type(source.getType())
+                    .title(source.getTitle())
+                    .message(source.getMessage())
+                    .priority(source.getPriority())
+                    .recipientType(source.getRecipientType())
+                    .isRead(false)
+                    .isDraft(false)
+                    .sentDate(LocalDateTime.now())
+                    .build();
+            notificationRepository.save(notif);
+        }
     }
 
     // ========== SYSTEM FEEDBACK METHODS ==========

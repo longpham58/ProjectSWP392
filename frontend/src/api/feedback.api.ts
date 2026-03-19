@@ -15,6 +15,11 @@ export interface FeedbackDto {
   userName?: string;
   userEmail?: string;
   submittedAt?: string;
+  type?: string;
+  status?: string;
+  isViolation?: boolean;
+  recipientId?: number;
+  recipientName?: string;
 }
 
 export interface ApiResponse<T> {

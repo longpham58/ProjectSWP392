@@ -35,14 +35,14 @@ public class UserController {
         }
     }
 
-    @PutMapping("/{userId}/status")
-    public ResponseEntity<ResponseDto<Void>> toggleUserStatus(@PathVariable Integer userId) {
+    @PutMapping("/{userId}/toggle-status")
+    public ResponseEntity<ResponseDto<Void>> toggleUserStatus(@PathVariable("userId") Integer userId) {
         userService.toggleUserStatus(userId);
         return ResponseEntity.ok(ResponseDto.success(null, "User status updated successfully"));
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<ResponseDto<Void>> deleteUser(@PathVariable Integer userId) {
+    public ResponseEntity<ResponseDto<Void>> deleteUser(@PathVariable("userId") Integer userId) {
         userService.deleteUser(userId);
         return ResponseEntity.ok(ResponseDto.success(null, "User deleted successfully"));
     }

@@ -50,7 +50,7 @@ public class TrainerScheduleController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<ResponseDto<TrainerScheduleDto>> getSessionById(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         System.out.println("🎯 [TrainerScheduleController] GET /schedule/" + id);

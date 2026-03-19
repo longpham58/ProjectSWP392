@@ -44,7 +44,7 @@ public class SessionController {
      */
     @GetMapping("/schedule/course/{courseId}")
     public ResponseEntity<ResponseDto<List<CourseScheduleDto>>> getCourseScheduleByCourse(
-            @PathVariable Integer courseId,
+            @PathVariable("courseId") Integer courseId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         Integer userId = userDetails.getId();

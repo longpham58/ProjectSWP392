@@ -27,7 +27,12 @@ const empty: Form = {
   notes: '',
 };
 
-export const ClassManagePage: React.FC = () => {
+interface ClassManagePageProps {
+  onClassesChanged?: () => void;
+  defaultCourseId?: number;
+}
+
+export const ClassManagePage: React.FC<ClassManagePageProps> = ({ onClassesChanged, defaultCourseId }) => {
   const [classes, setClasses] = useState<HRClassroom[]>([]);
   const [courses, setCourses] = useState<CourseDto[]>([]);
   const [trainers, setTrainers] = useState<Trainer[]>([]);
@@ -35,9 +40,15 @@ export const ClassManagePage: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
   const [membersClassId, setMembersClassId] = useState<number | null>(null);
-  const [form, setForm] = useState<Form>(empty);
+  const [form, setForm] = useState<Form>({ ...empty, courseId: defaultCourseId ? String(defaultCourseId) : '' });
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    if (defaultCourseId) {
+      handleCourseChange(String(defaultCourseId));
+    }
+  }, [defaultCourseId]);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -116,6 +127,7 @@ export const ClassManagePage: React.FC = () => {
       }
       setShowModal(false);
       fetchAll();
+      if (onClassesChanged) onClassesChanged();
     } catch (e: any) {
       setError(e?.response?.data?.message ?? 'Có lỗi xảy ra');
     }

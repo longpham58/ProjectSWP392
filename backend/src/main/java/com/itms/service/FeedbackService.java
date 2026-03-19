@@ -3,6 +3,8 @@ package com.itms.service;
 import com.itms.dto.FeedbackDto;
 import com.itms.entity.Enrollment;
 import com.itms.entity.Feedback;
+import com.itms.entity.FeedbackStatus;
+import com.itms.entity.FeedbackType;
 import com.itms.entity.User;
 import com.itms.repository.EnrollmentRepository;
 import com.itms.repository.FeedbackRepository;
@@ -100,6 +102,11 @@ public class FeedbackService {
                 .userEmail(feedback.getIsAnonymous() != null && feedback.getIsAnonymous() ? null :
                         (feedback.getUser() != null ? feedback.getUser().getEmail() : null))
                 .submittedAt(feedback.getSubmittedAt())
+                .type(feedback.getType() != null ? feedback.getType().name() : null)
+                .status(feedback.getStatus() != null ? feedback.getStatus().name() : null)
+                .recipientId(feedback.getRecipient() != null ? feedback.getRecipient().getId() : null)
+                .recipientName(feedback.getRecipient() != null ? feedback.getRecipient().getFullName() : null)
+                .isViolation(feedback.getIsViolation())
                 .build();
     }
 
@@ -123,12 +130,101 @@ public class FeedbackService {
     }
 
     /**
+     * Submit Trainer to Student feedback
+     */
+    @Transactional
+    public FeedbackDto submitTrainerToStudentFeedback(FeedbackDto dto) {
+        User trainer = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new RuntimeException("Trainer not found"));
+        User student = userRepository.findById(dto.getRecipientId())
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        Feedback feedback = Feedback.builder()
+                .user(trainer)
+                .recipient(student)
+                .type(FeedbackType.TRAINER_TO_STUDENT)
+                .status(FeedbackStatus.OPEN)
+                .comments(dto.getComments())
+                .submittedAt(LocalDateTime.now())
+                .build();
+
+        return mapToDto(feedbackRepository.save(feedback));
+    }
+
+    /**
+     * Report violation to HR
+     */
+    @Transactional
+    public FeedbackDto reportToHr(FeedbackDto dto) {
+        User sender = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new RuntimeException("Sender not found"));
+
+        Feedback feedback = Feedback.builder()
+                .user(sender)
+                .type(FeedbackType.REPORT_TO_HR)
+                .status(FeedbackStatus.OPEN)
+                .comments(dto.getComments())
+                .isViolation(true)
+                .submittedAt(LocalDateTime.now())
+                .build();
+
+        return mapToDto(feedbackRepository.save(feedback));
+    }
+
+    /**
+     * HR to Admin feedback
+     */
+    @Transactional
+    public FeedbackDto submitHrToAdminFeedback(FeedbackDto dto) {
+        User hr = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new RuntimeException("HR not found"));
+
+        Feedback feedback = Feedback.builder()
+                .user(hr)
+                .type(FeedbackType.HR_TO_ADMIN)
+                .status(FeedbackStatus.OPEN)
+                .comments(dto.getComments())
+                .submittedAt(LocalDateTime.now())
+                .build();
+
+        return mapToDto(feedbackRepository.save(feedback));
+    }
+
+    /**
+     * Get reports for HR
+     */
+    public List<FeedbackDto> getReportsForHr() {
+        return feedbackRepository.findByType(FeedbackType.REPORT_TO_HR).stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get feedback for student
+     */
+    public List<FeedbackDto> getFeedbackForStudent(Integer studentId) {
+        return feedbackRepository.findByTypeAndRecipientId(FeedbackType.TRAINER_TO_STUDENT, studentId).stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Get all feedback for admin
      */
     public List<FeedbackDto> getAllFeedback() {
-        List<Feedback> feedbacks = feedbackRepository.findAll();
-        return feedbacks.stream()
+        return feedbackRepository.findAll().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Mark feedback as resolved
+     */
+    @Transactional
+    public void resolveFeedback(Long id) {
+        Feedback feedback = feedbackRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Feedback not found"));
+        feedback.setStatus(FeedbackStatus.RESOLVED);
+        feedbackRepository.save(feedback);
     }
 }

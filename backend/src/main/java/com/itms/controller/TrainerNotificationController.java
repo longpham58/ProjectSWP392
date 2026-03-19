@@ -24,7 +24,7 @@ public class TrainerNotificationController {
     @GetMapping
     public ResponseEntity<ResponseDto<List<TrainerNotificationDto>>> getNotifications(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(defaultValue = "inbox") String category) {
+            @RequestParam(value = "category", defaultValue = "inbox") String category) {
 
         Integer trainerId = userDetails.getId();
         List<TrainerNotificationDto> notifications = 
@@ -54,7 +54,7 @@ public class TrainerNotificationController {
     // Update draft notification
     @PutMapping("/{id}")
     public ResponseEntity<ResponseDto<TrainerNotificationDto>> updateNotification(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody TrainerNotificationRequest request) {
 
@@ -70,7 +70,7 @@ public class TrainerNotificationController {
     // Send notification (convert draft to sent)
     @PostMapping("/{id}/send")
     public ResponseEntity<ResponseDto<Void>> sendNotification(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Integer trainerId = userDetails.getId();
@@ -84,7 +84,7 @@ public class TrainerNotificationController {
     // Delete notification
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseDto<Void>> deleteNotification(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
 
         Integer trainerId = userDetails.getId();
@@ -97,7 +97,7 @@ public class TrainerNotificationController {
 
     // Mark inbox notification as read
     @PutMapping("/{id}/read")
-    public ResponseEntity<ResponseDto<Void>> markAsRead(@PathVariable Integer id) {
+    public ResponseEntity<ResponseDto<Void>> markAsRead(@PathVariable("id") Integer id) {
 
         trainerNotificationService.markAsRead(id);
 

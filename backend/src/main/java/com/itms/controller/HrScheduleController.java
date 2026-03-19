@@ -38,13 +38,13 @@ public class HrScheduleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseDto<HrScheduleDto>> update(@PathVariable Long id, @RequestBody HrScheduleDto request) {
+    public ResponseEntity<ResponseDto<HrScheduleDto>> update(@PathVariable("id") Long id, @RequestBody HrScheduleDto request) {
         HrScheduleDto updated = hrScheduleService.update(id, request);
         return ResponseEntity.ok(ResponseDto.success(updated, "Schedule updated"));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseDto<Void>> delete(@PathVariable Long id) {
+    public ResponseEntity<ResponseDto<Void>> delete(@PathVariable("id") Long id) {
         hrScheduleService.delete(id);
         return ResponseEntity.ok(ResponseDto.success(null, "Schedule deleted"));
     }

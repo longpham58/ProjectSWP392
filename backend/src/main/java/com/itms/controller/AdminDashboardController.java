@@ -36,7 +36,7 @@ public class AdminDashboardController {
     
     @GetMapping("/courses")
     public ResponseEntity<ResponseDto<List<AdminCourseDto>>> getAllCourses(
-            @RequestParam(required = false) CourseStatus status) {
+            @RequestParam(value = "status", required = false) CourseStatus status) {
         List<AdminCourseDto> courses = adminService.getCoursesByStatus(status);
         return ResponseEntity.ok(
                 ResponseDto.success(courses, "Courses retrieved successfully")
@@ -52,7 +52,7 @@ public class AdminDashboardController {
     }
     
     @GetMapping("/courses/{id}")
-    public ResponseEntity<ResponseDto<AdminCourseDetailDto>> getCourseById(@PathVariable Integer id) {
+    public ResponseEntity<ResponseDto<AdminCourseDetailDto>> getCourseById(@PathVariable("id") Integer id) {
         AdminCourseDetailDto course = adminService.getCourseDetailById(id);
         return ResponseEntity.ok(
                 ResponseDto.success(course, "Course retrieved successfully")
@@ -70,7 +70,7 @@ public class AdminDashboardController {
     // ========== NOTIFICATIONS ==========
     @GetMapping("/notifications")
     public ResponseEntity<ResponseDto<List<AdminNotificationDto>>> getAllNotifications(
-            @RequestParam(required = false) Boolean isDraft) {
+            @RequestParam(value = "isDraft", required = false) Boolean isDraft) {
         List<AdminNotificationDto> notifications = adminService.getAllNotifications(isDraft);
         return ResponseEntity.ok(
                 ResponseDto.success(notifications, "Notifications retrieved successfully")
@@ -78,7 +78,7 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/notifications/{id}")
-    public ResponseEntity<ResponseDto<AdminNotificationDto>> getNotificationById(@PathVariable Integer id) {
+    public ResponseEntity<ResponseDto<AdminNotificationDto>> getNotificationById(@PathVariable("id") Integer id) {
         AdminNotificationDto notification = adminService.getNotificationById(id);
         return ResponseEntity.ok(
                 ResponseDto.success(notification, "Notification retrieved successfully")
@@ -104,7 +104,7 @@ public class AdminDashboardController {
 
     @PutMapping("/notifications/{id}")
     public ResponseEntity<ResponseDto<AdminNotificationDto>> updateNotification(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @RequestBody AdminNotificationDto dto) {
         AdminNotificationDto notification = adminService.updateNotification(id, dto);
         return ResponseEntity.ok(
@@ -113,7 +113,7 @@ public class AdminDashboardController {
     }
 
     @PostMapping("/notifications/{id}/send")
-    public ResponseEntity<ResponseDto<AdminNotificationDto>> sendNotification(@PathVariable Integer id) {
+    public ResponseEntity<ResponseDto<AdminNotificationDto>> sendNotification(@PathVariable("id") Integer id) {
         AdminNotificationDto notification = adminService.sendNotification(id);
         return ResponseEntity.ok(
                 ResponseDto.success(notification, "Notification sent successfully")
@@ -121,7 +121,7 @@ public class AdminDashboardController {
     }
 
     @DeleteMapping("/notifications/{id}")
-    public ResponseEntity<ResponseDto<Void>> deleteNotification(@PathVariable Integer id) {
+    public ResponseEntity<ResponseDto<Void>> deleteNotification(@PathVariable("id") Integer id) {
         adminService.deleteNotification(id);
         return ResponseEntity.ok(
                 ResponseDto.success(null, "Notification deleted successfully")

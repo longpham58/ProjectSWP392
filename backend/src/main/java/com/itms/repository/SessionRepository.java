@@ -49,7 +49,7 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
      * Find all sessions for a course with a specific status
      */
     @Query("SELECT s FROM Session s WHERE s.course.id = :courseId AND s.status = :status ORDER BY s.date ASC")
-    List<Session> findByCourseIdAndStatus(@Param("courseId") Integer courseId, com.itms.common.SessionStatus status);
+    List<Session> findByCourseIdAndStatus(@Param("courseId") Integer courseId, @Param("status") com.itms.common.SessionStatus status);
     
     /**
      * Find all sessions for given class IDs

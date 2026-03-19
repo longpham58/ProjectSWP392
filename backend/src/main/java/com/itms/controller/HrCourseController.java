@@ -42,7 +42,7 @@ public class HrCourseController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ResponseDto<HrCourseDto>> updateCourse(
-            @PathVariable Integer id,
+            @PathVariable("id") Integer id,
             @RequestBody HrCourseDto request
     ) {
         HrCourseDto updated = courseService.updateCourseForHr(id, request);
@@ -50,7 +50,7 @@ public class HrCourseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseDto<Void>> deleteCourse(@PathVariable Integer id) {
+    public ResponseEntity<ResponseDto<Void>> deleteCourse(@PathVariable("id") Integer id) {
         courseService.deleteCourseForHr(id);
         return ResponseEntity.ok(ResponseDto.success(null, "Course deleted successfully"));
     }

@@ -39,16 +39,16 @@ export const UserAccountManagePage: React.FC<UserAccountManagePageProps> = ({ re
   }, [filterRole, filterStatus, filterKeyword, refreshToken]);
 
   const filtered = useMemo(() => {
-    return users;
+    return users.filter((u) => u.role !== 'Admin');
   }, [users]);
 
   const stats = useMemo(() => {
-    const total = users.length;
-    const active = users.filter((u) => u.status === 'Active').length;
-    const inactive = users.filter((u) => u.status === 'Inactive').length;
-    const trainers = users.filter((u) => u.role === 'Trainer').length;
+    const total = filtered.length;
+    const active = filtered.filter((u) => u.status === 'Active').length;
+    const inactive = filtered.filter((u) => u.status === 'Inactive').length;
+    const trainers = filtered.filter((u) => u.role === 'Trainer').length;
     return { total, active, inactive, trainers };
-  }, [users]);
+  }, [filtered]);
 
   const initials = (name: string) => {
     const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -137,7 +137,6 @@ export const UserAccountManagePage: React.FC<UserAccountManagePageProps> = ({ re
               <th>Email</th>
               <th>Role</th>
               <th>Status</th>
-              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -156,15 +155,11 @@ export const UserAccountManagePage: React.FC<UserAccountManagePageProps> = ({ re
                 <td>{u.email}</td>
                 <td>{u.role}</td>
                 <td><span className={`user-status user-status-${u.status.toLowerCase()}`}>{u.status}</span></td>
-                <td>
-                  <button type="button" className="user-icon-btn" title="Edit" disabled>✎</button>
-                  <button type="button" className="user-icon-btn" title="Delete" disabled>🗑</button>
-                </td>
               </tr>
             ))}
             {!loading && filtered.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ padding: 16, color: '#666' }}>Không có dữ liệu.</td>
+                <td colSpan={5} style={{ padding: 16, color: '#666' }}>Không có dữ liệu.</td>
               </tr>
             )}
           </tbody>

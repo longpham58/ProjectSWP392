@@ -88,6 +88,8 @@ export interface FeedbackDto {
   userName?: string;
   userEmail?: string;
   submittedAt?: string;
+  type?: string;
+  isViolation?: boolean;
 }
 
 export type CourseStatus = "DRAFT" | "ACTIVE" | "INACTIVE" | "ARCHIVED";
