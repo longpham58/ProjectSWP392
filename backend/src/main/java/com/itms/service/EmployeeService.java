@@ -32,6 +32,9 @@ public class EmployeeService {
     private final ClassMemberRepository classMemberRepository;
     private final CourseModuleRepository courseModuleRepository;
     private final UserModuleProgressRepository userModuleProgressRepository;
+    private final QuizRepository quizRepository;
+    private final QuizAttemptRepository quizAttemptRepository;
+    private final AttendanceRepository attendanceRepository;
 
     // ─── Dashboard ────────────────────────────────────────────────────────────
 
@@ -169,21 +172,16 @@ public class EmployeeService {
     }
 
     public List<CourseSummary> myLearning(Integer userId) {
-        // Return ALL active courses, with enrollment status from ClassMember if exists
+        // Only return courses where user is an ACTIVE ClassMember
         List<ClassMember> memberships = classMemberRepository.findByUserId(userId);
-        // Map courseId -> classMember status
-        java.util.Map<Integer, String> courseStatusMap = new java.util.HashMap<>();
-        for (ClassMember cm : memberships) {
-            if (cm.getClassRoom() != null && cm.getClassRoom().getCourse() != null) {
-                courseStatusMap.put(cm.getClassRoom().getCourse().getId(), cm.getStatus());
-            }
-        }
 
-        return courseRepository.findAll().stream()
-                .filter(c -> c.getStatus() == com.itms.common.CourseStatus.ACTIVE)
-                .map(c -> {
-                    String memberStatus = courseStatusMap.get(c.getId());
-                    String enrollmentStatus = memberStatus != null ? memberStatus : null;
+        return memberships.stream()
+                .filter(cm -> cm.getClassRoom() != null && cm.getClassRoom().getCourse() != null)
+                .map(cm -> {
+                    Course c = cm.getClassRoom().getCourse();
+                    String enrollmentStatus = cm.getStatus();
+                    int progress = calculateCourseProgress(c.getId(), userId);
+
                     return CourseSummary.builder()
                             .id(c.getId())
                             .title(c.getName())
@@ -191,11 +189,36 @@ public class EmployeeService {
                             .durationHours(c.getDurationHours() != null ? c.getDurationHours().intValue() : null)
                             .trainerName(c.getTrainer() != null ? c.getTrainer().getFullName() : null)
                             .enrolledStudents((int) classMemberRepository.countActiveStudentsByCourseId(c.getId()))
-                            .progress(0)
+                            .progress(progress)
                             .enrollmentStatus(enrollmentStatus)
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Calculate course progress = (completedModules + passedQuizzes) / (totalModules + totalQuizzes) * 100
+     */
+    private int calculateCourseProgress(Integer courseId, Integer userId) {
+        List<CourseModule> modules = courseModuleRepository.findByCourseIdOrderByDisplayOrderAsc(courseId);
+        List<Quiz> quizzes = quizRepository.findByCourseId(courseId).stream()
+                .filter(q -> Boolean.TRUE.equals(q.getIsActive()))
+                .toList();
+
+        int totalItems = modules.size() + quizzes.size();
+        if (totalItems == 0) return 0;
+
+        long completedModules = modules.stream().filter(m -> {
+            Optional<UserModuleProgress> prog = userModuleProgressRepository.findByUserIdAndModuleId(userId, m.getId());
+            return prog.isPresent() && Boolean.TRUE.equals(prog.get().getIsCompleted());
+        }).count();
+
+        long passedQuizzes = quizzes.stream().filter(q ->
+                quizAttemptRepository.findByQuizIdAndUserId(q.getId(), userId)
+                        .stream().anyMatch(a -> Boolean.TRUE.equals(a.getPassed()))
+        ).count();
+
+        return (int) ((completedModules + passedQuizzes) * 100 / totalItems);
     }
 
     @Transactional
@@ -238,13 +261,8 @@ public class EmployeeService {
             }
         }
 
-        // Recalculate progress
-        long completedModules = modules.stream().filter(m -> {
-            Optional<UserModuleProgress> prog = userModuleProgressRepository
-                    .findByUserIdAndModuleId(userId, m.getId());
-            return prog.isPresent() && prog.get().getIsCompleted();
-        }).count();
-        int progress = modules.isEmpty() ? 0 : (int) (completedModules * 100 / modules.size());
+        // Recalculate progress including quizzes
+        int progress = calculateCourseProgress(courseId, userId);
 
         return MarkLessonResponse.builder().progress(progress).build();
     }
@@ -361,22 +379,54 @@ public class EmployeeService {
     // ─── Schedule ─────────────────────────────────────────────────────────────
 
     public List<ScheduleDto> getSchedule(Integer userId) {
-        return sessionRepository.findByUserIdOrderByDateAsc(userId).stream()
-                .map(s -> ScheduleDto.builder()
-                        .id(s.getId() != null ? s.getId().intValue() : null)
-                        .courseId(s.getCourse() != null ? s.getCourse().getId() : null)
-                        .courseName(s.getCourse() != null ? s.getCourse().getName() : null)
-                        .date(s.getDate())
-                        .timeStart(s.getTimeStart())
-                        .timeEnd(s.getTimeEnd())
-                        .location(s.getLocation())
-                        .locationType(s.getLocationType() != null ? s.getLocationType().name() : null)
-                        .meetingLink(s.getMeetingLink())
-                        .trainerName(s.getTrainer() != null ? s.getTrainer().getFullName()
-                                : (s.getCourse() != null && s.getCourse().getTrainer() != null
-                                        ? s.getCourse().getTrainer().getFullName() : null))
-                        .status(s.getStatus() != null ? s.getStatus().name().toLowerCase() : "upcoming")
-                        .build())
+        // Get all active class memberships for this user
+        List<ClassMember> memberships = classMemberRepository.findByUserId(userId);
+
+        return memberships.stream()
+                .filter(cm -> cm.getClassRoom() != null && "ACTIVE".equalsIgnoreCase(cm.getStatus()))
+                .flatMap(cm -> {
+                    List<Session> sessions = sessionRepository.findByClassRoomIdOrderByDateAsc(cm.getClassRoom().getId());
+                    return sessions.stream().map(s -> {
+                        // Look up attendance for this user in this session
+                        String attendanceStatus = null;
+                        Boolean attended = null;
+                        Optional<Enrollment> enrollOpt = enrollmentRepository.findByUserIdAndSessionId(userId, s.getId());
+                        if (enrollOpt.isPresent()) {
+                            Optional<Attendance> attOpt = attendanceRepository.findByEnrollmentId(enrollOpt.get().getId());
+                            if (attOpt.isPresent()) {
+                                attendanceStatus = attOpt.get().getCompletionStatus();
+                                attended = attOpt.get().getAttended();
+                            }
+                        }
+
+                        return ScheduleDto.builder()
+                                .id(s.getId() != null ? s.getId().intValue() : null)
+                                .courseId(s.getCourse() != null ? s.getCourse().getId() : null)
+                                .courseName(s.getCourse() != null ? s.getCourse().getName() : null)
+                                .classCode(cm.getClassRoom().getClassCode())
+                                .className(cm.getClassRoom().getClassName())
+                                .date(s.getDate())
+                                .timeStart(s.getTimeStart())
+                                .timeEnd(s.getTimeEnd())
+                                .location(s.getLocation())
+                                .locationType(s.getLocationType() != null ? s.getLocationType().name() : null)
+                                .meetingLink(s.getMeetingLink())
+                                .trainerName(s.getTrainer() != null ? s.getTrainer().getFullName()
+                                        : (s.getCourse() != null && s.getCourse().getTrainer() != null
+                                                ? s.getCourse().getTrainer().getFullName() : null))
+                                .status(s.getStatus() != null ? s.getStatus().name().toLowerCase() : "upcoming")
+                                .attendanceStatus(attendanceStatus)
+                                .attended(attended)
+                                .build();
+                    });
+                })
+                .sorted((a, b) -> {
+                    int cmp = a.getDate().compareTo(b.getDate());
+                    if (cmp != 0) return cmp;
+                    if (a.getTimeStart() != null && b.getTimeStart() != null)
+                        return a.getTimeStart().compareTo(b.getTimeStart());
+                    return 0;
+                })
                 .collect(Collectors.toList());
     }
 

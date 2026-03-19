@@ -7,6 +7,7 @@ import com.itms.dto.QuizQuestionDto;
 import com.itms.dto.QuizQuestionImportDto;
 import com.itms.dto.SessionAttendanceDto;
 import com.itms.entity.*;
+import com.itms.common.Grade;
 import com.itms.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +39,7 @@ public class QuizService {
     private final ExcelImportService excelImportService;
     private final QuizQuestionRepository quizQuestionRepository;
     private final SessionRepository sessionRepository;
+    private final CertificateRepository certificateRepository;
 
     /**
      * Get all quizzes for a course.
@@ -228,8 +232,21 @@ public class QuizService {
 
         attempt = quizAttemptRepository.save(attempt);
 
+        // Auto-issue certificate if this is a final exam and user passed
+        if (passed && Boolean.TRUE.equals(quiz.getIsFinalExam()) && quiz.getCourse() != null && attempt.getUser() != null) {
+            issueCertificateIfNotExists(attempt.getUser(), quiz.getCourse(), score);
+        }
+
         QuizAttemptDto result = mapAttemptToDto(attempt);
         result.setAnswers(answers);
+
+        // Calculate and attach updated course progress
+        Integer courseId = quiz.getCourse() != null ? quiz.getCourse().getId() : null;
+        Integer userId = attempt.getUser() != null ? attempt.getUser().getId() : null;
+        if (courseId != null && userId != null) {
+            result.setCourseProgress(calculateCourseProgress(courseId, userId));
+        }
+
         return result;
     }
 
@@ -735,5 +752,50 @@ public class QuizService {
                 .timeTakenMinutes(attempt.getTimeTakenMinutes())
                 .status(attempt.getStatus())
                 .build();
+    }
+
+    private void issueCertificateIfNotExists(User user, Course course, BigDecimal score) {
+        boolean alreadyExists = certificateRepository.findByUserId(user.getId())
+                .stream().anyMatch(c -> c.getCourse().getId().equals(course.getId()));
+        if (alreadyExists) return;
+
+        Grade grade;
+        if (score.compareTo(BigDecimal.valueOf(90)) >= 0) grade = Grade.DISTINCTION;
+        else if (score.compareTo(BigDecimal.valueOf(75)) >= 0) grade = Grade.MERIT;
+        else grade = Grade.PASS;
+
+        Certificate cert = Certificate.builder()
+                .user(user)
+                .course(course)
+                .certificateCode("CERT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                .issueDate(LocalDate.now())
+                .score(score.setScale(2, RoundingMode.HALF_UP))
+                .grade(grade)
+                .isValid(true)
+                .build();
+
+        certificateRepository.save(cert);
+    }
+
+    private int calculateCourseProgress(Integer courseId, Integer userId) {
+        List<CourseModule> modules = courseModuleRepository.findByCourseIdOrderByDisplayOrderAsc(courseId);
+        List<Quiz> quizzes = quizRepository.findByCourseId(courseId).stream()
+                .filter(q -> Boolean.TRUE.equals(q.getIsActive()))
+                .toList();
+
+        int totalItems = modules.size() + quizzes.size();
+        if (totalItems == 0) return 0;
+
+        long completedModules = modules.stream().filter(m -> {
+            Optional<UserModuleProgress> prog = moduleProgressRepository.findByUserIdAndModuleId(userId, m.getId());
+            return prog.isPresent() && Boolean.TRUE.equals(prog.get().getIsCompleted());
+        }).count();
+
+        long passedQuizzes = quizzes.stream().filter(q ->
+                quizAttemptRepository.findByQuizIdAndUserId(q.getId(), userId)
+                        .stream().anyMatch(a -> Boolean.TRUE.equals(a.getPassed()))
+        ).count();
+
+        return (int) ((completedModules + passedQuizzes) * 100 / totalItems);
     }
 }

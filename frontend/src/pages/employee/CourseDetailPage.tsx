@@ -145,12 +145,12 @@ function LessonModal({ lesson, enrollmentStatus, courseId, userId, onClose, onMa
               <FileText size={56} className="text-orange-400" />
               <p className="text-gray-700 font-medium text-center px-4">{lesson.title}</p>
               <div className="flex gap-3 flex-wrap justify-center">
-                <a href={lesson.fileUrl!} target="_blank" rel="noopener noreferrer"
+                <a href={`http://localhost:8080${lesson.fileUrl!}`} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
                   <ExternalLink size={14} /> Xem tài liệu
                 </a>
                 {lesson.isDownloadable && (
-                  <a href={lesson.fileUrl!} download
+                  <a href={`http://localhost:8080${lesson.fileUrl!}`} download
                     className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm">
                     <Download size={14} /> Tải về máy
                   </a>
@@ -394,7 +394,18 @@ export default function CourseDetailPage() {
                               </div>
                             </div>
                           </div>
-                          <div className="flex-shrink-0">
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {lesson.isDownloadable && lesson.fileUrl && lesson.type !== 'VIDEO' && (
+                              <a
+                                href={`http://localhost:8080${lesson.fileUrl}`}
+                                download
+                                onClick={e => e.stopPropagation()}
+                                className="flex items-center gap-1 text-xs px-2.5 py-1.5 bg-green-50 border border-green-200 text-green-700 rounded-lg hover:bg-green-100 font-medium transition-colors"
+                                title="Tải tài liệu về máy"
+                              >
+                                <Download size={12} /> Tải về
+                              </a>
+                            )}
                             {lesson.status === 'COMPLETED' ? (
                               <span className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full font-medium">
                                 <CheckCircle2 size={12} /> Đã xong

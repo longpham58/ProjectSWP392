@@ -101,7 +101,8 @@ public class HrScheduleService {
             throw new IllegalArgumentException("Phòng học đã có lịch trùng giờ trong ngày này");
         }
 
-        ClassRoom classRoom = classRoomRepository.findByClassCode(classCode).orElse(null);
+        ClassRoom classRoom = classRoomRepository.findByClassCode(classCode)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lớp học: " + classCode));
 
         session.setCourse(course);
         session.setTrainer(trainer);

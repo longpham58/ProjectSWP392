@@ -109,6 +109,10 @@ export interface ScheduleDto {
   meetingLink: string;
   trainerName: string;
   status: string;
+  classCode: string;
+  className: string;
+  attendanceStatus: string | null; // "COMPLETED" | "ABSENT" | "IN_PROGRESS" | null
+  attended: boolean | null;
 }
 
 export interface QuizOptionDto {

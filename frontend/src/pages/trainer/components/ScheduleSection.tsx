@@ -205,7 +205,7 @@ const ScheduleSection: React.FC = () => {
                       <div key={di} className={`border-r border-gray-200 p-2 space-y-2 ${isToday(date) ? 'bg-blue-50' : ''}`}>
                         {classes.length === 0
                           ? <div className="text-center text-gray-400 text-xs py-4">Không có lịch</div>
-                          : classes.map((item, idx) => (
+                          : [...classes].sort((a, b) => (a.timeStart ?? '').localeCompare(b.timeStart ?? '')).map((item, idx) => (
                             <div key={idx} onClick={() => setViewing(item)} className={`rounded-lg p-2 shadow cursor-pointer hover:shadow-md transition border-l-4 ${getStatusColor(item.status)}`}>
                               <div className="text-xs font-bold truncate">{item.courseCode}</div>
                               <div className="text-xs opacity-80 truncate">{item.classCode}</div>
