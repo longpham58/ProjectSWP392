@@ -1,7 +1,7 @@
 package com.itms.controller;
 
-import com.itms.dto.common.ResponseDto;
 import com.itms.security.CustomUserDetails;
+import com.itms.dto.common.ResponseDto;
 import com.itms.service.LearningStreakService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

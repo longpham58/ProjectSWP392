@@ -15,7 +15,6 @@ import com.itms.repository.RoleRepository;
 import com.itms.repository.UserRepository;
 import com.itms.repository.UserRoleRepository;
 import com.itms.security.CustomUserDetails;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +44,6 @@ import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvException;
 
 @Service
 @RequiredArgsConstructor
@@ -59,11 +57,12 @@ public class UserService {
     private final JwtService jwtService;
     private final EmailService emailService;
 
+    @Transactional
     public ResponseDto<LoginResponse> login(
             LoginRequest request,
             HttpServletRequest httpRequest
     ) {
-        User user = userRepository.findByUsername(request.getUsername())
+        User user = userRepository.findByUsernameWithRole(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("Username not found"));
 
         // Check if account is active
@@ -128,6 +127,7 @@ public class UserService {
 
         // 3️⃣ Load user
         User user = userRepository.findById(userId)
+                .map(u -> userRepository.findByUsernameWithRole(u.getUsername()).orElse(u))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // 4️⃣ Authenticate → Spring Security creates session
@@ -415,18 +415,16 @@ public class UserService {
         User user;
 
         if (principal instanceof CustomUserDetails userDetails) {
-            // 🔐 Normal username/password login
+            // 🔐 Normal username/password login — use ID then re-fetch with roles
             Integer userId = userDetails.getId();
-            if (userId == null) {
-                throw new AuthenticationCredentialsNotFoundException("User is not authenticated");
-            }
-            user = userRepository.findById(userId)
+            User found = userRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("User not found"));
+            user = userRepository.findByUsernameWithRole(found.getUsername())
+                    .orElse(found);
 
         } else if (principal instanceof OAuth2User oauthUser) {
             // 🔑 Google OAuth2 login
             String email = oauthUser.getAttribute("email");
-
             user = userRepository.findByEmail(email)
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -443,7 +441,7 @@ public class UserService {
         }
 
         List<String> roles = user.getUserRole().stream()
-                .filter(UserRole::getIsActive)
+                .filter(ur -> Boolean.TRUE.equals(ur.getIsActive()))
                 .map(ur -> ur.getRole().getRoleCode())
                 .toList();
 
@@ -488,7 +486,7 @@ public class UserService {
     private LoginResponse buildLoginResponse(User user, boolean otpRequired) {
 
         List<String> roles = user.getUserRole().stream()
-                .filter(UserRole::getIsActive)
+                .filter(ur -> Boolean.TRUE.equals(ur.getIsActive()))
                 .map(ur -> ur.getRole().getRoleCode())
                 .toList();
         return LoginResponse.builder()
@@ -551,7 +549,7 @@ public class UserService {
         List<User> users = userRepository.findAll();
         return users.stream().map(user -> {
             String role = user.getUserRole().stream()
-                    .filter(UserRole::getIsActive)
+                    .filter(ur -> Boolean.TRUE.equals(ur.getIsActive()))
                     .map(ur -> ur.getRole().getRoleCode())
                     .findFirst()
                     .orElse("EMPLOYEE");

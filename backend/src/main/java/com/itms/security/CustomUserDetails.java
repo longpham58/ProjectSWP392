@@ -28,7 +28,7 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getUserRole().stream()
-                .filter(UserRole::getIsActive)                 // only active roles
+                .filter(ur -> Boolean.TRUE.equals(ur.getIsActive()))
                 .map(userRole ->
                         new SimpleGrantedAuthority(
                                 "ROLE_" + userRole.getRole().getRoleCode()

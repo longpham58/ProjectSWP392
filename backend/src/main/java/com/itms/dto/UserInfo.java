@@ -1,5 +1,6 @@
 package com.itms.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.itms.entity.Role;
 import com.itms.entity.UserRole;
 import lombok.AllArgsConstructor;
@@ -24,7 +25,9 @@ public class UserInfo {
     private String avatarUrl;
     private List<String> roles;
     private DepartmentDto department;
+    @JsonProperty("isActive")
     private boolean isActive;
+    @JsonProperty("otpEnabled")
     private boolean otpEnabled;
     private LocalDateTime lastLogin;
 }

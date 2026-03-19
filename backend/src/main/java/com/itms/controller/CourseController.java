@@ -4,7 +4,6 @@ import com.itms.dto.CourseDto;
 import com.itms.dto.CourseModuleDto;
 import com.itms.dto.TrainerScheduleDto;
 import com.itms.dto.common.ResponseDto;
-import com.itms.entity.Course;
 import com.itms.security.CustomUserDetails;
 import com.itms.service.CourseModuleService;
 import com.itms.service.CourseService;
@@ -220,4 +219,4 @@ public class CourseController {
             throw new RuntimeException("Failed to upload file: " + e.getMessage());
         }
     }
-}
+}

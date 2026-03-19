@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { mockFinalExam } from '../../mocks/quiz.mock';
+import { Trophy, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 export default function FinalExamPage() {
   const { courseId } = useParams();
@@ -77,7 +78,7 @@ export default function FinalExamPage() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">🏆 {mockFinalExam.title}</h1>
+              <h1 className="text-2xl font-bold flex items-center gap-2"><Trophy size={22} /> {mockFinalExam.title}</h1>
               <p className="text-sm opacity-90">{mockFinalExam.description}</p>
             </div>
             <div className="text-right">
@@ -115,7 +116,7 @@ export default function FinalExamPage() {
                 ? 'bg-green-100 text-green-700' 
                 : 'bg-gray-100 text-gray-600'
             }`}>
-              {answers[currentQuestion] !== -1 ? '✓ Đã trả lời' : 'Chưa trả lời'}
+              {answers[currentQuestion] !== -1 ? <><CheckCircle2 size={13} className="inline mr-1" />Đã trả lời</> : 'Chưa trả lời'}
             </div>
           </div>
 
@@ -216,8 +217,8 @@ export default function FinalExamPage() {
               Bạn đã trả lời {answeredCount}/{mockFinalExam.questions.length} câu hỏi.
             </p>
             {answeredCount < mockFinalExam.questions.length && (
-              <p className="text-orange-600 mb-4">
-                ⚠️ Còn {mockFinalExam.questions.length - answeredCount} câu chưa trả lời!
+              <p className="text-orange-600 mb-4 flex items-center gap-1">
+                <AlertTriangle size={15} /> Còn {mockFinalExam.questions.length - answeredCount} câu chưa trả lời!
               </p>
             )}
             <p className="text-gray-600 mb-6">

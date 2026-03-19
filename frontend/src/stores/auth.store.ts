@@ -12,6 +12,7 @@ interface AuthState {
   initialized: boolean;
   setError: (error: string | null) => void;
   clearError: () => void;
+  refreshUser: () => Promise<void>;
   
 
   login: (
@@ -41,6 +42,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   initialized: false,
   setError: (error) => set({ error }),
   clearError: () => set({ error: null }),
+  refreshUser: async () => {
+    try {
+      const res = await authApi.me();
+      set({ user: res.data.data });
+    } catch { /* ignore */ }
+  },
   login: async (username, password, rememberMe) => {
   set({ loading: true, error: null });
   try {

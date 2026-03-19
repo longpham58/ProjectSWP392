@@ -1,230 +1,199 @@
 import { useState, useEffect } from 'react';
-import { NoCertificates } from '../../components/common/EmptyState';
-import { useToast } from '../../components/common/Toast';
-import { useCertificateStore } from '../../stores/certificate.store';
 import { useAuthStore } from '../../stores/auth.store';
-import { useCourseStore } from '../../stores/course.store';
-import { Certificate } from '../../api/certificate.api';
+import { employeeApi, type CertificateDto } from '../../api/employee.api';
+import { useToast } from '../../components/common/Toast';
+import { Trophy, GraduationCap, Share2, X, Download, Eye, Award, BookOpen, Clock, User, CheckCircle } from 'lucide-react';
+
+function CertificateModal({ cert, userName, onClose }: { cert: CertificateDto; userName: string; onClose: () => void }) {
+  const { showToast } = useToast();
+
+  const handleDownload = () => {
+    // Generate printable certificate in new window
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(`<!DOCTYPE html><html><head><title>Certificate - ${cert.courseName}</title>
+<style>body{font-family:'Segoe UI',sans-serif;margin:0;background:#f0f4f8}
+.cert{width:800px;margin:40px auto;background:#fff;border:3px solid #1E3A8A;border-radius:16px;padding:60px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
+.logo{font-size:28px;font-weight:900;color:#1E3A8A;letter-spacing:2px;margin-bottom:8px}
+.subtitle{font-size:13px;color:#6B7280;letter-spacing:4px;text-transform:uppercase;margin-bottom:40px}
+.title{font-size:36px;font-weight:800;color:#1E3A8A;margin-bottom:8px}
+.name{font-size:28px;font-weight:700;color:#111827;border-bottom:2px solid #1E3A8A;display:inline-block;padding:0 40px;margin:16px 0}
+.course{font-size:20px;color:#374151;margin:16px 0}
+.meta{display:flex;justify-content:center;gap:40px;margin:32px 0;font-size:14px;color:#6B7280}
+.badge{background:#DCFCE7;color:#16A34A;padding:6px 20px;border-radius:99px;font-weight:700;font-size:14px}
+.code{font-size:12px;color:#9CA3AF;margin-top:24px}
+@media print{body{background:#fff}.cert{box-shadow:none;border:2px solid #1E3A8A}}</style></head>
+<body><div class="cert">
+<div class="logo">ITMS</div>
+<div class="subtitle">Internal Training Management System</div>
+<div class="title">Certificate of Completion</div>
+<p style="color:#6B7280;font-size:15px">This certifies that</p>
+<div class="name">${userName}</div>
+<p style="color:#6B7280;font-size:15px">has successfully completed</p>
+<div class="course"><strong>${cert.courseName}</strong></div>
+<div class="meta">
+  <span>📅 ${cert.issueDate}</span>
+  <span>🏆 Score: ${cert.score}/100</span>
+  <span>🎓 Grade: ${cert.grade}</span>
+</div>
+<div class="badge">✓ ${cert.grade === 'DISTINCTION' ? 'Xuất sắc' : cert.grade === 'MERIT' ? 'Giỏi' : 'Đạt yêu cầu'}</div>
+<div class="code">Certificate Code: ${cert.certificateCode}</div>
+</div><script>window.onload=()=>{window.print()}</script></body></html>`);
+    win.document.close();
+    showToast('Đang tải chứng chỉ...', 'success');
+  };
+
+  const handleShare = () => {
+    const text = `Tôi vừa hoàn thành khóa học "${cert.courseName}" tại ITMS với điểm ${cert.score}/100! 🎓`;
+    if (navigator.share) {
+      navigator.share({ title: 'Chứng chỉ ITMS', text, url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(text);
+      showToast('Đã sao chép thông tin chứng chỉ vào clipboard!', 'success');
+    }
+    onClose();
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }} onClick={onClose}>
+      <div style={{ background: '#fff', borderRadius: '16px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', width: '100%', maxWidth: '520px', margin: '16px', overflow: 'hidden' }} onClick={e => e.stopPropagation()}>
+        <div style={{ background: 'linear-gradient(135deg,#1E3A8A,#2563EB)', padding: '32px', textAlign: 'center', position: 'relative' }}>
+          <button onClick={onClose} style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={14} /></button>
+          <GraduationCap size={52} style={{ color: '#FCD34D', margin: '0 auto 12px' }} />
+          <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#93C5FD', textTransform: 'uppercase', marginBottom: '6px' }}>Chứng chỉ hoàn thành</div>
+          <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>{cert.courseName}</h2>
+          <div style={{ fontSize: '13px', color: '#BFDBFE' }}>{cert.courseCategory}</div>
+        </div>
+        <div style={{ padding: '24px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <div style={{ fontSize: '12px', color: '#9CA3AF', marginBottom: '4px' }}>Cấp cho</div>
+            <div style={{ fontSize: '20px', fontWeight: 700, color: '#111827' }}>{userName}</div>
+          </div>
+          <div style={{ background: '#F8FAFC', borderRadius: '10px', padding: '16px', marginBottom: '16px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <User size={14} style={{ color: '#2563EB' }} />
+              <div><div style={{ fontSize: '11px', color: '#9CA3AF' }}>Giảng viên</div><div style={{ fontSize: '13px', fontWeight: 600 }}>{cert.trainerName}</div></div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Award size={14} style={{ color: '#2563EB' }} />
+              <div><div style={{ fontSize: '11px', color: '#9CA3AF' }}>Điểm số</div><div style={{ fontSize: '13px', fontWeight: 600, color: '#16A34A' }}>{cert.score}/100</div></div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CheckCircle size={14} style={{ color: '#2563EB' }} />
+              <div><div style={{ fontSize: '11px', color: '#9CA3AF' }}>Xếp loại</div><div style={{ fontSize: '13px', fontWeight: 600 }}>{cert.grade === 'DISTINCTION' ? 'Xuất sắc' : cert.grade === 'MERIT' ? 'Giỏi' : 'Đạt'}</div></div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Clock size={14} style={{ color: '#2563EB' }} />
+              <div><div style={{ fontSize: '11px', color: '#9CA3AF' }}>Ngày cấp</div><div style={{ fontSize: '13px', fontWeight: 600 }}>{cert.issueDate}</div></div>
+            </div>
+          </div>
+          <div style={{ fontSize: '11px', color: '#9CA3AF', textAlign: 'center', marginBottom: '16px' }}>Mã chứng chỉ: <strong>{cert.certificateCode}</strong></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button onClick={handleDownload} style={{ width: '100%', padding: '11px', background: '#1E3A8A', color: '#fff', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '14px' }}>
+              <Download size={15} /> Tải về / In chứng chỉ
+            </button>
+            <button onClick={handleShare} style={{ width: '100%', padding: '11px', background: '#16A34A', color: '#fff', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontSize: '14px' }}>
+              <Share2 size={15} /> Chia sẻ chứng chỉ
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function CertificatesPage() {
   const { user } = useAuthStore();
-  const { certificates, loading, fetchCertificates } = useCertificateStore();
-  const { myCourses, fetchMyCourses } = useCourseStore();
-  const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
+  const [certificates, setCertificates] = useState<CertificateDto[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selected, setSelected] = useState<CertificateDto | null>(null);
   const { showToast } = useToast();
 
   useEffect(() => {
-    if (user?.id) {
-      fetchCertificates(user.id);
-      fetchMyCourses();
+    if (!user?.id) return;
+    setIsLoading(true);
+    employeeApi.getCertificates(user.id)
+      .then(res => setCertificates(res.data))
+      .catch(() => setCertificates([]))
+      .finally(() => setIsLoading(false));
+  }, [user?.id]);
+
+  const handleShareAll = () => {
+    const text = `Tôi đã hoàn thành ${certificates.length} khóa học tại ITMS! 🎓`;
+    if (navigator.share) {
+      navigator.share({ title: 'Thành tích ITMS', text });
+    } else {
+      navigator.clipboard.writeText(text);
     }
-  }, [user?.id, fetchCertificates, fetchMyCourses]);
-
-  // Get courses that have certificates
-  const completedCourses = myCourses.filter(course => 
-    certificates.some(cert => cert.courseId === course.id)
-  );
-
-  const handleDownloadCertificate = (cert: Certificate) => {
-    showToast(`Chứng chỉ "${cert.courseName}" đã được gửi đến email: employee@itms.com`, 'success');
+    showToast('Đã chia sẻ thành tích!', 'success');
   };
-
-  const handlePreviewCertificate = (cert: Certificate) => {
-    setSelectedCert(cert);
-  };
-
-  const handleShareCertificate = (cert: Certificate) => {
-    showToast(`Chia sẻ chứng chỉ "${cert.courseName}" thành công!`, 'success');
-  };
-
-  if (loading || certificates.length === 0) {
-    return (
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Kết quả & Chứng chỉ</h1>
-        <NoCertificates />
-      </div>
-    );
-  }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Kết quả & Chứng chỉ</h1>
-        <p className="text-gray-600">Các kết quả học tập và chứng chỉ bạn đã đạt được</p>
+    <div style={{ padding: '24px' }}>
+      {selected && <CertificateModal cert={selected} userName={user?.fullName || ''} onClose={() => setSelected(null)} />}
+
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#111827', marginBottom: '4px' }}>Kết quả & Chứng chỉ</h1>
+        <p style={{ fontSize: '14px', color: '#6B7280' }}>Các chứng chỉ bạn đã đạt được</p>
       </div>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Certificates Earned */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg p-6 shadow-lg">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-5xl">🏆</span>
-            <span className="text-4xl font-bold">{certificates.length}</span>
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '28px' }}>
+        <div style={{ background: 'linear-gradient(135deg,#1E3A8A,#2563EB)', color: '#fff', borderRadius: '12px', padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <Trophy size={32} style={{ color: '#FCD34D' }} />
+            <span style={{ fontSize: '40px', fontWeight: 800 }}>{certificates.length}</span>
           </div>
-          <div className="text-lg font-medium">Bạn đã có {certificates.length} chứng chỉ</div>
+          <div style={{ fontSize: '15px', fontWeight: 600 }}>Bạn đã có {certificates.length} chứng chỉ</div>
         </div>
-
-        {/* Achievement Score */}
-        <div className="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg p-6 shadow-lg">
-          <div className="mb-4">
-            <div className="text-sm font-medium mb-2">Chia sẻ thành tích</div>
-            <div className="text-xs opacity-90">
-              Chia sẻ chứng chỉ lên mạng xã hội để khoe thành tích của bạn
-            </div>
-          </div>
-          <button className="bg-white text-green-600 px-6 py-2 rounded-lg font-medium hover:bg-green-50 transition-colors w-full">
-            Chia sẻ
+        <div style={{ background: 'linear-gradient(135deg,#16A34A,#15803D)', color: '#fff', borderRadius: '12px', padding: '24px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 600, marginBottom: '8px' }}>Chia sẻ thành tích</div>
+          <div style={{ fontSize: '12px', opacity: 0.9, marginBottom: '16px' }}>Chia sẻ chứng chỉ lên mạng xã hội</div>
+          <button onClick={handleShareAll} style={{ background: '#fff', color: '#16A34A', padding: '8px 20px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', border: 'none', cursor: 'pointer', width: '100%' }}>
+            Chia sẻ tất cả
           </button>
         </div>
       </div>
 
-      {/* Certificates List */}
-      <div className="bg-white rounded-lg shadow mb-8">
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold">Lập trình Python cơ bản</h2>
-          <p className="text-sm text-gray-600 mt-1">Điểm: 95/100</p>
+      {isLoading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '16px' }}>
+          {[1,2,3].map(i => <div key={i} style={{ background: '#F3F4F6', borderRadius: '12px', height: '240px' }} />)}
         </div>
-        <div className="p-6">
-          <div className="space-y-4">
-            {completedCourses.map(course => (
-              <div key={course.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{course.title}</h3>
-                    <div className="text-sm text-gray-600 mt-1">
-                      Điểm: {course.score}/100
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        const cert = certificates.find(c => c.courseId === course.id);
-                        if (cert) handlePreviewCertificate(cert);
-                      }}
-                      className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-sm"
-                    >
-                      Tải Chứng chỉ
-                    </button>
-                  </div>
+      ) : certificates.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '60px 20px', background: '#fff', borderRadius: '12px', border: '1px solid #E5E7EB' }}>
+          <GraduationCap size={48} style={{ color: '#D1D5DB', margin: '0 auto 16px' }} />
+          <h3 style={{ fontSize: '16px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Chưa có chứng chỉ</h3>
+          <p style={{ fontSize: '14px', color: '#9CA3AF' }}>Hoàn thành khóa học và bài thi cuối khóa để nhận chứng chỉ</p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: '16px' }}>
+          {certificates.map(cert => (
+            <div key={cert.id} style={{ border: '1px solid #E5E7EB', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', cursor: 'pointer', transition: 'box-shadow 0.2s' }}
+              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.12)')}
+              onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)')}
+              onClick={() => setSelected(cert)}>
+              <div style={{ background: 'linear-gradient(135deg,#EFF6FF,#DBEAFE)', padding: '24px', textAlign: 'center', borderBottom: '1px solid #BFDBFE' }}>
+                <GraduationCap size={40} style={{ color: '#2563EB', margin: '0 auto 8px' }} />
+                <div style={{ fontSize: '14px', fontWeight: 700, color: '#1E3A8A', marginBottom: '4px' }}>{cert.courseName}</div>
+                <div style={{ fontSize: '12px', color: '#6B7280' }}>{user?.fullName}</div>
+                <div style={{ marginTop: '10px', fontSize: '22px', fontWeight: 800, color: '#1E3A8A' }}>{cert.score}/100</div>
+                <div style={{ display: 'inline-block', background: '#DCFCE7', color: '#16A34A', fontSize: '11px', fontWeight: 600, padding: '3px 12px', borderRadius: '99px', marginTop: '6px' }}>
+                  {cert.grade === 'DISTINCTION' ? 'Xuất sắc' : cert.grade === 'MERIT' ? 'Giỏi' : 'Đạt'}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* All Certificates */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold">Tất cả chứng chỉ</h2>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {certificates.map(cert => (
-              <div key={cert.id} className="border rounded-lg p-4 hover:shadow-lg transition-shadow">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 mb-4 text-center">
-                  <div className="text-4xl mb-2">🎓</div>
-                  <div className="font-bold text-lg mb-1">{cert.courseName}</div>
-                  <div className="text-sm text-gray-600">{cert.studentName}</div>
-                  <div className="text-xs text-gray-500 mt-2">
-                    {new Date(cert.completionDate).toLocaleDateString('vi-VN')}
-                  </div>
-                  <div className="mt-3 text-2xl font-bold text-blue-600">
-                    {cert.score}/100
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => handleDownloadCertificate(cert)}
-                    className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors text-sm"
-                  >
-                    📥 Tải về Email
+              <div style={{ padding: '14px 16px', background: '#fff' }}>
+                <div style={{ fontSize: '11px', color: '#9CA3AF', marginBottom: '10px' }}>{cert.courseCategory} · {cert.issueDate}</div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={e => { e.stopPropagation(); setSelected(cert); }} style={{ flex: 1, background: '#1E3A8A', color: '#fff', padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <Eye size={13} /> Xem
                   </button>
-                  <button
-                    onClick={() => handlePreviewCertificate(cert)}
-                    className="w-full bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300 transition-colors text-sm"
-                  >
-                    👁️ Xem trước
-                  </button>
-                  <button
-                    onClick={() => handleShareCertificate(cert)}
-                    className="w-full bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors text-sm"
-                  >
-                    📤 Chia sẻ
+                  <button onClick={e => { e.stopPropagation(); setSelected(cert); }} style={{ flex: 1, background: '#F0FDF4', color: '#16A34A', padding: '8px', borderRadius: '8px', fontSize: '12px', fontWeight: 600, border: '1px solid #BBF7D0', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <Download size={13} /> Tải về
                   </button>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Certificate Preview Modal */}
-      {selectedCert && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold">Xem trước chứng chỉ</h3>
-                <button
-                  onClick={() => setSelectedCert(null)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl"
-                >
-                  ×
-                </button>
-              </div>
-              
-              {/* Certificate Preview */}
-              <div className="border-4 border-blue-600 rounded-lg p-8 bg-gradient-to-br from-blue-50 to-white">
-                <div className="text-center">
-                  <div className="text-4xl mb-4">🎓</div>
-                  <h2 className="text-3xl font-bold text-blue-600 mb-2">CHỨNG CHỈ</h2>
-                  <p className="text-gray-600 mb-6">Chứng nhận hoàn thành khóa học</p>
-                  
-                  <div className="my-8">
-                    <p className="text-sm text-gray-600 mb-2">Chứng chỉ này được trao cho</p>
-                    <h3 className="text-2xl font-bold mb-4">{selectedCert.studentName}</h3>
-                    
-                    <p className="text-sm text-gray-600 mb-2">Đã hoàn thành xuất sắc khóa học</p>
-                    <h4 className="text-xl font-semibold text-blue-600 mb-4">{selectedCert.courseName}</h4>
-                    
-                    <div className="flex justify-center gap-8 my-6">
-                      <div>
-                        <p className="text-sm text-gray-600">Điểm số</p>
-                        <p className="text-2xl font-bold text-green-600">{selectedCert.score}/100</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Ngày hoàn thành</p>
-                        <p className="text-lg font-semibold">
-                          {new Date(selectedCert.completionDate).toLocaleDateString('vi-VN')}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-8 pt-6 border-t">
-                      <p className="text-sm text-gray-600">Giảng viên</p>
-                      <p className="font-semibold">{selectedCert.instructor}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 flex gap-3">
-                <button
-                  onClick={() => handleDownloadCertificate(selectedCert)}
-                  className="flex-1 bg-blue-600 text-white px-4 py-3 rounded hover:bg-blue-700 transition-colors"
-                >
-                  📥 Tải về Email
-                </button>
-                <button
-                  onClick={() => setSelectedCert(null)}
-                  className="flex-1 bg-gray-200 text-gray-700 px-4 py-3 rounded hover:bg-gray-300 transition-colors"
-                >
-                  Đóng
-                </button>
               </div>
             </div>
-          </div>
+          ))}
         </div>
       )}
     </div>
