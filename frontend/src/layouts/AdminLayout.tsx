@@ -67,8 +67,8 @@ export default function AdminLayout() {
               🔔 Notifications
             </NavLink>
 
-            <NavLink to="audit-logs" className={getNavClass}>
-              📝 Audit Logs
+            <NavLink to="system-activities" className={getNavClass}>
+              📝 System Activities
             </NavLink>
 
             <NavLink to="feedback" className={getNavClass}>

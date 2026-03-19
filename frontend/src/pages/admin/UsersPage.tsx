@@ -84,15 +84,32 @@ export default function UsersPage() {
   );
 
   const roleColor = (role: string) => {
-    switch (role) {
-      case "Admin":
-        return "bg-blue-100 text-blue-700";
+    switch (role.toUpperCase()) {
+      case "ADMIN":
+        return "bg-blue-600 text-white";
       case "HR":
-        return "bg-green-100 text-green-700";
-      case "Trainer":
-        return "bg-yellow-100 text-yellow-700";
+        return "bg-emerald-600 text-white";
+      case "TRAINER":
+        return "bg-amber-500 text-white";
+      case "EMPLOYEE":
+        return "bg-purple-600 text-white";
       default:
-        return "bg-purple-100 text-purple-700";
+        return "bg-gray-500 text-white";
+    }
+  };
+
+  const formatRole = (role: string) => {
+    switch (role.toUpperCase()) {
+      case "ADMIN":
+        return "Admin";
+      case "HR":
+        return "HR";
+      case "TRAINER":
+        return "Trainer";
+      case "EMPLOYEE":
+        return "Employee";
+      default:
+        return role;
     }
   };
 
@@ -129,12 +146,12 @@ export default function UsersPage() {
           }}
         >
           <option value="All">All Roles</option>
-          {[...new Set(users.map(user => user.role))].map((role) => (
-            <option key={role} value={role}>
-              {role}
-            </option>
-          ))}
+          <option value="ADMIN">Admin</option>
+          <option value="HR">HR</option>
+          <option value="TRAINER">Trainer</option>
+          <option value="EMPLOYEE">Employee</option>
         </select>
+        {/* Department Filter */}
         <select
           className="border rounded-lg px-4 py-2"
           value={departmentFilter}
@@ -144,7 +161,7 @@ export default function UsersPage() {
           }}
         >
           <option value="All">All Departments</option>
-           {[...new Set(users.map(user => user.department))].map((department) => (
+          {[...new Set(users.map(user => user.department).filter(Boolean))].map((department) => (
             <option key={department} value={department}>
               {department}
             </option>
@@ -160,11 +177,8 @@ export default function UsersPage() {
           }}
         >
           <option value="All">All Status</option>
-          {[...new Set(users.map(user => user.status))].map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
         </select>
 
         <button
@@ -210,7 +224,7 @@ export default function UsersPage() {
 
                   <td>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${roleColor(user.role)}`}>
-                      {user.role}
+                      {formatRole(user.role)}
                     </span>
                   </td>
 
@@ -222,19 +236,25 @@ export default function UsersPage() {
                     </span>
                   </td>
 
-                  <td className="text-right pr-6 space-x-3">
-                    <button
-                      onClick={() => toggleStatus(user.id)}
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      {user.status === "Active" ? "Deactivate" : "Activate"}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(user.id)}
-                      className="text-red-600 hover:underline text-sm"
-                    >
-                      Delete
-                    </button>
+                  <td className="text-right pr-6">
+                    {user.role === "ADMIN" ? (
+                      <span className="text-gray-400 text-sm">-</span>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => toggleStatus(user.id)}
+                          className="text-blue-600 hover:underline text-sm"
+                        >
+                          {user.status === "Active" ? "Deactivate" : "Activate"}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(user.id)}
+                          className="text-red-600 hover:underline text-sm ml-3"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}

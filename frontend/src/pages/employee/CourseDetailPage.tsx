@@ -41,6 +41,47 @@ function LessonModal({ lesson, enrollmentStatus, courseId, userId, onClose, onMa
       setMarking(false);
     }
   };
+  // Get tests from courseQuizStatus API - include quizzes that are course-level (no module) or are final exams
+  const allCourseQuizzes = courseQuizStatus?.quizzes?.filter((q: any) => !q.moduleId) || [];
+  // Separate final exam from regular tests
+  const finalExamFromApi = courseQuizStatus?.finalExam;
+  const tests = allCourseQuizzes.filter((q: any) => !q.isFinalExam);
+  
+  // Get final exam from API or use mock as fallback
+  const finalExam = finalExamFromApi || mockFinalExam;
+  
+  if (loading && !courseQuizStatus) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!course && !courseQuizStatus) {
+    return <div className="p-6">Đang tải...</div>;
+  }
+
+  // Use courseQuizStatus data - this is the main source of truth from API
+  const completedModulesCount = courseQuizStatus?.completedModulesCount ?? 0;
+  const totalModules = courseQuizStatus?.totalModules ?? modules?.length ?? 0;
+  
+  // Session completion data for tests unlocking
+  const completedSessions = courseQuizStatus?.completedSessions ?? 0;
+  const totalSessions = courseQuizStatus?.totalSessions ?? 0;
+  const allSessionsCompleted = courseQuizStatus?.allSessionsCompleted ?? false;
+  
+  // Tests are unlocked after completing all sessions (not based on modules)
+  const testsUnlocked = allSessionsCompleted;
+
+  // Get dynamic test info from API
+  const testPassingScore = courseQuizStatus?.testPassingScore ?? 70;
+  const testMaxAttempts = courseQuizStatus?.testMaxAttempts ?? 3;
+  const requiredPassCount = courseQuizStatus?.requiredPassCount ?? 1;
+
+  // Get passed tests and certificate status from API
+  const passedTests = courseQuizStatus?.passedTests ?? 0;
+  const certificateEarned = courseQuizStatus?.certificateEarned ?? false;
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>

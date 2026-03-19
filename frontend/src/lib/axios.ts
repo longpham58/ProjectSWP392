@@ -12,6 +12,7 @@ const api = axios.create({
 // Endpoints that should not trigger redirect to login on 401
 const NO_AUTH_ENDPOINTS = [
   "/auth/login",
+  "/auth/logout",
   "/auth/forgot-password",
   "/auth/forgot-password/request-otp",
   "/auth/reset-password",

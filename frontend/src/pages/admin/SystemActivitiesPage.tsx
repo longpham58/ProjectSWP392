@@ -12,7 +12,7 @@ type ActionType = "All" | "notification" | "enrollment" | "course" | "user" | "c
 
 const ITEMS_PER_PAGE = 6;
 
-export default function AuditLogsPage() {
+export default function SystemActivitiesPage() {
   const { dashboardStats, fetchDashboardStats, loading, error } = useAdminStore();
   
   const [search, setSearch] = useState("");

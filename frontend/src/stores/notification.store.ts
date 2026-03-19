@@ -74,9 +74,7 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       const data = await notificationApi.getMyNotifications();
 
       // Transform notifications to add computed fields
-      const notifications = data.length > 0 
-        ? data.map(transformNotification) 
-        : mockNotifications.map(transformNotification);
+      const notifications = data.map(transformNotification);
       const unread = notifications.filter(n => !n.read).length;
 
       set({
@@ -87,12 +85,9 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     } catch (error) {
       console.error("Failed to fetch notifications", error);
-      // Fallback to mock data on error
-      const notifications = mockNotifications.map(transformNotification);
-      const unread = notifications.filter(n => !n.read).length;
       set({
-        notifications: notifications,
-        unreadCount: unread,
+        notifications: [],
+        unreadCount: 0,
         loading: false
       });
     }

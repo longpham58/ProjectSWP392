@@ -15,7 +15,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import HRLayout from "./layouts/HRLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UsersPage from "./pages/admin/UsersPage";
-import AuditLogsPage from "./pages/admin/AuditLogsPage";
+import SystemActivitiesPage from "./pages/admin/SystemActivitiesPage";
 import AnalyticsPage from "./pages/admin/AnalyticsPage";
 import AdminNotificationsPage from "./pages/admin/NotificationsPage";
 import AdminSystemFeedbackPage from "./pages/admin/FeedbackPage";
@@ -122,7 +122,7 @@ function App() {
             <Route path="users" element={<UsersPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="notifications" element={<AdminNotificationsPage />} />
-            <Route path="audit-logs" element={<AuditLogsPage />} />
+            <Route path="system-activities" element={<SystemActivitiesPage />} />
             <Route path="feedback" element={<AdminSystemFeedbackPage />} />
             <Route path="courses" element={<AdminCoursesPage />} />
             <Route path="courses/:id" element={<AdminCourseDetailPage />} />

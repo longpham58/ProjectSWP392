@@ -54,7 +54,7 @@ export const authApi = {
     axios.get<ApiResponse<UserInfo>>("/auth/me"),
 
   logout: () =>
-    axios.post<ApiResponse<void>>("/auth/logout"),
+    axios.post<ApiResponse<void>>("/auth/logout", {}, { timeout: 3000 }),
 
   // Request OTP for forgot password
   requestForgotPasswordOtp: (email: string) =>
