@@ -109,18 +109,6 @@ export default function EmployeeLayout() {
               📚 Khóa học của tôi
             </NavLink>
             <NavLink
-              to="/employee/my-classes"
-              className={({ isActive }) =>
-                `px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                  isActive
-                    ? "border-blue-600 text-blue-600"
-                    : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
-                }`
-              }
-            >
-              🏫 Lớp học
-            </NavLink>
-            <NavLink
               to="/employee/certificates"
               className={({ isActive }) =>
                 `px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${

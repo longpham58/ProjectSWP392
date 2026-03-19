@@ -11,9 +11,9 @@ export default function CourseDetailPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'modules' | 'tests' | 'progress' | 'feedback'>('overview');
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'modules' | 'tests' | 'feedback' | 'members'>('overview');
   
-  const { currentCourse: course, modules, loading, fetchCourseDetail } = useCourseStore();
+  const { currentCourse: course, modules, loading, fetchCourseDetail, classMembers, classMembersLoading, fetchClassMembers } = useCourseStore();
   const { fetchCourseQuizStatus, courseQuizStatus } = useQuizStore();
   const { fetchModuleProgress, moduleProgress } = useModuleProgressStore();
   
@@ -62,8 +62,14 @@ export default function CourseDetailPage() {
       setFeedbackLoading(false);
     }
   };
-  // Get tests from courseQuizStatus API
-  const tests = courseQuizStatus?.quizzes?.filter((q: any) => q.courseId && !q.moduleId) || [];
+  // Get tests from courseQuizStatus API - include quizzes that are course-level (no module) or are final exams
+  const allCourseQuizzes = courseQuizStatus?.quizzes?.filter((q: any) => !q.moduleId) || [];
+  // Separate final exam from regular tests
+  const finalExamFromApi = courseQuizStatus?.finalExam;
+  const tests = allCourseQuizzes.filter((q: any) => !q.isFinalExam);
+  
+  // Get final exam from API or use mock as fallback
+  const finalExam = finalExamFromApi || mockFinalExam;
   
   if (loading && !courseQuizStatus) {
     return (
@@ -80,10 +86,14 @@ export default function CourseDetailPage() {
   // Use courseQuizStatus data - this is the main source of truth from API
   const completedModulesCount = courseQuizStatus?.completedModulesCount ?? 0;
   const totalModules = courseQuizStatus?.totalModules ?? modules?.length ?? 0;
-  const courseProgress = totalModules > 0 ? Math.round((completedModulesCount / totalModules) * 100) : 0;
   
-  // Test unlock logic: use API data (tests unlock based on required modules in backend)
-  const testsUnlocked = (courseQuizStatus?.unlockedQuizCount ?? 0) > 0;
+  // Session completion data for tests unlocking
+  const completedSessions = courseQuizStatus?.completedSessions ?? 0;
+  const totalSessions = courseQuizStatus?.totalSessions ?? 0;
+  const allSessionsCompleted = courseQuizStatus?.allSessionsCompleted ?? false;
+  
+  // Tests are unlocked after completing all sessions (not based on modules)
+  const testsUnlocked = allSessionsCompleted;
 
   // Get dynamic test info from API
   const testPassingScore = courseQuizStatus?.testPassingScore ?? 70;
@@ -158,15 +168,7 @@ export default function CourseDetailPage() {
     // Get test info from courseQuizStatus
     const test = tests.find((t: any) => t.id === testId);
     
-    // Check if tests are unlocked - use API data
-    const isUnlockedFromApi = test?.isUnlocked;
-    
-    if (isUnlockedFromApi === false) {
-      return { status: 'locked', text: '🔒 Chưa mở khóa', color: 'bg-gray-200 text-gray-700' };
-    }
-    if (!testsUnlocked && isUnlockedFromApi === undefined) {
-      return { status: 'locked', text: '🔒 Chưa mở khóa', color: 'bg-gray-200 text-gray-700' };
-    }
+    // Tests are always accessible (removed module completion unlock logic)
     
     // Check if passed from API data
     if (test?.hasPassed) {
@@ -182,26 +184,17 @@ export default function CourseDetailPage() {
     return { status: 'in-progress', text: `Lần ${attemptsCount}/${test?.maxAttempts || 3}`, color: 'bg-yellow-100 text-yellow-700' };
   };
 
-  // Use session-based progress if available, otherwise fallback to module-based
-  const sessionProgress = course?.progressPercentage ?? null;
-  const totalSessions = course?.totalSessions ?? 0;
-  const attendedSessions = course?.attendedSessions ?? 0;
-  const displayProgress = sessionProgress !== null ? sessionProgress : courseProgress;
-  
-  // For display, prefer session-based info if available
-  const progressLabel = sessionProgress !== null 
-    ? `Buổi học: ${attendedSessions}/${totalSessions}` 
-    : 'Tiến độ';
-
   const currentCourse = course || {
     id: Number(courseId),
     title: 'Course',
     description: '',
+    trainer: '',
     instructor: '',
     duration: '',
-    progress: displayProgress,
     className: '',
-    classCode: ''
+    name: '',
+    materials: [],
+    feedbacks: []
   };
 
   return (
@@ -215,20 +208,16 @@ export default function CourseDetailPage() {
           >
             ← Quay lại
           </button>
-          <h1 className="text-3xl font-bold mb-2">{currentCourse.title}</h1>
-          <p className="text-blue-100 mb-4">{currentCourse.description}</p>
+          <h1 className="text-3xl font-bold mb-2">{(currentCourse as any).title || (currentCourse as any).name || 'Course'}</h1>
+          <p className="text-blue-100 mb-4">{(currentCourse as any).description}</p>
           <div className="flex gap-6 text-sm">
             <div>
               <span className="opacity-75">Giảng viên:</span>
-              <span className="ml-2 font-medium">{currentCourse.instructor}</span>
+              <span className="ml-2 font-medium">{(currentCourse as any).instructor || (currentCourse as any).trainer || 'N/A'}</span>
             </div>
             <div>
               <span className="opacity-75">Lớp:</span>
-              <span className="ml-2 font-medium">{currentCourse.className || 'N/A'} {currentCourse.classCode ? `(${currentCourse.classCode})` : ''}</span>
-            </div>
-            <div>
-              <span className="opacity-75">{progressLabel}:</span>
-              <span className="ml-2 font-medium">{displayProgress}%</span>
+              <span className="ml-2 font-medium">{(currentCourse as any).className || 'N/A'}</span>
             </div>
           </div>
         </div>
@@ -269,16 +258,6 @@ export default function CourseDetailPage() {
               Bài kiểm tra
             </button>
             <button
-              onClick={() => setSelectedTab('progress')}
-              className={`py-4 border-b-2 transition-colors ${
-                selectedTab === 'progress'
-                  ? 'border-blue-600 text-blue-600 font-medium'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Tiến độ
-            </button>
-            <button
               onClick={() => setSelectedTab('feedback')}
               className={`py-4 border-b-2 transition-colors ${
                 selectedTab === 'feedback'
@@ -287,6 +266,22 @@ export default function CourseDetailPage() {
               }`}
             >
               Đánh giá
+            </button>
+            <button
+              onClick={() => {
+                setSelectedTab('members');
+                const classRoomId = (course as any)?.classRoomId;
+                if (classRoomId) {
+                  fetchClassMembers(classRoomId);
+                }
+              }}
+              className={`py-4 border-b-2 transition-colors ${
+                selectedTab === 'members'
+                  ? 'border-blue-600 text-blue-600 font-medium'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Thành viên
             </button>
           </div>
         </div>
@@ -493,11 +488,27 @@ export default function CourseDetailPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-bold mb-4">Bài kiểm tra đánh giá</h2>
               <p className="text-gray-600 mb-6">
-                {testsUnlocked 
-                  ? `Hoàn thành ${requiredPassCount}/${tests.length} bài test để nhận chứng chỉ khóa học`
-                  : `Hoàn thành ${completedModulesCount}/${totalModules} module để mở khóa bài test`
-                }
+                Hoàn thành {requiredPassCount}/{tests.length} bài test để nhận chứng chỉ khóa học
               </p>
+              
+              {/* Session completion progress */}
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium text-blue-800">Tiến độ hoàn thành buổi học</span>
+                  <span className="text-blue-600 font-medium">{completedSessions}/{totalSessions} buổi</span>
+                </div>
+                <div className="w-full bg-blue-200 rounded-full h-3">
+                  <div 
+                    className="bg-blue-600 h-3 rounded-full transition-all duration-300" 
+                    style={{ width: totalSessions > 0 ? `${(completedSessions / totalSessions) * 100}%` : '0%' }}
+                  ></div>
+                </div>
+                {allSessionsCompleted ? (
+                  <div className="mt-2 text-sm text-green-600">✅ Đã hoàn thành tất cả buổi học - Bài kiểm tra đã mở khóa!</div>
+                ) : (
+                  <div className="mt-2 text-sm text-orange-600">🔒 Hoàn thành tất cả buổi học để mở khóa bài kiểm tra</div>
+                )}
+              </div>
               
               <div className="space-y-4">
                 {tests.map((test: any, idx: number) => {
@@ -506,8 +517,8 @@ export default function CourseDetailPage() {
                   const attempts = mockTestAttempts.filter(a => a.testId === test.id);
                   const canRetake = attempts.length < test.maxAttempts && !attempts.some(a => a.passed);
 
-                  // Get required modules info
-                  const requiredModules = test.requiredModuleTitles || [];
+                  // Get test unlock status from API (based on session completion)
+                  const isTestUnlocked = test.isUnlocked !== undefined ? test.isUnlocked : testsUnlocked;
 
                   return (
                     <div key={test.id} className="border-2 rounded-lg p-5 hover:shadow-md transition-shadow">
@@ -524,15 +535,14 @@ export default function CourseDetailPage() {
                             <span>🔄 Tối đa {test.maxAttempts} lần</span>
                             <span>📝 {test.questions?.length || 0} câu hỏi</span>
                           </div>
-                          {/* Show required modules to unlock */}
-                          {requiredModules.length > 0 && (
-                            <div className="mt-2 text-xs text-orange-600 bg-orange-50 p-2 rounded">
-                              🔑 Yêu cầu hoàn thành: {requiredModules.join(', ')}
-                            </div>
-                          )}
-                          {requiredModules.length === 0 && test.isUnlocked === undefined && (
+                          {/* Show session completion status for test unlock */}
+                          {isTestUnlocked ? (
                             <div className="mt-2 text-xs text-green-600 bg-green-50 p-2 rounded">
-                              ✅ Mở khóa sẵn
+                              ✅ Đã mở khóa - Hoàn thành tất cả buổi học
+                            </div>
+                          ) : (
+                            <div className="mt-2 text-xs text-orange-600 bg-orange-50 p-2 rounded">
+                              🔒 Chưa mở khóa - Cần hoàn thành {totalSessions} buổi học ({completedSessions}/{totalSessions} đã hoàn thành)
                             </div>
                           )}
                         </div>
@@ -557,15 +567,14 @@ export default function CourseDetailPage() {
 
                       <button
                         onClick={() => handleStartTest(test.id)}
-                        disabled={(!testsUnlocked && test.isUnlocked === undefined) || (!test.isUnlocked && test.isUnlocked !== undefined) || (!canRetake && attempts.length > 0 && !attempts.some((a: any) => a.passed))}
+                        disabled={!isTestUnlocked || (!canRetake && attempts.length > 0 && !attempts.some((a: any) => a.passed))}
                         className={`w-full py-3 rounded-lg font-medium transition-colors ${
-                          (testsUnlocked || test.isUnlocked) && (canRetake || attempts.length === 0)
+                          isTestUnlocked && (canRetake || attempts.length === 0)
                             ? 'bg-blue-600 text-white hover:bg-blue-700'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                       >
-                        {!testsUnlocked && test.isUnlocked === undefined ? '🔒 Chưa mở khóa' :
-                         test.isUnlocked === false ? '🔒 Chưa mở khóa' :
+                        {!isTestUnlocked ? '🔒 Chưa mở khóa' :
                          attempts.length === 0 ? 'Bắt đầu làm bài' : 
                          attempts.some((a: any) => a.passed) ? 'Xem lại kết quả' :
                          canRetake ? 'Làm lại' : 'Đã hết lượt'}
@@ -582,9 +591,9 @@ export default function CourseDetailPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-xl font-bold flex items-center gap-2">
-                      🏆 {mockFinalExam.title}
+                      🏆 {finalExam.title}
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">{mockFinalExam.description}</p>
+                    <p className="text-sm text-gray-600 mt-1">{finalExam.description}</p>
                   </div>
                   {!finalExamUnlocked && (
                     <span className="bg-gray-200 text-gray-600 px-4 py-2 rounded-full text-sm font-medium">
@@ -603,9 +612,9 @@ export default function CourseDetailPage() {
                       </div>
                     </div>
                     <div className="flex gap-6 text-sm text-gray-600 mb-6">
-                      <span>⏱️ {mockFinalExam.duration} phút</span>
-                      <span>📊 Điểm đạt: {mockFinalExam.passingScore}%</span>
-                      <span>📝 {mockFinalExam.questions.length} câu hỏi</span>
+                      <span>⏱️ {finalExam.durationMinutes || finalExam.duration} phút</span>
+                      <span>📊 Điểm đạt: {finalExam.passingScore}%</span>
+                      <span>📝 {finalExam.questions?.length || finalExam.questions?.length || 0} câu hỏi</span>
                     </div>
                     <button
                       onClick={handleStartFinalExam}
@@ -618,92 +627,18 @@ export default function CourseDetailPage() {
                   <div className="text-center py-8">
                     <div className="text-5xl mb-4">🔒</div>
                     <div className="text-gray-700 font-medium mb-2">
-                      Hoàn thành 2/3 bài test để mở khóa bài thi cuối
+                      Hoàn thành {requiredPassCount}/{tests.length} bài test để mở khóa bài thi cuối
                     </div>
                     <div className="text-sm text-gray-500">
                       Tiến độ hiện tại: {passedTests}/{tests.length} bài test đã đạt
                     </div>
                     {!certificateEarned && (
                       <div className="mt-4 text-sm text-orange-600">
-                        💡 Bạn cần đạt thêm {2 - passedTests} bài test nữa
+                        💡 Bạn cần đạt thêm {requiredPassCount - passedTests} bài test nữa
                       </div>
                     )}
                   </div>
                 )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {selectedTab === 'progress' && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-bold mb-6">Tiến độ học tập</h2>
-            
-            <div className="mb-8">
-              <div className="flex justify-between text-sm mb-2">
-                <span>Tiến độ tổng thể {sessionProgress !== null ? `(Buổi học: ${attendedSessions}/${totalSessions})` : ''}</span>
-                <span className="font-medium">{displayProgress}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div 
-                  className="bg-blue-600 h-3 rounded-full transition-all"
-                  style={{ width: `${displayProgress}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="border rounded-lg p-4">
-                <div className="text-gray-600 text-sm mb-1">Modules hoàn thành</div>
-                <div className="text-2xl font-bold text-green-600">
-                  {completedModulesCount}/{totalModules}
-                </div>
-              </div>
-              <div className="border rounded-lg p-4">
-                <div className="text-gray-600 text-sm mb-1">Bài test đã đạt</div>
-                <div className="text-2xl font-bold text-blue-600">{passedTests}/{tests.length}</div>
-              </div>
-              <div className="border rounded-lg p-4">
-                <div className="text-gray-600 text-sm mb-1">Trạng thái</div>
-                <div className="text-lg font-bold text-orange-600">
-                  {certificateEarned ? '🏆 Đã có chứng chỉ' : '📚 Đang học'}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-bold mb-4">Chi tiết bài test</h3>
-              <div className="space-y-3">
-                {tests.map((test: any) => {
-                  const attempts = mockTestAttempts.filter(a => a.testId === test.id);
-                  const bestScore = attempts.length > 0 
-                    ? Math.max(...attempts.map(a => a.score))
-                    : 0;
-                  const passed = attempts.some(a => a.passed);
-                  
-                  return (
-                    <div key={test.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="font-medium">{test.title}</div>
-                          <div className="text-sm text-gray-600">
-                            {attempts.length > 0 ? `${attempts.length} lần làm` : 'Chưa làm'}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className={`text-2xl font-bold ${
-                            passed ? 'text-green-600' : bestScore > 0 ? 'text-orange-600' : 'text-gray-400'
-                          }`}>
-                            {bestScore > 0 ? `${bestScore}%` : '--'}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {passed ? '✓ Đã đạt' : bestScore > 0 ? 'Chưa đạt' : 'Chưa làm'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
               </div>
             </div>
           </div>
@@ -878,6 +813,66 @@ export default function CourseDetailPage() {
                 </div>
               ) : (
                 <p className="text-gray-500 text-center py-8">Chưa có đánh giá nào</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {selectedTab === 'members' && (
+          <div className="space-y-6">
+            {/* Class Info */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h2 className="text-xl font-bold mb-4">Danh sách thành viên lớp học</h2>
+              <div className="text-gray-600 mb-4">
+                <span className="font-medium">Lớp:</span> {(currentCourse as any).className || 'N/A'}
+                {(currentCourse as any).classCode && <span className="ml-2">({(currentCourse as any).classCode})</span>}
+              </div>
+              
+              {classMembersLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                </div>
+              ) : classMembers && classMembers.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          STT
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Họ tên
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Email
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Điện thoại
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {classMembers.map((member, index) => (
+                        <tr key={member.userId} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {index + 1}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {member.fullName}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {member.email}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {member.phone || 'N/A'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-8">Không có thành viên nào trong lớp</p>
               )}
             </div>
           </div>

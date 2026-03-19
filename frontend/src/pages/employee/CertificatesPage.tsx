@@ -1,16 +1,27 @@
-import { useState } from 'react';
-import { mockCourses } from '../../data/mockCourses';
-import { mockCertificates, type Certificate } from '../../data/mockCertificates';
+import { useState, useEffect } from 'react';
 import { NoCertificates } from '../../components/common/EmptyState';
 import { useToast } from '../../components/common/Toast';
+import { useCertificateStore } from '../../stores/certificate.store';
+import { useAuthStore } from '../../stores/auth.store';
+import { useCourseStore } from '../../stores/course.store';
+import { Certificate } from '../../api/certificate.api';
 
 export default function CertificatesPage() {
-  const [certificates] = useState(mockCertificates);
+  const { user } = useAuthStore();
+  const { certificates, loading, fetchCertificates } = useCertificateStore();
+  const { myCourses, fetchMyCourses } = useCourseStore();
   const [selectedCert, setSelectedCert] = useState<Certificate | null>(null);
   const { showToast } = useToast();
 
+  useEffect(() => {
+    if (user?.id) {
+      fetchCertificates(user.id);
+      fetchMyCourses();
+    }
+  }, [user?.id, fetchCertificates, fetchMyCourses]);
+
   // Get courses that have certificates
-  const completedCourses = mockCourses.filter(course => 
+  const completedCourses = myCourses.filter(course => 
     certificates.some(cert => cert.courseId === course.id)
   );
 
@@ -26,7 +37,7 @@ export default function CertificatesPage() {
     showToast(`Chia sẻ chứng chỉ "${cert.courseName}" thành công!`, 'success');
   };
 
-  if (certificates.length === 0) {
+  if (loading || certificates.length === 0) {
     return (
       <div className="p-6">
         <h1 className="text-2xl font-bold mb-6">Kết quả & Chứng chỉ</h1>

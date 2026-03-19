@@ -9,6 +9,7 @@ import com.itms.entity.Department;
 import com.itms.entity.Role;
 import com.itms.entity.User;
 import com.itms.entity.UserRole;
+import com.itms.exception.AccountLockedException;
 import com.itms.repository.DepartmentRepository;
 import com.itms.repository.RoleRepository;
 import com.itms.repository.UserRepository;
@@ -65,9 +66,36 @@ public class UserService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("Username not found"));
 
+        // Check if account is active
+        if (user.getIsActive() == null || !user.getIsActive()) {
+            throw new RuntimeException("Account is deactivated. Please contact administrator.");
+        }
+
+        // Check if account is locked
+        if (user.getLockedUntil() != null && user.getLockedUntil().isAfter(java.time.LocalDateTime.now())) {
+            throw new AccountLockedException(
+                "Account is locked. Please try again later or contact administrator.",
+                user.getLockedUntil()
+            );
+        }
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            // Increment failed login attempts
+            user.setFailedLoginAttempts(user.getFailedLoginAttempts() + 1);
+            
+            // Lock account after 5 failed attempts
+            if (user.getFailedLoginAttempts() >= 5) {
+                user.setLockedUntil(java.time.LocalDateTime.now().plusMinutes(30));
+            }
+            
+            userRepository.save(user);
             throw new RuntimeException("Invalid password");
         }
+
+        // Reset failed login attempts on successful login
+        user.setFailedLoginAttempts(0);
+        user.setLockedUntil(null);
+        userRepository.save(user);
 
         boolean otpRequired = user.getOtpEnabled();
 

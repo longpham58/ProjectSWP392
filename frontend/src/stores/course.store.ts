@@ -1,14 +1,16 @@
 import { create } from "zustand";
 import { adminApi, AdminCourseDto, AdminClassDto, AdminCourseDetailDto } from "../api/admin.api";
-import { coursesApi, Course, CourseModule } from "../api/courses.api";
+import { coursesApi, Course, CourseModule, ClassMember } from "../api/courses.api";
 
 interface CourseState {
   courses: AdminCourseDto[];
   myCourses: Course[];
   classes: AdminClassDto[];
-  currentCourse: AdminCourseDetailDto | null;
+  currentCourse: Course | AdminCourseDetailDto | null;
   modules: CourseModule[];
+  classMembers: ClassMember[];
   loading: boolean;
+  classMembersLoading: boolean;
   error: string | null;
   
   // Courses
@@ -24,6 +26,9 @@ interface CourseState {
   
   // Classes
   fetchClasses: () => Promise<void>;
+  
+  // Class Members
+  fetchClassMembers: (classId: number) => Promise<void>;
 }
 
 export const useCourseStore = create<CourseState>((set) => ({
@@ -32,7 +37,9 @@ export const useCourseStore = create<CourseState>((set) => ({
   classes: [],
   currentCourse: null,
   modules: [],
+  classMembers: [],
   loading: false,
+  classMembersLoading: false,
   error: null,
 
   fetchCourses: async (status?: string) => {
@@ -82,9 +89,9 @@ export const useCourseStore = create<CourseState>((set) => ({
         coursesApi.getCourseById(courseId),
         coursesApi.getCourseModules(courseId)
       ]);
-      // For employee course detail, we store it in currentCourse but as Course type
+      // For employee course detail, we store it as Course type with attendance info
       set({ 
-        currentCourse: courseRes.data.data as any, 
+        currentCourse: courseRes.data.data as Course, 
         modules: modulesRes.data.data || [] 
       });
     } catch (err: any) {
@@ -103,6 +110,19 @@ export const useCourseStore = create<CourseState>((set) => ({
       set({ error: err.response?.data?.message || "Failed to fetch classes" });
     } finally {
       set({ loading: false });
+    }
+  },
+
+  // Class Members
+  fetchClassMembers: async (classId: number) => {
+    set({ classMembersLoading: true, error: null });
+    try {
+      const res = await coursesApi.getClassMembers(classId);
+      set({ classMembers: res.data.data || [] });
+    } catch (err: any) {
+      set({ error: err.response?.data?.message || "Failed to fetch class members" });
+    } finally {
+      set({ classMembersLoading: false });
     }
   },
 }));

@@ -5,6 +5,7 @@ import com.itms.dto.QuizDto;
 import com.itms.dto.QuizImportDto;
 import com.itms.dto.QuizQuestionDto;
 import com.itms.dto.QuizQuestionImportDto;
+import com.itms.dto.SessionAttendanceDto;
 import com.itms.entity.*;
 import com.itms.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class QuizService {
     private final CourseModuleRepository courseModuleRepository;
     private final ExcelImportService excelImportService;
     private final QuizQuestionRepository quizQuestionRepository;
+    private final SessionRepository sessionRepository;
 
     /**
      * Get all quizzes for a course
@@ -42,16 +44,22 @@ public class QuizService {
         List<Quiz> quizzes = quizRepository.findByCourseIdAndQuizTypeIn(courseId);
         List<QuizDto> quizDtos = new ArrayList<>();
 
+        // Check if all sessions are completed for course-level quiz unlocking
+        List<SessionAttendanceDto> sessionAttendances = sessionRepository.getSessionAttendanceForUser(userId, courseId);
+        boolean allSessionsCompleted = sessionAttendances.size() > 0 && 
+            sessionAttendances.stream().filter(s -> s.getMarkedComplete() != null && s.getMarkedComplete()).count() >= sessionAttendances.size();
+
         for (Quiz quiz : quizzes) {
             QuizDto dto = mapToDto(quiz);
             
-            // Check if quiz is unlocked based on module
+            // Check if quiz is unlocked based on module or session completion
             if (quiz.getModule() != null) {
+                // Module-level quiz: unlock based on module completion
                 boolean isUnlocked = isModuleCompleted(userId, quiz.getModule().getId());
                 dto.setIsUnlocked(isUnlocked);
             } else {
-                // No module requirement - quiz is always unlocked
-                dto.setIsUnlocked(true);
+                // Course-level quiz (tests): unlock based on session completion
+                dto.setIsUnlocked(allSessionsCompleted);
             }
 
             // Get attempt count and pass status
@@ -74,11 +82,21 @@ public class QuizService {
 
         QuizDto dto = mapToDto(quiz);
 
-        // Check unlock status - check module
+        // Get course ID for session completion check
+        Integer courseId = quiz.getCourse() != null ? quiz.getCourse().getId() : null;
+        
+        // Check unlock status - check module or session completion
         if (quiz.getModule() != null) {
+            // Module-level quiz: unlock based on module completion
             dto.setIsUnlocked(isModuleCompleted(userId, quiz.getModule().getId()));
+        } else if (courseId != null) {
+            // Course-level quiz (tests): unlock based on session completion
+            List<SessionAttendanceDto> sessionAttendances = sessionRepository.getSessionAttendanceForUser(userId, courseId);
+            boolean allSessionsCompleted = sessionAttendances.size() > 0 && 
+                sessionAttendances.stream().filter(s -> s.getMarkedComplete() != null && s.getMarkedComplete()).count() >= sessionAttendances.size();
+            dto.setIsUnlocked(allSessionsCompleted);
         } else {
-            dto.setIsUnlocked(true);
+            dto.setIsUnlocked(false);
         }
 
         // Get attempt count
@@ -495,18 +513,26 @@ public class QuizService {
         int completedModulesCount = (int) userProgress.stream().filter(UserModuleProgress::getIsCompleted).count();
         int totalModules = courseModuleRepository.findByCourseId(courseId).size();
         
-        // Calculate which quizzes are unlocked based on required modules
+        // Check if all sessions are completed for course-level quiz unlocking
+        List<SessionAttendanceDto> sessionAttendances = sessionRepository.getSessionAttendanceForUser(userId, courseId);
+        int totalSessions = sessionAttendances.size();
+        long completedSessions = sessionAttendances.stream().filter(s -> s.getMarkedComplete() != null && s.getMarkedComplete()).count();
+        boolean allSessionsCompleted = totalSessions > 0 && completedSessions >= totalSessions;
+        
+        // Calculate which quizzes are unlocked based on required modules or session completion
         List<QuizDto> quizDtos = new ArrayList<>();
         int unlockedQuizCount = 0;
         
         for (Quiz quiz : quizzes) {
             QuizDto dto = mapToDto(quiz);
             
-            // Check unlock based on module
+            // Check unlock based on module or session completion
             if (quiz.getModule() != null) {
+                // Module-level quiz: unlock based on module completion
                 dto.setIsUnlocked(isModuleCompleted(userId, quiz.getModule().getId()));
             } else {
-                dto.setIsUnlocked(true);
+                // Course-level quiz (tests): unlock based on session completion
+                dto.setIsUnlocked(allSessionsCompleted);
             }
             
             // Get attempt count and pass status
@@ -524,6 +550,9 @@ public class QuizService {
         status.put("quizzes", quizDtos);
         status.put("completedModulesCount", completedModulesCount);
         status.put("totalModules", totalModules);
+        status.put("completedSessions", completedSessions);
+        status.put("totalSessions", totalSessions);
+        status.put("allSessionsCompleted", allSessionsCompleted);
         status.put("unlockedQuizCount", unlockedQuizCount);
         
         // Calculate test passing requirements (assign once so effectively final for lambda)
@@ -572,7 +601,7 @@ public class QuizService {
         boolean certificateEarned = passedTests >= requiredPassCount;
         status.put("certificateEarned", certificateEarned);
         
-        // Final exam unlocks after earning certificate
+        // Final exam unlocks after earning certificate AND completing all sessions
         // Find final exam quiz
         Quiz finalExam = quizzes.stream()
             .filter(q -> q.getIsFinalExam() != null && q.getIsFinalExam())
@@ -581,12 +610,15 @@ public class QuizService {
         
         boolean finalExamUnlocked = false;
         if (finalExam != null) {
+            // Final exam unlocks when:
+            // 1. All sessions are completed (session-based requirement)
+            // 2. Certificate is earned (current requirement)
             // Check if final exam has module requirement
             if (finalExam.getModule() != null) {
-                finalExamUnlocked = certificateEarned && isModuleCompleted(userId, finalExam.getModule().getId());
+                finalExamUnlocked = certificateEarned && allSessionsCompleted && isModuleCompleted(userId, finalExam.getModule().getId());
             } else {
-                // Final exam without module requirement - just needs certificate
-                finalExamUnlocked = certificateEarned;
+                // Final exam without module requirement - needs both certificate AND session completion
+                finalExamUnlocked = certificateEarned && allSessionsCompleted;
             }
             
             // Get final exam attempt info
