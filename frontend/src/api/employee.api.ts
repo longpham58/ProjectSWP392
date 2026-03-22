@@ -149,6 +149,20 @@ export interface QuizDto {
   totalRegularCount: number;
 }
 
+export interface QuizOptionResult {
+  id: number;
+  optionText: string;
+}
+
+export interface QuizAnswerResult {
+  questionId: number;
+  question: string;
+  options: QuizOptionResult[];
+  correctOptionId: number;
+  selectedOptionId: number | null;
+  isCorrect: boolean | null;
+}
+
 export interface QuizResultDto {
   attemptId: number;
   quizId: number;
@@ -157,7 +171,7 @@ export interface QuizResultDto {
   passed: boolean;
   passingScore: number;
   submittedAt: string;
-  answers: any[];
+  answers: QuizAnswerResult[];
   courseCompleted: boolean;
   certificateCode: string;
 }

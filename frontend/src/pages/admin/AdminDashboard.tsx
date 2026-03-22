@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import CompletionTrend from "./components/CompletionTrend";
 import { adminApi, AdminDashboardStats, MonthlyCompletion, RecentActivity } from "../../api/admin.api";
+import { Users, BookOpen, FolderKanban, Activity, TrendingUp, Shield, MessageSquare, Clock } from "lucide-react";
 
 type ChartData = {
   month: string;
@@ -40,22 +41,6 @@ export default function AdminDashboard() {
     fetchStats();
   }, []);
 
-  // Admin-focused KPIs (Training System)
-  const kpis = stats
-    ? [
-        { title: "Total Users", value: stats.totalUsers },
-        { title: "Active Users", value: stats.activeUsers },
-        { title: "Total Courses", value: stats.totalCourses },
-        { title: "Total Classes", value: stats.totalClasses },
-      ]
-    : [
-        { title: "Total Users", value: 0 },
-        { title: "Active Users", value: 0 },
-        { title: "Total Courses", value: 0 },
-        { title: "Active Courses", value: 0 },
-        { title: "Total Classes", value: 0 },
-      ];
-
   // Course Completion Trend from API
   const monthlyData: ChartData[] = stats?.monthlyCompletion
     ? stats.monthlyCompletion.map((item: MonthlyCompletion) => ({
@@ -79,11 +64,11 @@ export default function AdminDashboard() {
       }))
     : [];
 
-  const COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#9333ea"];
+  const COLORS = ["#6366f1", "#22c55e", "#f59e0b", "#ec4899"];
 
   // Recent activities from API (limited to 5)
   const activities = stats?.recentActivities
-    ? stats.recentActivities.slice(0, 5).map((activity: RecentActivity) => ({
+    ? stats.recentActivities.slice(0, 6).map((activity: RecentActivity) => ({
         description: activity.description,
         timeAgo: activity.timeAgo,
       }))
@@ -93,115 +78,241 @@ export default function AdminDashboard() {
   const securityAlerts = stats?.securityAlerts ?? 0;
   const failedLogins = stats?.failedLoginAttempts ?? 0;
 
+  const kpiCards = [
+    {
+      title: "Total Users",
+      value: stats?.totalUsers ?? 0,
+      icon: Users,
+      gradient: "from-violet-500 to-purple-600",
+      bgColor: "bg-violet-50",
+      iconColor: "text-violet-600",
+    },
+    {
+      title: "Active Users",
+      value: stats?.activeUsers ?? 0,
+      icon: Activity,
+      gradient: "from-emerald-500 to-teal-600",
+      bgColor: "bg-emerald-50",
+      iconColor: "text-emerald-600",
+    },
+    {
+      title: "Total Courses",
+      value: stats?.totalCourses ?? 0,
+      icon: BookOpen,
+      gradient: "from-blue-500 to-cyan-600",
+      bgColor: "bg-blue-50",
+      iconColor: "text-blue-600",
+    },
+    {
+      title: "Total Classes",
+      value: stats?.totalClasses ?? 0,
+      icon: FolderKanban,
+      gradient: "from-orange-500 to-amber-600",
+      bgColor: "bg-orange-50",
+      iconColor: "text-orange-600",
+    },
+  ];
+
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6">Admin Dashboard</h2>
+    <div className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
+        <p className="text-gray-500 mt-1">Welcome back! Here's what's happening with your training system.</p>
+      </div>
+
       {/* KPI CARDS */}
-      <div className="grid grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {loading ? (
-          <div className="col-span-4 text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="col-span-4 flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
           </div>
         ) : (
-          kpis.map((kpi) => (
-            <div key={kpi.title} className="bg-white p-6 rounded-2xl shadow">
-              <p className="text-gray-500 text-sm">{kpi.title}</p>
-              <h3 className="text-2xl font-bold mt-2">{kpi.value}</h3>
+          kpiCards.map((kpi) => (
+            <div
+              key={kpi.title}
+              className="relative overflow-hidden bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 group"
+            >
+              {/* Gradient accent */}
+              <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${kpi.gradient}`}></div>
+              
+              <div className="p-6">
+                <div className="flex items-center justify-between">
+                  <div className={`p-3 rounded-xl ${kpi.bgColor}`}>
+                    <kpi.icon className={`w-6 h-6 ${kpi.iconColor}`} />
+                  </div>
+                  <TrendingUp className="w-5 h-5 text-gray-300 group-hover:text-green-500 transition-colors" />
+                </div>
+                
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-gray-500">{kpi.title}</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">{kpi.value.toLocaleString()}</p>
+                </div>
+              </div>
+              
+              {/* Decorative circles */}
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gray-50 rounded-full opacity-50"></div>
             </div>
           ))
         )}
       </div>
-{/* COURSE COMPLETION TREND - FULL WIDTH */}
-<div className="bg-white p-6 rounded-2xl shadow mb-8">
-  <CompletionTrend monthlyData={monthlyData} />
-</div>
 
-
-{/* RECENT ACTIVITY + ROLE DISTRIBUTION */}
-<div className="grid grid-cols-3 gap-6 mb-8">
-  
-  {/* Recent Activity (2 columns) */}
-  <div className="col-span-2 bg-white p-6 rounded-2xl shadow">
-    <h3 className="text-lg font-semibold mb-4">
-      Recent System Activity
-    </h3>
-
-    <div className="space-y-4">
-      {activities.length > 0 ? (
-        activities.map((activity, index) => (
-          <div key={index} className="flex items-center gap-4">
-            <div className="w-3 h-3 bg-gray-400 rounded-full" />
-            <p className="text-sm text-gray-700 flex-1">
-              {activity.description}
-            </p>
-            <span className="text-xs text-gray-400">
-              {activity.timeAgo}
-            </span>
-          </div>
-        ))
-      ) : (
-        <p className="text-sm text-gray-500">No recent activities</p>
-      )}
-    </div>
-  </div>
-
-  {/* Role Distribution (Right Side) */}
-  <div className="bg-white p-6 rounded-2xl shadow">
-    <h3 className="text-lg font-semibold mb-4">
-      Role Distribution
-    </h3>
-
-    {roleData.length > 0 ? (
-      <ResponsiveContainer width="100%" height={300}>
-        <PieChart>
-          <Pie
-            data={roleData}
-            dataKey="value"
-            nameKey="name"
-            outerRadius={90}
-            label
-          >
-            {roleData.map((entry, index) => (
-              <Cell key={index} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
-    ) : (
-      <p className="text-sm text-gray-500 text-center py-8">No role data available</p>
-    )}
-  </div>
-</div>
-
-      {/* SECURITY + FEEDBACK */}
-      <div className="grid grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow">
-          <h3 className="text-lg font-semibold mb-4">
-            Security Alerts
+      {/* COURSE COMPLETION TREND - FULL WIDTH */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 mb-8 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-indigo-600" />
+            Course Completion Trend
           </h3>
-          <p className="text-sm text-gray-600">
-            {securityAlerts > 0
-              ? `${securityAlerts} security alert(s) requiring attention.`
-              : "No security alerts at this time."}
-          </p>
-          {failedLogins > 0 && (
-            <p className="text-sm text-red-600 mt-2">
-              {failedLogins} failed login attempt(s) detected.
-            </p>
-          )}
         </div>
-
-        <div className="bg-white p-6 rounded-2xl shadow">
-          <h3 className="text-lg font-semibold mb-4">
-            Open System Feedback Tickets
-          </h3>
-          <p className="text-sm text-gray-600">
-            {stats?.openFeedback ?? 0} pending system feedback tickets awaiting review.
-          </p>
+        <div className="p-6">
+          <CompletionTrend monthlyData={monthlyData} />
         </div>
       </div>
-      <div style={{ height: "100px" }}></div>
+
+      {/* RECENT ACTIVITY + ROLE DISTRIBUTION */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Recent Activity */}
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Clock className="w-5 h-5 text-indigo-600" />
+              Recent System Activity
+            </h3>
+          </div>
+          <div className="p-6">
+            {activities.length > 0 ? (
+              <div className="space-y-4">
+                {activities.map((activity, index) => (
+                  <div 
+                    key={index} 
+                    className="flex items-start gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="w-2 h-2 mt-2 bg-indigo-500 rounded-full flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-gray-700 font-medium">
+                        {activity.description}
+                      </p>
+                      <span className="text-xs text-gray-400 mt-1 block">
+                        {activity.timeAgo}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Activity className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-sm text-gray-500">No recent activities</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Role Distribution */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Users className="w-5 h-5 text-indigo-600" />
+              Role Distribution
+            </h3>
+          </div>
+          <div className="p-6">
+            {roleData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={roleData}
+                    dataKey="value"
+                    nameKey="name"
+                    outerRadius={80}
+                    innerRadius={50}
+                    paddingAngle={4}
+                  >
+                    {roleData.map((entry, index) => (
+                      <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36}
+                    formatter={(value) => <span className="text-sm text-gray-600">{value}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-sm text-gray-500">No role data available</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* SECURITY + FEEDBACK */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-indigo-600" />
+              Security Status
+            </h3>
+          </div>
+          <div className="p-6">
+            {securityAlerts > 0 || failedLogins > 0 ? (
+              <div className="space-y-3">
+                {securityAlerts > 0 && (
+                  <div className="flex items-center gap-3 p-3 bg-red-50 rounded-xl border border-red-100">
+                    <Shield className="w-5 h-5 text-red-500" />
+                    <span className="text-sm text-red-700 font-medium">
+                      {securityAlerts} security alert(s) requiring attention
+                    </span>
+                  </div>
+                )}
+                {failedLogins > 0 && (
+                  <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl border border-orange-100">
+                    <Activity className="w-5 h-5 text-orange-500" />
+                    <span className="text-sm text-orange-700 font-medium">
+                      {failedLogins} failed login attempt(s) detected
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
+                <Shield className="w-6 h-6 text-green-500" />
+                <span className="text-sm text-green-700 font-medium">
+                  All systems secure. No alerts at this time.
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-indigo-600" />
+              Feedback Tickets
+            </h3>
+          </div>
+          <div className="p-6">
+            <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+              <div>
+                <p className="text-sm text-gray-600">Open System Feedback</p>
+                <p className="text-2xl font-bold text-gray-900 mt-1">{stats?.openFeedback ?? 0}</p>
+              </div>
+              <MessageSquare className="w-10 h-10 text-indigo-400" />
+            </div>
+            <p className="text-sm text-gray-500 mt-3">
+              pending system feedback tickets awaiting review
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      <div className="h-8"></div>
     </div>
   );
 }

@@ -20,7 +20,7 @@ export const userApi = {
     axios.get<ApiResponse<User[]>>("/users"),
 
   toggleUserStatus: (userId: number) =>
-    axios.put<ApiResponse<void>>(`/users/${userId}/status`),
+    axios.put<ApiResponse<void>>(`/users/${userId}/toggle-status`),
 
   deleteUser: (userId: number) =>
     axios.delete<ApiResponse<void>>(`/users/${userId}`),

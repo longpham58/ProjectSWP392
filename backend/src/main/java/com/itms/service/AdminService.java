@@ -563,13 +563,8 @@ public class AdminService {
 
     // ========== NOTIFICATIONS ==========
     public List<AdminNotificationDto> getAllNotifications(Boolean isDraft) {
-        List<Notification> notifications;
-        
-        if (isDraft != null) {
-            notifications = notificationRepository.findAllByIsDraft(isDraft);
-        } else {
-            notifications = notificationRepository.findAll();
-        }
+        // Use optimized query to only get admin broadcast notifications
+        List<Notification> notifications = notificationRepository.findNotificationsForAdminUsers();
         
         return notifications.stream()
                 .map(this::mapToAdminNotificationDto)
@@ -614,7 +609,7 @@ public class AdminService {
                 .type(type)
                 .priority(priority)
                 .recipientType(dto.getTargetRole())
-                .user(sender)
+                .user(sender) 
                 .sender(sender)
                 .sentDate(java.time.LocalDateTime.now())
                 .expiresAt(dto.getExpiresAt() != null ? dto.getExpiresAt().atStartOfDay() : null)
@@ -665,8 +660,6 @@ public class AdminService {
         
         notification = notificationRepository.save(notification);
         
-        // Fan out to recipients
-        sendNotificationToRecipients(notification);
         
         return mapToAdminNotificationDto(notification);
     }
@@ -707,7 +700,8 @@ public class AdminService {
         }
 
         log.info("Found {} recipients for notification", recipients.size());
-        
+        // ✅ REMOVE DUPLICATES HERE
+
         for (User recipient : recipients) {
             // Don't send to the sender again if they are in the list
             if (source.getSender() != null && recipient.getId().equals(source.getSender().getId())) {

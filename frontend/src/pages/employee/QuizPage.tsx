@@ -23,8 +23,8 @@ export default function QuizPage() {
     if (!user?.id || !courseId || !quizId) return;
     employeeApi.getQuiz(Number(courseId), Number(quizId), user.id)
       .then(res => {
-        setQuiz(res.data);
-        setTimeLeft((res.data.timeLimitMinutes || 15) * 60);
+        setQuiz(res.data.data);
+        setTimeLeft((res.data.data.timeLimitMinutes || 15) * 60);
       })
       .catch(err => setError(err.response?.data?.message || 'Không thể tải quiz'))
       .finally(() => setLoading(false));
@@ -38,7 +38,7 @@ export default function QuizPage() {
         userId: user.id,
         answers,
       });
-      setResult(res.data);
+      setResult(res.data.data);
       setIsSubmitted(true);
     } catch {
       setError('Lỗi khi nộp bài. Vui lòng thử lại.');

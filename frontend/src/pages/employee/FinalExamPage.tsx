@@ -24,9 +24,8 @@ export default function FinalExamPage() {
     if (!user?.id || !courseId || !quizId) return;
     employeeApi.getQuiz(Number(courseId), Number(quizId), user.id)
       .then(res => {
-        const q = res.data as unknown as QuizDto;
-        setQuiz(q);
-        setTimeLeft((q.timeLimitMinutes || 60) * 60);
+        setQuiz(res.data.data);
+        setTimeLeft((res.data.data.timeLimitMinutes || 60) * 60);
       })
       .catch(err => setError(err.response?.data?.message || 'Không thể tải bài thi'))
       .finally(() => setLoading(false));
@@ -38,7 +37,7 @@ export default function FinalExamPage() {
     setShowConfirm(false);
     try {
       const res = await employeeApi.submitQuiz(Number(courseId), quiz.id, { userId: user.id, answers });
-      setResult(res.data as unknown as QuizResultDto);
+      setResult(res.data.data);
       setIsSubmitted(true);
     } catch {
       setError('Lỗi khi nộp bài. Vui lòng thử lại.');

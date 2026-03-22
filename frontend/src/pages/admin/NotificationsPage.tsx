@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PlusCircle, Loader2 } from "lucide-react";
+import { PlusCircle, Loader2, Bell, Send, Edit, Trash2, Eye, X } from "lucide-react";
 import { useAdminStore } from "../../stores/admin.store";
 import { AdminNotificationDto } from "../../api/admin.api";
 
@@ -49,7 +49,7 @@ export default function AdminNotificationsPage() {
     });
 
   const sentCount = notifications.filter(n => n.status && n.status.includes("SENT")).length;
-  const draftCount = notifications.filter(n => n.status && !n.status.includes("SENT")).length;
+  const draftCount = notifications.filter(n => !n.status || !n.status.includes("SENT")).length;
 
   const resetForm = () => {
     setFormTitle("");
@@ -58,72 +58,52 @@ export default function AdminNotificationsPage() {
     setFormPriority("NORMAL");
     setFormTarget("ALL");
     setFormError(null);
-    setModalMode("create");
+    setSelectedNotification(null);
   };
 
-  const handleCreate = async (sendNow: boolean) => {
-    if (!formTitle.trim()) {
-      setFormError("Title is required");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formTitle.trim() || !formMessage.trim()) {
+      setFormError("Title and message are required");
       return;
     }
-    
-    setIsSubmitting(true);
-    setFormError(null);
-    
-    try {
-      const notificationData: Partial<AdminNotificationDto> = {
-        title: formTitle,
-        content: formMessage,
-        type: formType,
-        priority: formPriority,
-        targetRole: formTarget,
-      };
 
-      if (sendNow) {
-        // Create and send directly
-        const created = await createNotification(notificationData);
-        if (created) {
-          await sendNotification(created.id);
-        }
+    setIsSubmitting(true);
+    try {
+      if (modalMode === "edit" && selectedNotification) {
+        await updateNotification(selectedNotification.id, {
+          title: formTitle,
+          content: formMessage,
+          type: formType,
+          priority: formPriority,
+          targetRole: formTarget
+        });
       } else {
-        // Just save as draft
-        await createNotification(notificationData);
+        await createNotification({
+          title: formTitle,
+          content: formMessage,
+          type: formType,
+          priority: formPriority,
+          targetRole: formTarget,
+          status: "DRAFT"
+        });
       }
-      
       resetForm();
       setShowForm(false);
+      await fetchNotifications();
     } catch (err) {
-      setFormError("Failed to create notification. Please try again.");
+      setFormError("Failed to save notification");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleEdit = async () => {
-    if (!selectedNotification || !formTitle.trim()) {
-      setFormError("Title is required");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    setFormError(null);
-    
+  const handleSendNow = async (id: number) => {
     try {
-      await updateNotification(selectedNotification.id, {
-        title: formTitle,
-        content: formMessage,
-        type: formType,
-        priority: formPriority,
-        targetRole: formTarget,
-      });
-      
-      resetForm();
-      setShowForm(false);
-      setSelectedNotification(null);
+      await sendNotification(id);
+      await fetchNotifications();
     } catch (err) {
-      setFormError("Failed to update notification. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      console.error("Failed to send notification", err);
     }
   };
 
@@ -131,53 +111,36 @@ export default function AdminNotificationsPage() {
     if (window.confirm("Are you sure you want to delete this notification?")) {
       try {
         await deleteNotification(id);
+        await fetchNotifications();
       } catch (err) {
-        alert("Failed to delete notification");
+        console.error("Failed to delete notification", err);
       }
-    }
-  };
-
-  const handleSendNow = async (id: number) => {
-    try {
-      await sendNotification(id);
-    } catch (err) {
-      alert("Failed to send notification");
     }
   };
 
   const viewNotification = (notif: AdminNotificationDto) => {
     setSelectedNotification(notif);
-    setFormTitle(notif.title || "");
-    setFormMessage(notif.content || "");
-    setFormType(notif.type === "GENERAL" ? "ANNOUNCEMENT" : notif.type as any);
-    setFormPriority(notif.priority as any);
-    setFormTarget(notif.targetRole as any);
     setShowViewModal(true);
   };
 
   const editNotification = (notif: AdminNotificationDto) => {
     setSelectedNotification(notif);
-    setFormTitle(notif.title || "");
-    setFormMessage(notif.content || "");
-    setFormType(notif.type === "GENERAL" ? "ANNOUNCEMENT" : notif.type as any);
+    setFormTitle(notif.title);
+    setFormMessage(notif.content);
+    setFormType(notif.type as any);
     setFormPriority(notif.priority as any);
-    setFormTarget(notif.targetRole as any);
+    setFormTarget((notif.targetRole as any) || "ALL");
     setModalMode("edit");
     setShowForm(true);
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case "LOW":
-        return "bg-gray-100 text-gray-600";
-      case "NORMAL":
-        return "bg-blue-100 text-blue-600";
-      case "HIGH":
-        return "bg-orange-100 text-orange-600";
-      case "URGENT":
-        return "bg-red-100 text-red-600";
-      default:
-        return "bg-gray-100 text-gray-600";
+      case "URGENT": return "bg-red-100 text-red-700";
+      case "HIGH": return "bg-orange-100 text-orange-700";
+      case "NORMAL": return "bg-blue-100 text-blue-700";
+      case "LOW": return "bg-gray-100 text-gray-600";
+      default: return "bg-gray-100 text-gray-600";
     }
   };
 
@@ -186,21 +149,26 @@ export default function AdminNotificationsPage() {
       case "ALL": return "All Users";
       case "EMPLOYEE": return "Employees";
       case "TRAINER": return "Trainers";
-      case "HR": return "HR";
+      case "HR": return "HR Staff";
       default: return target;
     }
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Notification Management</h1>
+    <div className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Notification Management</h1>
+          <p className="text-gray-500 mt-1">Send announcements and alerts to your users</p>
+        </div>
         <button
           onClick={() => {
             resetForm();
+            setModalMode("create");
             setShowForm(!showForm);
           }}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition"
+          className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-2.5 rounded-xl hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         >
           <PlusCircle size={18} />
           Create Notification
@@ -208,71 +176,73 @@ export default function AdminNotificationsPage() {
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
 
       {/* Create/Edit Form */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8 relative max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => {
-                setShowForm(false);
-                resetForm();
-              }}
-              className="absolute top-4 right-4 text-gray-500 hover:text-black text-lg"
-            >
-              ✕
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">
+              {modalMode === "edit" ? "Edit Notification" : "Create New Notification"}
+            </h2>
+            <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">
+              <X size={20} />
             </button>
+          </div>
 
-            <div className="mb-6">
-              <h2 className="text-xl font-bold">
-                {modalMode === "edit" ? "Edit Notification" : "Create Notification"}
-              </h2>
-              <p className="text-sm text-gray-500">
-                Send announcements or system alerts to users.
-              </p>
-            </div>
-
+          <form onSubmit={handleSubmit} className="space-y-4">
             {formError && (
-              <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              <div className="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm">
                 {formError}
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-5 mb-6">
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">
-                  Notification Type
-                </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <input
+                type="text"
+                value={formTitle}
+                onChange={(e) => setFormTitle(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Enter notification title"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+              <textarea
+                value={formMessage}
+                onChange={(e) => setFormMessage(e.target.value)}
+                rows={4}
+                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Enter notification message"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                 <select
                   value={formType}
-                  onChange={(e) =>
-                    setFormType(e.target.value as any)
-                  }
-                  className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 border-gray-200 transition-all font-medium"
-                  disabled={modalMode === "view"}
+                  onChange={(e) => setFormType(e.target.value as any)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   <option value="ANNOUNCEMENT">Announcement</option>
-                  <option value="SYSTEM">System Alert</option>
+                  <option value="SYSTEM">System</option>
                   <option value="APPROVAL">Approval</option>
                   <option value="REMINDER">Reminder</option>
                 </select>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">
-                  Priority Level
-                </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
                 <select
                   value={formPriority}
-                  onChange={(e) =>
-                    setFormPriority(e.target.value as any)
-                  }
-                  className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 border-gray-200 transition-all font-medium"
-                  disabled={modalMode === "view"}
+                  onChange={(e) => setFormPriority(e.target.value as any)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   <option value="LOW">Low</option>
                   <option value="NORMAL">Normal</option>
@@ -281,199 +251,179 @@ export default function AdminNotificationsPage() {
                 </select>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <label className="text-sm font-medium text-gray-700">
-                  Target Audience
-                </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Target</label>
                 <select
                   value={formTarget}
-                  onChange={(e) =>
-                    setFormTarget(e.target.value as any)
-                  }
-                  className="border rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 border-gray-200 transition-all font-medium"
-                  disabled={modalMode === "view"}
+                  onChange={(e) => setFormTarget(e.target.value as any)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
                   <option value="ALL">All Users</option>
-                  <option value="EMPLOYEE">Employees (Students)</option>
+                  <option value="EMPLOYEE">Employees</option>
                   <option value="TRAINER">Trainers</option>
-                  <option value="HR">HR Managers</option>
+                  <option value="HR">HR Staff</option>
                 </select>
               </div>
             </div>
 
-            <div className="mb-5">
-              <label className="text-sm font-medium text-gray-600">
-                Notification Title
-              </label>
-              <input
-                type="text"
-                value={formTitle}
-                readOnly={modalMode === "view"}
-                onChange={(e) => setFormTitle(e.target.value)}
-                placeholder="Enter notification title..."
-                className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-
-            <div className="mb-6">
-              <label className="text-sm font-medium text-gray-600">
-                Message
-              </label>
-              <textarea
-                rows={4}
-                value={formMessage}
-                readOnly={modalMode === "view"}
-                onChange={(e) => setFormMessage(e.target.value)}
-                placeholder="Write the notification message..."
-                className="w-full border rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-
-            <div className="flex justify-between items-center border-t pt-4">
+            <div className="flex justify-end gap-3 pt-4">
               <button
+                type="button"
                 onClick={() => {
-                  setShowForm(false);
                   resetForm();
+                  setShowForm(false);
                 }}
-                className="text-gray-500 hover:text-black"
+                className="px-5 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
-
-              {modalMode === "create" ? (
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => handleCreate(false)}
-                    disabled={isSubmitting}
-                    className="bg-gray-200 px-4 py-2 rounded-xl hover:bg-gray-300 transition disabled:opacity-50"
-                  >
-                    {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : "Save Draft"}
-                  </button>
-                  <button
-                    onClick={() => handleCreate(true)}
-                    disabled={isSubmitting}
-                    className="bg-blue-600 text-white px-5 py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
-                  >
-                    {isSubmitting ? <Loader2 className="animate-spin" /> : "Send Notification"}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleEdit}
-                  disabled={isSubmitting}
-                  className="bg-blue-600 text-white px-5 py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
-                >
-                  {isSubmitting ? <Loader2 className="animate-spin" /> : "Update Notification"}
-                </button>
-              )}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-5 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="animate-spin" size={16} />
+                    Saving...
+                  </span>
+                ) : modalMode === "edit" ? "Update" : "Save as Draft"
+                }
+              </button>
             </div>
-          </div>
+          </form>
         </div>
       )}
 
-      <div className="flex gap-6 border-b">
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
         <button
           onClick={() => setActiveTab("Sent")}
-          className={`pb-2 px-2 font-medium transition ${
+          className={`px-5 py-2.5 rounded-xl font-medium transition-all ${
             activeTab === "Sent"
-              ? "text-blue-600 border-b-2 border-blue-600"
-              : "text-gray-500 hover:text-blue-600"
+              ? "bg-indigo-600 text-white shadow-md"
+              : "text-gray-600 hover:bg-white"
           }`}
         >
-          Sent ({sentCount})
+          <span className="flex items-center gap-2">
+            <Send size={16} />
+            Sent ({sentCount})
+          </span>
         </button>
-
         <button
           onClick={() => setActiveTab("Draft")}
-          className={`pb-2 px-2 font-medium transition ${
+          className={`px-5 py-2.5 rounded-xl font-medium transition-all ${
             activeTab === "Draft"
-              ? "text-blue-600 border-b-2 border-blue-600"
-              : "text-gray-500 hover:text-blue-600"
+              ? "bg-indigo-600 text-white shadow-md"
+              : "text-gray-600 hover:bg-white"
           }`}
         >
-          Draft ({draftCount})
+          <span className="flex items-center gap-2">
+            <Edit size={16} />
+            Draft ({draftCount})
+          </span>
         </button>
       </div>
 
+      {/* Notifications List */}
       {loading && notifications.length === 0 ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="animate-spin text-blue-600" size={32} />
+          <Loader2 className="animate-spin text-indigo-600" size={32} />
         </div>
       ) : filteredNotifications.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          No {activeTab.toLowerCase()} notifications found.
+        <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+          <Bell className="mx-auto text-gray-300 mb-4" size={48} />
+          <p className="text-gray-500 text-lg">No {activeTab.toLowerCase()} notifications found</p>
         </div>
       ) : (
-        <div className="space-y-4 mt-6">
+        <div className="space-y-4">
           {filteredNotifications.map((notif) => (
             <div
               key={notif.id}
-              className="bg-white rounded-2xl shadow border-l-4 border-blue-500 p-6 hover:shadow-md transition"
+              className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden"
             >
-              <div className="flex justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-semibold">
-                      {notif.title}
-                    </h3>
-                    <span
-                      className={`px-3 py-1 text-xs rounded-full ${getPriorityColor(
-                        notif.priority || "NORMAL"
-                      )}`}
-                    >
-                      {notif.priority || "NORMAL"}
-                    </span>
+              <div className="flex">
+                {/* Color indicator */}
+                <div className={`w-1.5 ${activeTab === 'Sent' ? 'bg-gradient-to-b from-indigo-500 to-purple-600' : 'bg-gradient-to-b from-amber-500 to-orange-600'}`}></div>
+                
+                <div className="flex-1 p-5">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {notif.title}
+                        </h3>
+                        <span
+                          className={`px-3 py-1 text-xs rounded-full font-medium ${getPriorityColor(
+                            notif.priority || "NORMAL"
+                          )}`}
+                        >
+                          {notif.priority || "NORMAL"}
+                        </span>
+                      </div>
+
+                      <p className="text-gray-600 text-sm mt-2 line-clamp-2">
+                        {notif.content}
+                      </p>
+
+                      <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
+                        <span className="flex items-center gap-1">
+                          <Bell size={14} />
+                          {notif.sentDate || "Not sent"}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          Target: {getTargetLabel(notif.targetRole || "ALL")}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 ml-6">
+                      {activeTab === "Sent" && (
+                        <>
+                          <button
+                            onClick={() => viewNotification(notif)}
+                            className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm"
+                          >
+                            <Eye size={14} />
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleDelete(notif.id)}
+                            className="flex items-center gap-1 bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-lg text-sm"
+                          >
+                            <Trash2 size={14} />
+                            Delete
+                          </button>
+                        </>
+                      )}
+
+                      {activeTab === "Draft" && (
+                        <>
+                          <button
+                            onClick={() => editNotification(notif)}
+                            className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm"
+                          >
+                            <Edit size={14} />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleSendNow(notif.id)}
+                            className="flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm"
+                          >
+                            <Send size={14} />
+                            Send
+                          </button>
+                          <button
+                            onClick={() => handleDelete(notif.id)}
+                            className="flex items-center gap-1 bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-lg text-sm"
+                          >
+                            <Trash2 size={14} />
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-
-                  <p className="text-gray-600 text-sm mt-2">
-                    {notif.content}
-                  </p>
-
-                  <p className="text-xs text-gray-400 mt-3">
-                    Sent: {notif.sentDate || "Not sent"} • Target: {getTargetLabel(notif.targetRole || "ALL")}
-                  </p>
-                </div>
-
-                <div className="flex flex-col gap-2 ml-6">
-                  {activeTab === "Sent" && (
-                    <>
-                      <button
-                        onClick={() => viewNotification(notif)}
-                        className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm"
-                      >
-                        View Details
-                      </button>
-                      <button
-                        onClick={() => handleDelete(notif.id)}
-                        className="bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-lg text-sm"
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
-
-                  {activeTab === "Draft" && (
-                    <>
-                      <button
-                        onClick={() => editNotification(notif)}
-                        className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleSendNow(notif.id)}
-                        className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm"
-                      >
-                        Send Now
-                      </button>
-                      <button
-                        onClick={() => handleDelete(notif.id)}
-                        className="bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-lg text-sm"
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
                 </div>
               </div>
             </div>
@@ -487,53 +437,52 @@ export default function AdminNotificationsPage() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 relative">
             <button
               onClick={() => setShowViewModal(false)}
-              className="absolute top-4 right-4"
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
             >
-              ✕
+              <X size={20} />
             </button>
 
-            <h2 className="text-xl font-bold">
+            <h2 className="text-xl font-bold text-gray-900">
               {selectedNotification.title}
             </h2>
 
             <p className="text-sm text-gray-500 mt-1">
-              Priority: {selectedNotification.priority}
+              Priority: <span className={getPriorityColor(selectedNotification.priority || "NORMAL")}>{selectedNotification.priority}</span>
             </p>
 
-            <div className="mt-6 space-y-2 text-sm">
-              <p>
-                <b>Sent:</b> {selectedNotification.sentDate || "Not sent"}
-              </p>
-              <p>
-                <b>Target:</b> {getTargetLabel(selectedNotification.targetRole || "ALL")}
-              </p>
-              <p>
-                <b>Type:</b> {selectedNotification.type}
-              </p>
-              <p>
-                <b>Recipients:</b> {selectedNotification.recipientCount || 0}
-              </p>
-              <p>
-                <b>Read:</b> {selectedNotification.readCount || 0}
-              </p>
+            <div className="mt-6 space-y-3 text-sm">
+              <div className="flex items-center gap-2 text-gray-600">
+                <Bell size={16} />
+                <span><strong>Sent:</strong> {selectedNotification.sentDate || "Not sent"}</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-600">
+                <span><strong>Target:</strong> {getTargetLabel(selectedNotification.targetRole || "ALL")}</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-600">
+                <span><strong>Type:</strong> {selectedNotification.type}</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-600">
+                <span><strong>Recipients:</strong> {selectedNotification.recipientCount || 0}</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-600">
+                <span><strong>Read:</strong> {selectedNotification.readCount || 0}</span>
+              </div>
               {selectedNotification.expiresAt && (
-                <p>
-                  <b>Expires:</b> {selectedNotification.expiresAt}
-                </p>
+                <div className="flex items-center gap-2 text-gray-600">
+                  <span><strong>Expires:</strong> {selectedNotification.expiresAt}</span>
+                </div>
               )}
             </div>
 
-            <div className="mt-6">
-              <p className="font-medium">Message</p>
-              <p className="text-gray-600 mt-1">
-                {selectedNotification.content}
-              </p>
+            <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+              <h3 className="font-semibold text-gray-800 mb-2">Message</h3>
+              <p className="text-gray-600 text-sm whitespace-pre-wrap">{selectedNotification.content}</p>
             </div>
 
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setShowViewModal(false)}
-                className="bg-gray-200 px-4 py-2 rounded-lg"
+                className="bg-gray-200 hover:bg-gray-300 px-5 py-2 rounded-xl transition-colors"
               >
                 Close
               </button>

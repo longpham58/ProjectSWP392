@@ -13,8 +13,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     List<Notification> findByUserIdOrderBySentDateDesc(Integer userId);
 
-    // Get notifications for a user including broadcast notifications (where user is null)
-    @Query("SELECT n FROM Notification n WHERE (n.user.id = :userId OR n.user IS NULL) AND n.isDraft = false ORDER BY n.sentDate DESC")
+    // Get notifications for a user - only individual notifications, not broadcast (user IS NULL)
+    // Exclude notifications where sender equals user (self-notifications)
+    @Query("SELECT DISTINCT n FROM Notification n WHERE n.user.id = :userId AND n.isDraft = false AND (n.sender IS NULL OR n.sender.id <> n.user.id) ORDER BY n.sentDate DESC")
     List<Notification> findNotificationsForUser(@Param("userId") Integer userId);
 
     @Query("SELECT n FROM Notification n WHERE n.user.id = :userId AND n.isDraft = :isDraft ORDER BY n.sentDate DESC")
@@ -50,4 +51,16 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 
     // Count by isDraft
     long countByIsDraft(Boolean isDraft);
+
+    // Find broadcast notifications (user IS NULL) sent by admin - with sender and roles eager fetch
+    @Query("SELECT n FROM Notification n "
+            + "JOIN FETCH n.user u "
+            + "JOIN FETCH u.userRole ur "
+            + "JOIN FETCH ur.role r "
+            + "LEFT JOIN FETCH n.sender s "
+            + "WHERE r.roleCode = 'ADMIN' "
+            + "AND ur.isActive = true "
+            + "AND n.isDraft = false "
+            + "ORDER BY n.sentDate DESC")
+    List<Notification> findNotificationsForAdminUsers();
 }

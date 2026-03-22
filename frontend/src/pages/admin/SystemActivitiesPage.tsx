@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAdminStore } from "../../stores/admin.store";
+import { Search, RefreshCw, Bell, UserPlus, BookOpen, Award, ClipboardCheck, Calendar, Clock, Loader2, Activity } from "lucide-react";
 
 // Type for recent activity from backend
 interface RecentActivity {
@@ -57,97 +58,59 @@ export default function SystemActivitiesPage() {
     return "default";
   };
 
+  // Get icon based on activity type
+  const getActivityIcon = (description: string) => {
+    const type = getActivityType(description);
+    switch (type) {
+      case "notification":
+        return Bell;
+      case "enrollment":
+        return UserPlus;
+      case "course":
+        return BookOpen;
+      case "user":
+        return UserPlus;
+      case "certificate":
+        return Award;
+      case "quiz":
+        return ClipboardCheck;
+      case "session":
+        return Calendar;
+      default:
+        return Activity;
+    }
+  };
+
   // Get color based on activity type
   const getActivityColor = (description: string): string => {
     const type = getActivityType(description);
     switch (type) {
       case "notification":
-        return "bg-blue-500";
+        return "from-blue-500 to-cyan-400";
       case "enrollment":
-        return "bg-green-500";
+        return "from-green-500 to-emerald-400";
       case "course":
-        return "bg-purple-500";
+        return "from-purple-500 to-pink-400";
       case "user":
-        return "bg-orange-500";
+        return "from-orange-500 to-amber-400";
       case "certificate":
-        return "bg-yellow-500";
+        return "from-yellow-500 to-amber-400";
       case "quiz":
-        return "bg-red-500";
+        return "from-red-500 to-rose-400";
       case "session":
-        return "bg-indigo-500";
+        return "from-indigo-500 to-purple-400";
       default:
-        return "bg-gray-500";
+        return "from-gray-500 to-slate-400";
     }
   };
 
-  // Get icon based on activity type
-  const getActivityIcon = (description: string): string => {
-    const type = getActivityType(description);
-    switch (type) {
-      case "notification":
-        return "📢";
-      case "enrollment":
-        return "📝";
-      case "course":
-        return "📚";
-      case "user":
-        return "👤";
-      case "certificate":
-        return "🏆";
-      case "quiz":
-        return "📋";
-      case "session":
-        return "🗓️";
-      default:
-        return "📌";
-    }
-  };
-
-  // Helper to parse timeAgo to timestamp
-  const parseTimeAgoToTimestamp = (timeAgo: string): number => {
-    const now = new Date();
-    const timeStr = timeAgo.toLowerCase();
-    
-    if (timeStr.includes("just now") || timeStr.includes("minute")) {
-      const mins = parseInt(timeStr.match(/\d+/)?.[0] || "0");
-      return now.getTime() - mins * 60 * 1000;
-    }
-    if (timeStr.includes("hour")) {
-      const hours = parseInt(timeStr.match(/\d+/)?.[0] || "0");
-      return now.getTime() - hours * 60 * 60 * 1000;
-    }
-    if (timeStr.includes("day")) {
-      const days = parseInt(timeStr.match(/\d+/)?.[0] || "0");
-      return now.getTime() - days * 24 * 60 * 60 * 1000;
-    }
-    if (timeStr.includes("week")) {
-      const weeks = parseInt(timeStr.match(/\d+/)?.[0] || "0");
-      return now.getTime() - weeks * 7 * 24 * 60 * 60 * 1000;
-    }
-    if (timeStr.includes("month")) {
-      const months = parseInt(timeStr.match(/\d+/)?.[0] || "0");
-      return now.getTime() - months * 30 * 24 * 60 * 60 * 1000;
-    }
-    return now.getTime(); // Default to now if can't parse
-  };
-
-  // Calculate timestamp for sorting
-  const activitiesWithTimestamp = useMemo(() => {
-    return activities.map(activity => ({
+  // Add timestamp to activities
+  const activitiesWithTimestamp: RecentActivity[] = useMemo(() => {
+    return activities.map((activity, index) => ({
       ...activity,
-      timestamp: parseTimeAgoToTimestamp(activity.timeAgo)
+      timestamp: activity.timestamp || Date.now() - index * 60000,
     }));
   }, [activities]);
-
-  // Group activities by type with counts
-  const activityTypeCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    activitiesWithTimestamp.forEach(activity => {
-      const type = getActivityType(activity.description);
-      counts[type] = (counts[type] || 0) + 1;
-    });
-    return counts;
-  }, [activitiesWithTimestamp]);
 
   // Filtering Logic
   const filteredActivities = useMemo(() => {
@@ -162,7 +125,6 @@ export default function SystemActivitiesPage() {
       const matchesDate = (() => {
         if (dateFilter === "All") return true;
         
-        // Parse timeAgo to determine if it's within the date range
         const timeAgo = activity.timeAgo.toLowerCase();
         
         if (dateFilter === "7days") {
@@ -190,7 +152,6 @@ export default function SystemActivitiesPage() {
       return matchesSearch && matchesAction && matchesDate;
     });
     
-    // Sort by timestamp descending (latest first)
     return filtered.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
   }, [activitiesWithTimestamp, search, actionFilter, dateFilter]);
 
@@ -213,23 +174,25 @@ export default function SystemActivitiesPage() {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-6">System Activities</h2>
+    <div className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen">
+      <h2 className="text-3xl font-bold text-gray-900 mb-2">System Activities</h2>
+      <p className="text-gray-500 mb-8">Track recent system activities and events</p>
 
       {/* Filters Section */}
-      <div className="flex flex-wrap gap-4 mb-6 items-center">
-        {/* Search */}
-        <input
-          type="text"
-          placeholder="Search activities..."
-          className="border rounded-lg px-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="bg-white p-4 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 mb-6 flex flex-col md:flex-row justify-between gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+          <input
+            type="text"
+            placeholder="Search activities..."
+            className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
 
-        {/* Action Type Filter */}
         <select
-          className="border rounded-lg px-4 py-2"
+          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
         >
@@ -243,121 +206,103 @@ export default function SystemActivitiesPage() {
           <option value="session">Sessions</option>
         </select>
 
-        {/* Date Filter */}
         <select
-          className="border rounded-lg px-4 py-2"
+          className="px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
           value={dateFilter}
           onChange={(e) => setDateFilter(e.target.value as "All" | "7days" | "30days")}
         >
-          <option value="All">All Dates</option>
+          <option value="All">All Time</option>
           <option value="7days">Last 7 Days</option>
           <option value="30days">Last 30 Days</option>
         </select>
 
-        {/* Refresh Button */}
         <button
           onClick={handleRefresh}
           disabled={loading}
-          className="border rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
         >
-          {loading ? "Loading..." : "🔄 Refresh"}
+          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          Refresh
         </button>
-      </div>
-
-      {/* Activity Type Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-6">
-        {Object.entries(activityTypeCounts).map(([type, count]) => (
-          <div key={type} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
-            <p className="text-sm text-gray-600 capitalize">{type}</p>
-            <p className="text-2xl font-bold text-gray-900">{count}</p>
-          </div>
-        ))}
       </div>
 
       {/* Loading State */}
       {loading && (
         <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          <Loader2 className="animate-spin text-indigo-600" size={32} />
         </div>
       )}
 
       {/* Error State */}
       {error && !loading && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-4">
           {error}
         </div>
       )}
 
-      {/* Content */}
+      {/* Activities Grid */}
       {!loading && !error && (
-        <div className="bg-white rounded-2xl shadow p-6">
-          <h3 className="text-lg font-semibold mb-6">
-            Recent Activity ({filteredActivities.length})
-          </h3>
-
-          <div className="space-y-4">
-            {paginatedActivities.map((activity, index) => (
-              <div
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {paginatedActivities.map((activity, index) => {
+            const Icon = getActivityIcon(activity.description);
+            const colorClass = getActivityColor(activity.description);
+            
+            return (
+              <div 
                 key={index}
-                className="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors"
+                className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 p-5"
               >
-                {/* Icon */}
-                <div className="text-2xl">{getActivityIcon(activity.description)}</div>
-
-                {/* Timeline Dot */}
-                <div
-                  className={`w-3 h-3 rounded-full ${getActivityColor(activity.description)} mt-2`}
-                />
-
-                {/* Content */}
-                <div className="flex-1">
-                  <p className="text-sm text-gray-800 font-medium">
-                    {activity.description}
-                  </p>
-
-                  <div className="flex items-center gap-2 mt-1">
-                    <p className="text-xs text-gray-500">{activity.timeAgo}</p>
-                    {activity.count && activity.count > 1 && (
-                      <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">
-                        {activity.count} events
-                      </span>
-                    )}
+                <div className="flex items-start gap-4">
+                  <div className={`p-3 rounded-xl bg-gradient-to-br ${colorClass} flex-shrink-0`}>
+                    <Icon className="text-white" size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 line-clamp-2">
+                      {activity.description}
+                    </p>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                      <Clock size={12} />
+                      <span>{activity.timeAgo}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            ))}
+            );
+          })}
+        </div>
+      )}
 
-            {paginatedActivities.length === 0 && (
-              <div className="text-center text-gray-500 py-6">
-                No activities found.
-              </div>
-            )}
+      {/* Empty State */}
+      {!loading && !error && paginatedActivities.length === 0 && (
+        <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
+          <Activity size={48} className="mx-auto text-gray-300 mb-2" />
+          <p className="text-gray-500">No activities found</p>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && !loading && (
+        <div className="flex justify-between items-center mt-6 bg-white p-4 rounded-xl shadow-sm">
+          <p className="text-sm text-gray-600">
+            Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredActivities.length)} of {filteredActivities.length} activities
+          </p>
+
+          <div className="flex gap-2">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Previous
+            </button>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              Next
+            </button>
           </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-4 mt-6">
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((prev) => prev - 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
-              >
-                Previous
-              </button>
-
-              <span className="text-sm">
-                Page {currentPage} of {totalPages}
-              </span>
-
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((prev) => prev + 1)}
-                className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
-              >
-                Next
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>
