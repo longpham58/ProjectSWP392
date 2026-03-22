@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { employeeApi, type CourseDetailResponse, type QuizDto, type LessonDto } from '../../api/employee.api';
 import { useAuthStore } from '../../stores/auth.store';
-import DiscussionTab from './components/DiscussionTab';
+import { FeedbackSection } from './components/DiscussionTab';
 import {
-  CheckCircle2, Pin, MessageSquare, Clock,
+  CheckCircle2, Pin, Clock,
   BookOpen, Trophy, Lock, Lightbulb, GraduationCap, ClipboardList,
-  FileText, Download, X, ExternalLink, PlayCircle
+  FileText, Download, X, ExternalLink, PlayCircle, Star
 } from 'lucide-react';
 
 // ─── LessonModal defined OUTSIDE CourseDetailPage to prevent state reset on parent re-render ───
@@ -186,7 +186,7 @@ export default function CourseDetailPage() {
   const { user } = useAuthStore();
   const [course, setCourse] = useState<CourseDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<'overview' | 'modules' | 'progress' | 'quiz' | 'discussion'>('overview');
+  const [selectedTab, setSelectedTab] = useState<'overview' | 'modules' | 'progress' | 'quiz' | 'feedback'>('overview');
   const [quizzes, setQuizzes] = useState<QuizDto[]>([]);
   const [quizzesLoading, setQuizzesLoading] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState<LessonDto | null>(null);
@@ -289,15 +289,15 @@ export default function CourseDetailPage() {
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex gap-8">
-            {(['overview', 'modules', 'progress', 'quiz', 'discussion'] as const).map(tab => {
+            {(['overview', 'modules', 'progress', 'quiz', 'feedback'] as const).map(tab => {
               const labels: Record<string, string> = {
                 overview: 'Tổng quan', modules: 'Nội dung học',
-                progress: 'Tiến độ', quiz: 'Bài kiểm tra', discussion: 'Thảo luận & Đánh giá'
+                progress: 'Tiến độ', quiz: 'Bài kiểm tra', feedback: 'Đánh giá'
               };
               return (
                 <button key={tab} onClick={() => setSelectedTab(tab)}
                   className={`py-4 border-b-2 transition-colors ${selectedTab === tab ? 'border-blue-600 text-blue-600 font-medium' : 'border-transparent text-gray-600 hover:text-gray-900'}`}>
-                  {tab === 'discussion' && <MessageSquare size={14} className="inline mr-1" />}
+                  {tab === 'feedback' && <Star size={14} className="inline mr-1" />}
                   {tab === 'quiz' && <ClipboardList size={14} className="inline mr-1" />}
                   {labels[tab]}
                 </button>
@@ -546,7 +546,7 @@ export default function CourseDetailPage() {
           </div>
         )}
 
-        {selectedTab === 'discussion' && <DiscussionTab courseId={Number(courseId)} />}
+        {selectedTab === 'feedback' && <FeedbackSection courseId={Number(courseId)} userId={user!.id} />}
       </div>
     </div>
   );

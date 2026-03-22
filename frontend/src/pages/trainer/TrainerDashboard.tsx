@@ -4,10 +4,10 @@ import { useAuthStore } from '../../stores/auth.store';
 import NotificationSection from './components/NotificationSectionNew';
 import ScheduleSection from './components/ScheduleSection';
 import AttendanceSection from './components/AttendanceSection';
-
 import ViewCourseSection from './components/ViewCourseSection';
+import FeedbackSection from './components/FeedbackSection';
 
-type ActiveSection = 'notification' | 'schedule' | 'attendance' | 'viewCourse';
+type ActiveSection = 'notification' | 'schedule' | 'attendance' | 'viewCourse' | 'feedback';
 
 const TrainerDashboard: React.FC = () => {
   const [activeSection, setActiveSection] = useState<ActiveSection>('notification');
@@ -43,6 +43,8 @@ const TrainerDashboard: React.FC = () => {
 
       case 'viewCourse':
         return <ViewCourseSection />;
+      case 'feedback':
+        return <FeedbackSection />;
       default:
         return <NotificationSection />;
     }
@@ -105,6 +107,17 @@ const TrainerDashboard: React.FC = () => {
           }`}
         >
           View Course
+        </button>
+
+        <button
+          onClick={() => setActiveSection('feedback')}
+          className={`w-24 py-3 rounded-lg text-sm font-medium transition ${
+            activeSection === 'feedback'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          Feedback
         </button>
 
         {/* Spacer */}

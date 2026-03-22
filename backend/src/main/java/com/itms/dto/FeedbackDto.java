@@ -15,6 +15,8 @@ public class FeedbackDto {
     
     private Integer courseId;
     
+    private String courseName;
+    
     // Rating fields
     private Integer courseRating;
     private Integer trainerRating;

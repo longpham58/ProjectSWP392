@@ -39,31 +39,41 @@ public class EmployeeService {
     // ─── Dashboard ────────────────────────────────────────────────────────────
 
     public DashboardResponse getDashboard(Integer userId) {
-        Integer total = enrollmentRepository.countEnrollmentsByUserId(userId);
-        Integer completed = enrollmentRepository.countCompletedEnrollmentsByUserId(userId);
-        double progress = (total != null && total > 0 && completed != null)
-                ? (completed * 100.0 / total) : 0.0;
+        // Courses the employee is enrolled in (via ClassMember)
+        List<CourseSummary> myCourses = myLearning(userId);
+        long total = myCourses.size();
+        long completed = myCourses.stream().filter(c -> c.getProgress() != null && c.getProgress() >= 100).count();
+        long inProgress = myCourses.stream().filter(c -> c.getProgress() != null && c.getProgress() > 0 && c.getProgress() < 100).count();
+        double progress = total > 0 ? (completed * 100.0 / total) : 0.0;
 
-        List<Course> recommended = courseRepository.findAll().stream()
-                .limit(5).collect(Collectors.toList());
+        // Certificates
+        long totalCertificates = certificateRepository.findByUserId(userId).size();
 
-        List<CourseSummary> recommendedDtos = recommended.stream()
-                .map(c -> mapCourseSummary(c, userId))
-                .collect(Collectors.toList());
-
+        // Notifications
         List<NotificationDto> notifications = notificationRepository
                 .findByUserIdOrderBySentDateDesc(userId).stream()
                 .limit(5)
                 .map(this::mapNotification)
                 .collect(Collectors.toList());
+        long unread = notifications.stream().filter(n -> !Boolean.TRUE.equals(n.getReadStatus())).count();
+
+        // Upcoming sessions (next 3)
+        List<ScheduleDto> upcomingSessions = getSchedule(userId).stream()
+                .filter(s -> s.getDate() != null && !s.getDate().isBefore(java.time.LocalDate.now()))
+                .limit(3)
+                .collect(Collectors.toList());
 
         return DashboardResponse.builder()
-                .totalEnrolledCourses(total != null ? total : 0)
-                .completedCourses(completed != null ? completed : 0)
+                .totalEnrolledCourses(total)
+                .completedCourses(completed)
+                .inProgressCourses(inProgress)
                 .learningProgress(progress)
-                .recommendedCourses(recommendedDtos)
-                .upcomingTrainingSessions(List.of())
+                .totalCertificates(totalCertificates)
+                .unreadNotifications(unread)
+                .myCourses(myCourses.stream().limit(3).collect(Collectors.toList()))
+                .recommendedCourses(List.of())
                 .notifications(notifications)
+                .upcomingSessions(upcomingSessions)
                 .build();
     }
 
@@ -270,14 +280,16 @@ public class EmployeeService {
     // ─── Feedback ─────────────────────────────────────────────────────────────
 
     public List<FeedbackDto> getFeedbacks(Integer courseId) {
-        return feedbackRepository.findBySessionCourseId(courseId).stream()
+        return feedbackRepository.findByCourseId(courseId).stream()
                 .map(this::mapFeedback)
                 .collect(Collectors.toList());
     }
 
     @Transactional
     public FeedbackDto upsertFeedback(Integer courseId, FeedbackRequest request) {
-        var existing = feedbackRepository.findByUserIdAndEnrollmentCourseId(request.getUserId(), courseId);
+        // Find existing feedback by user + course directly
+        Optional<Feedback> existing = feedbackRepository.findByUserIdAndCourseId(request.getUserId(), courseId);
+
         Feedback feedback;
         if (existing.isPresent()) {
             feedback = existing.get();
@@ -286,10 +298,17 @@ public class EmployeeService {
         } else {
             User user = userRepository.findById(request.getUserId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
+            Course course = courseRepository.findById(courseId)
+                    .orElseThrow(() -> new RuntimeException("Course not found"));
             feedback = Feedback.builder()
                     .user(user)
+                    .course(course)
                     .overallRating(request.getRating())
                     .comments(request.getComment())
+                    .type(com.itms.entity.FeedbackType.COURSE_FEEDBACK)
+                    .status(com.itms.entity.FeedbackStatus.OPEN)
+                    .isAnonymous(false)
+                    .isViolation(false)
                     .build();
         }
         feedback = feedbackRepository.save(feedback);
@@ -299,58 +318,6 @@ public class EmployeeService {
     @Transactional
     public void deleteFeedback(Integer courseId, Integer feedbackId, Integer userId) {
         feedbackRepository.deleteById((long) feedbackId);
-    }
-
-    // ─── Comments ─────────────────────────────────────────────────────────────
-
-    public CommentPageResponse getComments(Integer courseId, int page, int size) {
-        Page<Comment> commentPage = commentRepository
-                .findByCourse_IdAndParentIsNullOrderByCreatedAtDesc(courseId, PageRequest.of(page, size));
-        List<CommentDto> dtos = commentPage.getContent().stream()
-                .map(this::mapComment)
-                .collect(Collectors.toList());
-        return CommentPageResponse.builder()
-                .comments(dtos)
-                .page(page)
-                .size(size)
-                .totalElements(commentPage.getTotalElements())
-                .totalPages(commentPage.getTotalPages())
-                .hasNext(commentPage.hasNext())
-                .build();
-    }
-
-    @Transactional
-    public CommentDto addComment(Integer courseId, CommentRequest request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
-        Comment parent = request.getParentId() != null
-                ? commentRepository.findById(request.getParentId()).orElse(null) : null;
-
-        Comment comment = Comment.builder()
-                .course(course)
-                .user(user)
-                .content(request.getContent())
-                .parent(parent)
-                .likeCount(0)
-                .build();
-        comment = commentRepository.save(comment);
-        return mapComment(comment);
-    }
-
-    @Transactional
-    public void deleteComment(Integer commentId, Integer userId) {
-        commentRepository.deleteById(commentId);
-    }
-
-    @Transactional
-    public CommentDto likeComment(Integer commentId, Integer userId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new RuntimeException("Comment not found"));
-        comment.setLikeCount(comment.getLikeCount() + 1);
-        comment = commentRepository.save(comment);
-        return mapComment(comment);
     }
 
     // ─── Notifications ────────────────────────────────────────────────────────
@@ -514,6 +481,66 @@ public class EmployeeService {
                 .comment(f.getComments())
                 .createdAt(f.getSubmittedAt())
                 .build();
+    }
+
+    // ─── Comments ─────────────────────────────────────────────────────────────
+
+    public CommentPageResponse getComments(Integer courseId, int page, int size) {
+        org.springframework.data.domain.Page<Comment> pageResult =
+                commentRepository.findByCourse_IdAndParentIsNullOrderByCreatedAtDesc(
+                        courseId, PageRequest.of(page, size));
+        List<CommentDto> dtos = pageResult.getContent().stream()
+                .map(this::mapComment)
+                .collect(Collectors.toList());
+        return CommentPageResponse.builder()
+                .comments(dtos)
+                .page(page)
+                .size(size)
+                .totalElements(pageResult.getTotalElements())
+                .totalPages(pageResult.getTotalPages())
+                .hasNext(pageResult.hasNext())
+                .build();
+    }
+
+    @Transactional
+    public CommentDto addComment(Integer courseId, CommentRequest request) {
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        Comment parent = null;
+        if (request.getParentId() != null) {
+            parent = commentRepository.findById(request.getParentId()).orElse(null);
+        }
+
+        Comment comment = Comment.builder()
+                .course(course)
+                .user(user)
+                .content(request.getContent())
+                .parent(parent)
+                .likeCount(0)
+                .build();
+
+        return mapComment(commentRepository.save(comment));
+    }
+
+    @Transactional
+    public void deleteComment(Integer commentId, Integer userId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+        if (!comment.getUser().getId().equals(userId)) {
+            throw new RuntimeException("Không có quyền xóa bình luận này");
+        }
+        commentRepository.delete(comment);
+    }
+
+    @Transactional
+    public CommentDto likeComment(Integer commentId, Integer userId) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+        comment.setLikeCount(comment.getLikeCount() + 1);
+        return mapComment(commentRepository.save(comment));
     }
 
     private CommentDto mapComment(Comment c) {
