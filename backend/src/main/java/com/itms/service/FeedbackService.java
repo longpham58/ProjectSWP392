@@ -1,14 +1,14 @@
 package com.itms.service;
 
 import com.itms.dto.FeedbackDto;
-import com.itms.entity.Enrollment;
+import com.itms.entity.Course;
 import com.itms.entity.Feedback;
 import com.itms.entity.FeedbackStatus;
 import com.itms.entity.FeedbackType;
 import com.itms.entity.User;
-import com.itms.repository.EnrollmentRepository;
 import com.itms.repository.FeedbackRepository;
 import com.itms.repository.UserRepository;
+import com.itms.repository.CourseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,13 +23,13 @@ public class FeedbackService {
 
     private final FeedbackRepository feedbackRepository;
     private final UserRepository userRepository;
-    private final EnrollmentRepository enrollmentRepository;
+    private final CourseRepository courseRepository;
 
     /**
-     * Get all feedback for a course
+     * Get all feedback for a course (direct course_id link)
      */
     public List<FeedbackDto> getCourseFeedback(Integer courseId) {
-        List<Feedback> feedbacks = feedbackRepository.findByEnrollmentCourseId(courseId);
+        List<Feedback> feedbacks = feedbackRepository.findByCourseId(courseId);
         return feedbacks.stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -39,7 +39,7 @@ public class FeedbackService {
      * Get user's feedback for a course
      */
     public FeedbackDto getUserFeedback(Integer userId, Integer courseId) {
-        return feedbackRepository.findByUserIdAndEnrollmentCourseId(userId, courseId)
+        return feedbackRepository.findByUserIdAndCourseId(userId, courseId)
                 .map(this::mapToDto)
                 .orElse(null);
     }
@@ -48,27 +48,30 @@ public class FeedbackService {
      * Check if user has submitted feedback for a course
      */
     public boolean hasUserSubmittedFeedback(Integer userId, Integer courseId) {
-        return feedbackRepository.existsByUserIdAndEnrollmentCourseId(userId, courseId);
+        return feedbackRepository.findByUserIdAndCourseId(userId, courseId).isPresent();
     }
 
     /**
-     * Submit feedback for a course
+     * Submit feedback for a course (linked directly to course_id)
      */
     @Transactional
     public FeedbackDto submitFeedback(FeedbackDto feedbackDto) {
         User user = userRepository.findById(feedbackDto.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Find enrollment for the user and course
-        Enrollment enrollment = enrollmentRepository.findByUserIdAndCourseId(feedbackDto.getUserId(), feedbackDto.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Enrollment not found"));
+        Course course = courseRepository.findById(feedbackDto.getCourseId())
+                .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // Check if feedback already exists
-        Feedback feedback = feedbackRepository.findByUserIdAndEnrollmentCourseId(
+        // Upsert: find existing or create new
+        Feedback feedback = feedbackRepository.findByUserIdAndCourseId(
                 feedbackDto.getUserId(), feedbackDto.getCourseId())
                 .orElse(Feedback.builder()
                         .user(user)
-                        .enrollment(enrollment)
+                        .course(course)
+                        .type(FeedbackType.COURSE_FEEDBACK)
+                        .status(FeedbackStatus.OPEN)
+                        .isAnonymous(false)
+                        .isViolation(false)
                         .build());
 
         // Update feedback fields
@@ -79,7 +82,7 @@ public class FeedbackService {
         feedback.setComments(feedbackDto.getComments());
         feedback.setSuggestions(feedbackDto.getSuggestions());
         feedback.setWouldRecommend(feedbackDto.getWouldRecommend());
-        feedback.setIsAnonymous(feedbackDto.getIsAnonymous());
+        if (feedbackDto.getIsAnonymous() != null) feedback.setIsAnonymous(feedbackDto.getIsAnonymous());
         feedback.setSubmittedAt(LocalDateTime.now());
 
         feedback = feedbackRepository.save(feedback);
@@ -87,8 +90,20 @@ public class FeedbackService {
     }
 
     private FeedbackDto mapToDto(Feedback feedback) {
+        // Resolve course: direct course field first, then fallback to session/enrollment
+        com.itms.entity.Course course = feedback.getCourse();
+        if (course == null && feedback.getSession() != null) {
+            course = feedback.getSession().getCourse();
+        }
+        if (course == null && feedback.getEnrollment() != null
+                && feedback.getEnrollment().getSession() != null) {
+            course = feedback.getEnrollment().getSession().getCourse();
+        }
+
         return FeedbackDto.builder()
                 .id(feedback.getId())
+                .courseId(course != null ? course.getId() : null)
+                .courseName(course != null ? course.getName() : null)
                 .courseRating(feedback.getCourseRating())
                 .trainerRating(feedback.getTrainerRating())
                 .contentRating(feedback.getContentRating())
@@ -97,7 +112,7 @@ public class FeedbackService {
                 .suggestions(feedback.getSuggestions())
                 .wouldRecommend(feedback.getWouldRecommend())
                 .isAnonymous(feedback.getIsAnonymous())
-                .userName(feedback.getIsAnonymous() != null && feedback.getIsAnonymous() ? null : 
+                .userName(feedback.getIsAnonymous() != null && feedback.getIsAnonymous() ? null :
                         (feedback.getUser() != null ? feedback.getUser().getFullName() : null))
                 .userEmail(feedback.getIsAnonymous() != null && feedback.getIsAnonymous() ? null :
                         (feedback.getUser() != null ? feedback.getUser().getEmail() : null))
@@ -114,8 +129,14 @@ public class FeedbackService {
      * Get feedback for trainer's courses
      */
     public List<FeedbackDto> getFeedbackForTrainer(Integer trainerId) {
-        List<Feedback> feedbacks = feedbackRepository.findByTrainerId(trainerId);
-        return feedbacks.stream()
+        List<Integer> courseIds = courseRepository.findByTrainerId(trainerId)
+                .stream()
+                .map(com.itms.entity.Course::getId)
+                .collect(Collectors.toList());
+
+        if (courseIds.isEmpty()) return List.of();
+
+        return feedbackRepository.findByCourseIdIn(courseIds).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }

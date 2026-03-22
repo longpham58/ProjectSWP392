@@ -1,5 +1,6 @@
 package com.itms.entity;
 
+import com.itms.entity.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,13 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        name = "Feedback",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "UQ_Feedback_EnrollmentSession",
-                        columnNames = {"enrollment_id", "session_id"})
-        }
-)
+@Table(name = "Feedback")
 public class Feedback {
 
     @Id
@@ -36,6 +31,10 @@ public class Feedback {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id")
     private Session session;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    private Course course;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)

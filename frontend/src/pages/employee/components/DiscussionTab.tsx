@@ -9,7 +9,7 @@ interface Props {
 
 // ─── Feedback Section ─────────────────────────────────────────────────────────
 
-function FeedbackSection({ courseId, userId }: { courseId: number; userId: number }) {
+export function FeedbackSection({ courseId, userId }: { courseId: number; userId: number }) {
   const [feedbacks, setFeedbacks] = useState<FeedbackDto[]>([]);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
@@ -323,7 +323,7 @@ function CommentItem({
 
 // ─── Discussion Section ───────────────────────────────────────────────────────
 
-function DiscussionSection({ courseId, userId }: { courseId: number; userId: number }) {
+function DiscussionSection({ courseId, userId, userName }: { courseId: number; userId: number; userName?: string }) {
   const [data, setData] = useState<{ comments: CommentDto[]; hasNext: boolean }>({ comments: [], hasNext: false });
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -369,7 +369,7 @@ function DiscussionSection({ courseId, userId }: { courseId: number; userId: num
       <div className="bg-white rounded-xl shadow p-5">
         <form onSubmit={handleSubmit} className="flex gap-3">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-            T
+            {userName?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div className="flex-1 flex gap-2">
             <input
@@ -448,7 +448,7 @@ export default function DiscussionTab({ courseId }: Props) {
       </div>
 
       {activeTab === 'discussion' ? (
-        <DiscussionSection courseId={courseId} userId={user.id} />
+        <DiscussionSection courseId={courseId} userId={user.id} userName={user.fullName} />
       ) : (
         <FeedbackSection courseId={courseId} userId={user.id} />
       )}

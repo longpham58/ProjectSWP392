@@ -27,10 +27,28 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     boolean existsByUserIdAndSessionId(Integer userId, Integer sessionId);
 
     /**
-     * Find all feedback for sessions in a course
+     * Find all feedback for a course directly
+     */
+    @Query("SELECT f FROM Feedback f WHERE f.course.id = :courseId")
+    List<Feedback> findByCourseId(@Param("courseId") Integer courseId);
+
+    /**
+     * Find all feedback for multiple courses directly
+     */
+    @Query("SELECT f FROM Feedback f WHERE f.course.id IN :courseIds")
+    List<Feedback> findByCourseIdIn(@Param("courseIds") List<Integer> courseIds);
+
+    /**
+     * Find all feedback for sessions in a course (legacy)
      */
     @Query("SELECT f FROM Feedback f WHERE f.session.course.id = :courseId")
     List<Feedback> findBySessionCourseId(@Param("courseId") Integer courseId);
+
+    /**
+     * Find all feedback for sessions in multiple courses (legacy)
+     */
+    @Query("SELECT f FROM Feedback f WHERE f.session IS NOT NULL AND f.session.course.id IN :courseIds")
+    List<Feedback> findBySessionCourseIdIn(@Param("courseIds") List<Integer> courseIds);
 
     /**
      * Find all feedback for a user
@@ -49,10 +67,22 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     List<Feedback> findByEnrollmentCourseId(@Param("courseId") Integer courseId);
 
     /**
-     * Find feedback by user and course (through session)
+     * Find feedback by user and course directly (new approach)
+     */
+    @Query("SELECT f FROM Feedback f WHERE f.user.id = :userId AND f.course.id = :courseId")
+    Optional<Feedback> findByUserIdAndCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
+
+    /**
+     * Find feedback by user and course (through session directly) - legacy
      */
     @Query("SELECT f FROM Feedback f WHERE f.user.id = :userId AND f.session.course.id = :courseId")
     Optional<Feedback> findByUserIdAndEnrollmentCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
+
+    /**
+     * Find feedback by user where session is null (standalone feedback)
+     */
+    @Query("SELECT f FROM Feedback f WHERE f.user.id = :userId AND f.session IS NULL AND f.enrollment IS NULL")
+    List<Feedback> findByUserIdAndSessionIsNullAndEnrollmentIsNull(@Param("userId") Integer userId);
 
     /**
      * Check if user has already submitted feedback for a course (through session)
@@ -62,9 +92,16 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     boolean existsByUserIdAndEnrollmentCourseId(@Param("userId") Integer userId, @Param("courseId") Integer courseId);
 
     /**
-     * Find feedback for trainer's courses
+     * Find feedback for trainer's courses.
+     * Covers: feedback linked via session (employee feedback) OR via enrollment (old path).
+     * Matches on Course.trainer_id in both cases.
      */
-    @Query("SELECT f FROM Feedback f JOIN f.enrollment e JOIN e.session s JOIN s.course c WHERE c.trainer.id = :trainerId")
+    @Query("SELECT DISTINCT f FROM Feedback f " +
+           "LEFT JOIN f.session s " +
+           "LEFT JOIN f.enrollment e " +
+           "LEFT JOIN e.session es " +
+           "WHERE (s IS NOT NULL AND s.course.trainer.id = :trainerId) " +
+           "   OR (e IS NOT NULL AND es IS NOT NULL AND es.course.trainer.id = :trainerId)")
     List<Feedback> findByTrainerId(@Param("trainerId") Integer trainerId);
     
     /**

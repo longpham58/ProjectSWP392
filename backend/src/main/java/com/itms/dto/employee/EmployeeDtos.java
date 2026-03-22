@@ -21,10 +21,14 @@ public class EmployeeDtos {
     public static class DashboardResponse {
         private long totalEnrolledCourses;
         private long completedCourses;
+        private long inProgressCourses;
         private double learningProgress;
+        private long totalCertificates;
+        private long unreadNotifications;
+        private List<CourseSummary> myCourses;       // courses employee is enrolled in
         private List<CourseSummary> recommendedCourses;
-        private List<String> upcomingTrainingSessions;
         private List<NotificationDto> notifications;
+        private List<ScheduleDto> upcomingSessions;  // next 3 upcoming sessions
     }
 
     @Data
