@@ -13,6 +13,7 @@ export const ScheduleManagePage: React.FC<ScheduleManagePageProps> = ({ onSchedu
   const [schedules, setSchedules] = useState<HRSchedule[]>([]);
   const [courses, setCourses] = useState<CourseDto[]>([]);
   const [trainers, setTrainers] = useState<Array<{ username: string; fullName: string }>>([]);
+  const [allTrainers, setAllTrainers] = useState<Array<{ username: string; fullName: string }>>([]);
   const [classes, setClasses] = useState<Array<{ classCode: string; className: string }>>([]);
   
   const [loading, setLoading] = useState(false);
@@ -90,10 +91,32 @@ export const ScheduleManagePage: React.FC<ScheduleManagePageProps> = ({ onSchedu
     }
   };
 
+  const loadTrainersByCourse = async (courseCode: string) => {
+    if (!courseCode) { setTrainers([]); return; }
+    try {
+      const response = await fetch(`/api/hr/schedules/trainers-by-course/${encodeURIComponent(courseCode)}`, {
+        credentials: 'include',
+      });
+      if (response.ok) {
+        const result = await response.json();
+        const list = result.data ?? [];
+        setTrainers(list);
+        // Auto-select if only one trainer
+        if (list.length === 1) {
+          setFormData(prev => ({ ...prev, trainerUsername: list[0].username }));
+        } else {
+          setFormData(prev => ({ ...prev, trainerUsername: '' }));
+        }
+      }
+    } catch (err) {
+      console.error('Error loading trainers by course:', err);
+    }
+  };
+
   const loadTrainers = async () => {
     try {
       const list = await courseApi.getTrainers();
-      setTrainers(list);
+      setAllTrainers(list);
     } catch (err) {
       console.error('Error loading trainers:', err);
     }
@@ -132,6 +155,8 @@ export const ScheduleManagePage: React.FC<ScheduleManagePageProps> = ({ onSchedu
       status: 'SCHEDULED',
       notes: ''
     });
+    setTrainers([]);
+    setClasses([]);
     setEditingId(null);
     setError('');
   };
@@ -142,8 +167,9 @@ export const ScheduleManagePage: React.FC<ScheduleManagePageProps> = ({ onSchedu
   };
 
   const openEditModal = (schedule: HRSchedule) => {
+    const currentTrainer = schedule.trainerUsername;
     setFormData({
-      trainerUsername: schedule.trainerUsername,
+      trainerUsername: currentTrainer,
       courseCode: schedule.courseCode,
       classCode: schedule.classCode || '',
       date: schedule.date,
@@ -159,6 +185,17 @@ export const ScheduleManagePage: React.FC<ScheduleManagePageProps> = ({ onSchedu
     });
     const course = courses.find(c => c.code === schedule.courseCode);
     loadClasses(course?.id);
+    // Load trainers for this course but preserve current trainer selection
+    if (schedule.courseCode) {
+      fetch(`/api/hr/schedules/trainers-by-course/${encodeURIComponent(schedule.courseCode)}`, { credentials: 'include' })
+        .then(r => r.json())
+        .then(result => {
+          setTrainers(result.data ?? []);
+          // Keep the existing trainer selected
+          setFormData(prev => ({ ...prev, trainerUsername: currentTrainer }));
+        })
+        .catch(() => {});
+    }
     setEditingId(String(schedule.id));
     setModalOpen(true);
   };
@@ -318,7 +355,7 @@ export const ScheduleManagePage: React.FC<ScheduleManagePageProps> = ({ onSchedu
               className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Tất cả trainer</option>
-              {trainers.map(trainer => (
+              {allTrainers.map(trainer => (
                 <option key={trainer.username} value={trainer.username}>
                   {trainer.fullName}
                 </option>
@@ -531,8 +568,9 @@ export const ScheduleManagePage: React.FC<ScheduleManagePageProps> = ({ onSchedu
                       onChange={(e) => {
                         const code = e.target.value;
                         const course = courses.find(c => c.code === code);
-                        setFormData(prev => ({ ...prev, courseCode: code, classCode: '' }));
+                        setFormData(prev => ({ ...prev, courseCode: code, classCode: '', trainerUsername: '' }));
                         loadClasses(course?.id);
+                        loadTrainersByCourse(code);
                       }}
                       required
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"

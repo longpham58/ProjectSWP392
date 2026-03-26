@@ -24,7 +24,13 @@ public class HrClassService {
     private final UserRepository userRepository;
 
     public List<HrClassDto> getAll() {
-        return classRoomRepository.findAll().stream()
+        return classRoomRepository.findAllWithCourseAndTrainer().stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<HrClassDto> getByCourseId(Integer courseId) {
+        return classRoomRepository.findByCourseId(courseId).stream()
                 .map(this::toDto)
                 .toList();
     }
@@ -50,6 +56,9 @@ public class HrClassService {
         if (dto.getCourseId() != null) {
             course = courseRepository.findById(dto.getCourseId())
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khóa học với id: " + dto.getCourseId()));
+            if (com.itms.common.CourseStatus.INACTIVE.equals(course.getStatus())) {
+                throw new IllegalArgumentException("Khóa học đang INACTIVE, không thể tạo lớp học mới");
+            }
         } else {
             course = courseRepository.findAll().stream()
                     .findFirst()

@@ -8,6 +8,7 @@ import com.itms.entity.User;
 import com.itms.service.EmployeeService;
 import com.itms.service.QuizService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -120,75 +121,92 @@ public class EmployeeController {
     // ─── Quiz endpoints ───────────────────────────────────────────────────────
 
     @GetMapping("/courses/{courseId}/quizzes")
-    public List<EmployeeDtos.QuizDto> getQuizzes(@PathVariable Integer courseId, @RequestParam Integer userId) {
-        return quizService.getQuizzesByCourse(courseId, userId).stream()
-                .map(q -> mapToEmployeeQuizDto(q))
-                .collect(java.util.stream.Collectors.toList());
+    public ResponseEntity<?> getQuizzes(@PathVariable Integer courseId, @RequestParam Integer userId) {
+        try {
+            List<EmployeeDtos.QuizDto> quizzes = quizService.getQuizzesByCourse(courseId, userId).stream()
+                    .map(q -> mapToEmployeeQuizDto(q))
+                    .collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(com.itms.dto.common.ResponseDto.success(quizzes, "Quizzes retrieved"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(com.itms.dto.common.ResponseDto.fail("Không thể tải danh sách quiz: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/courses/{courseId}/quizzes/{quizId}")
-    public EmployeeDtos.QuizDto getQuiz(@PathVariable Integer courseId, @PathVariable Integer quizId, @RequestParam Integer userId) {
-        com.itms.dto.QuizDto q = quizService.getQuizById(quizId, userId);
-        return mapToEmployeeQuizDto(q);
+    public ResponseEntity<?> getQuiz(@PathVariable Integer courseId, @PathVariable Integer quizId, @RequestParam Integer userId) {
+        try {
+            com.itms.dto.QuizDto q = quizService.getQuizById(quizId, userId);
+            return ResponseEntity.ok(com.itms.dto.common.ResponseDto.success(mapToEmployeeQuizDto(q), "Quiz retrieved"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(com.itms.dto.common.ResponseDto.fail("Không thể tải quiz: " + e.getMessage()));
+        }
     }
 
     @PostMapping("/courses/{courseId}/quizzes/{quizId}/submit")
-    public EmployeeDtos.QuizResultDto submitQuiz(
+    public ResponseEntity<?> submitQuiz(
             @PathVariable Integer courseId,
             @PathVariable Integer quizId,
             @RequestBody QuizSubmitRequest request) {
+        try {
+            // 1. Start attempt
+            QuizAttemptDto attempt = quizService.startQuizAttempt(quizId, request.getUserId(), null);
 
-        // 1. Start attempt
-        QuizAttemptDto attempt = quizService.startQuizAttempt(quizId, request.getUserId(), null);
+            // 2. Get quiz questions
+            com.itms.dto.QuizDto quiz = quizService.getQuizWithQuestions(quizId);
 
-        // 2. Get quiz questions
-        com.itms.dto.QuizDto quiz = quizService.getQuizWithQuestions(quizId);
+            // 3. Build answer list
+            List<QuizAttemptDto.QuizAnswerDto> answerList = buildAnswerList(attempt, request, quiz);
 
-        // 3. Convert answers map to list using the outer-instance inner class
-        List<QuizAttemptDto.QuizAnswerDto> answerList = buildAnswerList(attempt, request, quiz);
+            // 4. Submit attempt
+            QuizAttemptDto result = quizService.submitQuizAttempt(attempt.getId(), answerList, null);
 
-        // 4. Submit attempt
-        QuizAttemptDto result = quizService.submitQuizAttempt(attempt.getId(), answerList, null);
+            // 5. Map to employee QuizResultDto
+            int score = result.getScore() != null ? result.getScore().intValue() : 0;
+            int passingScore = quiz.getPassingScore() != null ? quiz.getPassingScore().intValue() : 70;
+            boolean passed = Boolean.TRUE.equals(result.getPassed());
 
-        // 5. Map to employee QuizResultDto
-        int score = result.getScore() != null ? result.getScore().intValue() : 0;
-        int passingScore = quiz.getPassingScore() != null ? quiz.getPassingScore().intValue() : 70;
-        boolean passed = Boolean.TRUE.equals(result.getPassed());
+            // Build answer review list
+            List<EmployeeDtos.QuizAnswerReviewDto> reviewList = new java.util.ArrayList<>();
+            if (result.getAnswers() != null && quiz.getQuestions() != null) {
+                java.util.Map<Integer, com.itms.dto.QuizQuestionDto> qMap = new java.util.HashMap<>();
+                for (com.itms.dto.QuizQuestionDto q : quiz.getQuestions()) qMap.put(q.getId(), q);
 
-        // Build answer review list
-        List<EmployeeDtos.QuizAnswerReviewDto> reviewList = new java.util.ArrayList<>();
-        if (result.getAnswers() != null && quiz.getQuestions() != null) {
-            java.util.Map<Integer, com.itms.dto.QuizQuestionDto> qMap = new java.util.HashMap<>();
-            for (com.itms.dto.QuizQuestionDto q : quiz.getQuestions()) qMap.put(q.getId(), q);
-
-            for (QuizAttemptDto.QuizAnswerDto ans : result.getAnswers()) {
-                com.itms.dto.QuizQuestionDto q = qMap.get(ans.getQuestionId());
-                if (q == null) continue;
-                List<EmployeeDtos.QuizOptionDto> opts = buildOptions(q);
-                int correctIdx = convertAnswerLetterToIndex(q.getCorrectAnswer());
-                int selectedIdx = ans.getSelectedAnswerIndex() != null ? ans.getSelectedAnswerIndex() : -1;
-                reviewList.add(EmployeeDtos.QuizAnswerReviewDto.builder()
-                        .questionId(q.getId())
-                        .question(q.getQuestionText())
-                        .selectedOptionId(selectedIdx)
-                        .correctOptionId(correctIdx)
-                        .isCorrect(Boolean.TRUE.equals(ans.getIsCorrect()))
-                        .options(opts)
-                        .build());
+                for (QuizAttemptDto.QuizAnswerDto ans : result.getAnswers()) {
+                    com.itms.dto.QuizQuestionDto q = qMap.get(ans.getQuestionId());
+                    if (q == null) continue;
+                    List<EmployeeDtos.QuizOptionDto> opts = buildOptions(q);
+                    int correctIdx = convertAnswerLetterToIndex(q.getCorrectAnswer());
+                    int selectedIdx = ans.getSelectedAnswerIndex() != null ? ans.getSelectedAnswerIndex() : -1;
+                    reviewList.add(EmployeeDtos.QuizAnswerReviewDto.builder()
+                            .questionId(q.getId())
+                            .question(q.getQuestionText())
+                            .selectedOptionId(selectedIdx)
+                            .correctOptionId(correctIdx)
+                            .isCorrect(Boolean.TRUE.equals(ans.getIsCorrect()))
+                            .options(opts)
+                            .build());
+                }
             }
-        }
 
-        return EmployeeDtos.QuizResultDto.builder()
-                .attemptId(result.getId())
-                .quizId(quizId)
-                .quizTitle(quiz.getTitle())
-                .score(score)
-                .passed(passed)
-                .passingScore(passingScore)
-                .submittedAt(result.getSubmittedAt() != null ? result.getSubmittedAt().toString() : null)
-                .answers(reviewList)
-                .courseCompleted(false)
-                .build();
+            EmployeeDtos.QuizResultDto resultDto = EmployeeDtos.QuizResultDto.builder()
+                    .attemptId(result.getId())
+                    .quizId(quizId)
+                    .quizTitle(quiz.getTitle())
+                    .score(score)
+                    .passed(passed)
+                    .passingScore(passingScore)
+                    .submittedAt(result.getSubmittedAt() != null ? result.getSubmittedAt().toString() : null)
+                    .answers(reviewList)
+                    .courseCompleted(false)
+                    .build();
+
+            return ResponseEntity.ok(com.itms.dto.common.ResponseDto.success(resultDto, "Quiz submitted"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(com.itms.dto.common.ResponseDto.fail("Lỗi khi nộp bài: " + e.getMessage()));
+        }
     }
 
     private List<QuizAttemptDto.QuizAnswerDto> buildAnswerList(

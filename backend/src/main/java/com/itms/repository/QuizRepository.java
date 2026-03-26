@@ -14,8 +14,8 @@ public interface QuizRepository extends JpaRepository<Quiz, Integer> {
     // Find quizzes by course
     List<Quiz> findByCourseId(Integer courseId);
 
-    // Find quizzes by course with specific quiz types (PRE_TEST, POST_TEST, ASSESSMENT, PRACTICE)
-    @Query("SELECT q FROM Quiz q WHERE q.course.id = :courseId AND q.quizType IN ('PRE_TEST', 'POST_TEST', 'ASSESSMENT', 'PRACTICE')")
+    // Find all active quizzes for a course (includes all types — used by employee quiz page)
+    @Query("SELECT q FROM Quiz q WHERE q.course.id = :courseId AND q.isActive = true ORDER BY q.isFinalExam ASC, q.id ASC")
     List<Quiz> findByCourseIdAndQuizTypeIn(@Param("courseId") Integer courseId);
 
     // Find quizzes by module

@@ -109,18 +109,22 @@ public class QuizService {
         // Get course ID for session completion check
         Integer courseId = quiz.getCourse() != null ? quiz.getCourse().getId() : null;
         
-        // Check unlock status - check module or session completion
-        if (quiz.getModule() != null) {
-            // Module-level quiz: unlock based on module completion
-            dto.setIsUnlocked(isModuleCompleted(userId, quiz.getModule().getId()));
-        } else if (courseId != null) {
-            // Course-level quiz (tests): unlock based on session completion
-            List<SessionAttendanceDto> sessionAttendances = sessionRepository.getSessionAttendanceForUser(userId, courseId);
-            boolean allSessionsCompleted = sessionAttendances.size() > 0 && 
-                sessionAttendances.stream().filter(s -> s.getMarkedComplete() != null && s.getMarkedComplete()).count() >= sessionAttendances.size();
-            dto.setIsUnlocked(allSessionsCompleted);
+        // Check unlock status - regular quizzes always unlocked for enrolled students
+        // Final exam requires all regular quizzes passed
+        boolean isFinal = Boolean.TRUE.equals(quiz.getIsFinalExam());
+        if (isFinal) {
+            // Final exam: check if all regular quizzes passed
+            List<Quiz> regularQuizzes = quizRepository.findByCourseIdAndQuizTypeIn(courseId != null ? courseId : -1)
+                    .stream().filter(q -> !Boolean.TRUE.equals(q.getIsFinalExam())).toList();
+            int passedRegular = 0;
+            for (Quiz rq : regularQuizzes) {
+                List<QuizAttempt> rAttempts = quizAttemptRepository.findByQuizIdAndUserId(rq.getId(), userId);
+                if (rAttempts.stream().anyMatch(a -> Boolean.TRUE.equals(a.getPassed()))) passedRegular++;
+            }
+            dto.setIsUnlocked(regularQuizzes.isEmpty() || passedRegular >= regularQuizzes.size());
         } else {
-            dto.setIsUnlocked(false);
+            // Regular quizzes: always unlocked for enrolled students
+            dto.setIsUnlocked(true);
         }
 
         // Get attempt count
@@ -138,6 +142,11 @@ public class QuizService {
     public QuizAttemptDto startQuizAttempt(Integer quizId, Integer userId, Integer enrollmentId) {
         Quiz quiz = quizRepository.findById(quizId)
                 .orElseThrow(() -> new RuntimeException("Quiz not found"));
+
+        // Block quiz attempt if course is INACTIVE
+        if (quiz.getCourse() != null && com.itms.common.CourseStatus.INACTIVE.equals(quiz.getCourse().getStatus())) {
+            throw new IllegalArgumentException("Khóa học đang INACTIVE, không thể làm bài kiểm tra");
+        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));

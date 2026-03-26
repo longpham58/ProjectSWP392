@@ -15,7 +15,7 @@ export default function AdminNotificationsPage() {
     deleteNotification 
   } = useAdminStore();
   
-  const [activeTab, setActiveTab] = useState<"Sent" | "Draft">("Sent");
+  const [activeTab, setActiveTab] = useState<"Sent" | "Draft">("Draft");
   const [showForm, setShowForm] = useState(false);
   const [formTitle, setFormTitle] = useState("");
   const [formMessage, setFormMessage] = useState("");
@@ -275,7 +275,7 @@ export default function AdminNotificationsPage() {
                 }}
                 className="px-5 py-2 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
               >
-                Cancel
+                Hủy
               </button>
               <button
                 type="submit"
@@ -298,19 +298,6 @@ export default function AdminNotificationsPage() {
       {/* Tabs */}
       <div className="flex gap-2 mb-6">
         <button
-          onClick={() => setActiveTab("Sent")}
-          className={`px-5 py-2.5 rounded-xl font-medium transition-all ${
-            activeTab === "Sent"
-              ? "bg-indigo-600 text-white shadow-md"
-              : "text-gray-600 hover:bg-white"
-          }`}
-        >
-          <span className="flex items-center gap-2">
-            <Send size={16} />
-            Sent ({sentCount})
-          </span>
-        </button>
-        <button
           onClick={() => setActiveTab("Draft")}
           className={`px-5 py-2.5 rounded-xl font-medium transition-all ${
             activeTab === "Draft"
@@ -320,7 +307,20 @@ export default function AdminNotificationsPage() {
         >
           <span className="flex items-center gap-2">
             <Edit size={16} />
-            Draft ({draftCount})
+            Nháp ({draftCount})
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab("Sent")}
+          className={`px-5 py-2.5 rounded-xl font-medium transition-all ${
+            activeTab === "Sent"
+              ? "bg-indigo-600 text-white shadow-md"
+              : "text-gray-600 hover:bg-white"
+          }`}
+        >
+          <span className="flex items-center gap-2">
+            <Send size={16} />
+            Đã gửi ({sentCount})
           </span>
         </button>
       </div>

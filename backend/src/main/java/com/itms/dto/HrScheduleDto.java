@@ -21,5 +21,9 @@ public class HrScheduleDto {
     private String room;
     private String locationType;
     private String meetingLink;
+    private String meetingPassword;
+    private Integer maxCapacity;
+    private Integer currentEnrolled;
     private String status;
+    private String notes;
 }

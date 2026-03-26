@@ -36,6 +36,19 @@ public class HrScheduleService {
                 .toList();
     }
 
+    /** Return trainer(s) assigned to a course (by course code) */
+    public List<java.util.Map<String, String>> getTrainersByCourse(String courseCode) {
+        return courseRepository.findByCodeIgnoreCase(courseCode)
+                .map(course -> {
+                    if (course.getTrainer() == null) return java.util.List.<java.util.Map<String, String>>of();
+                    java.util.Map<String, String> t = new java.util.HashMap<>();
+                    t.put("username", course.getTrainer().getUsername());
+                    t.put("fullName", course.getTrainer().getFullName());
+                    return java.util.List.of(t);
+                })
+                .orElse(java.util.List.of());
+    }
+
     @Transactional
     public HrScheduleDto create(HrScheduleDto dto) {
         Session session = new Session();
@@ -74,6 +87,10 @@ public class HrScheduleService {
         Course course = courseRepository.findByCodeIgnoreCase(courseCode)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy khóa học: " + courseCode));
 
+        if (com.itms.common.CourseStatus.INACTIVE.equals(course.getStatus())) {
+            throw new IllegalArgumentException("Khóa học '" + courseCode + "' đang INACTIVE, không thể tạo lịch học");
+        }
+
         User trainer = userRepository.findByUsername(trainerUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy trainer: " + trainerUsername));
 
@@ -85,6 +102,7 @@ public class HrScheduleService {
         LocationType locationType = parseLocationType(dto.getLocationType());
         String room = dto.getRoom() == null ? "" : dto.getRoom().trim();
         String meetingLink = dto.getMeetingLink() == null ? "" : dto.getMeetingLink().trim();
+        String meetingPassword = dto.getMeetingPassword() == null ? "" : dto.getMeetingPassword().trim();
 
         if (locationType == LocationType.OFFLINE && room.isEmpty()) {
             throw new IllegalArgumentException("Vui lòng nhập phòng học");
@@ -113,8 +131,9 @@ public class HrScheduleService {
         session.setLocationType(locationType);
         session.setLocation(locationType == LocationType.OFFLINE ? room : "ONLINE");
         session.setMeetingLink(locationType == LocationType.ONLINE ? meetingLink : null);
+        session.setMeetingPassword(locationType != LocationType.OFFLINE ? (meetingPassword.isEmpty() ? null : meetingPassword) : null);
         session.setStatus(parseStatus(dto.getStatus()));
-        session.setMaxCapacity(session.getMaxCapacity() == null ? 100 : session.getMaxCapacity());
+        session.setMaxCapacity(dto.getMaxCapacity() != null ? dto.getMaxCapacity() : (session.getMaxCapacity() == null ? 100 : session.getMaxCapacity()));
         session.setCurrentEnrolled(session.getCurrentEnrolled() == null ? 0 : session.getCurrentEnrolled());
         session.setNotes(mergeClassCodeToNotes(session.getNotes(), classCode));
     }
@@ -163,6 +182,9 @@ public class HrScheduleService {
                 .room("ONLINE".equalsIgnoreCase(locationType) ? "" : defaultString(s.getLocation()))
                 .locationType(locationType)
                 .meetingLink(defaultString(s.getMeetingLink()))
+                .meetingPassword(defaultString(s.getMeetingPassword()))
+                .maxCapacity(s.getMaxCapacity())
+                .currentEnrolled(s.getCurrentEnrolled())
                 .status(s.getStatus() == null ? SessionStatus.SCHEDULED.name() : s.getStatus().name())
                 .build();
     }

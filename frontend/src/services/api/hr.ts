@@ -46,6 +46,7 @@ export const hrNotificationService = {
 
 export const hrClassService = {
   list: () => axios.get<ApiResponse<HRClassroom[]>>('/hr/classes'),
+  listByCourse: (courseId: number) => axios.get<ApiResponse<HRClassroom[]>>(`/hr/classes?courseId=${courseId}`),
   listTrainers: () => axios.get<ApiResponse<Array<{ trainerId: number; trainerName: string }>>>('/hr/classes/trainers'),
   create: (payload: Omit<HRClassroom, 'id' | 'courseName' | 'courseCode' | 'trainerName'>) =>
     axios.post<ApiResponse<HRClassroom>>('/hr/classes', payload),

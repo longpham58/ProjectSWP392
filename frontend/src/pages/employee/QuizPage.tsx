@@ -23,8 +23,9 @@ export default function QuizPage() {
     if (!user?.id || !courseId || !quizId) return;
     employeeApi.getQuiz(Number(courseId), Number(quizId), user.id)
       .then(res => {
-        setQuiz(res.data.data);
-        setTimeLeft((res.data.data.timeLimitMinutes || 15) * 60);
+        const quizData = res.data.data;
+        setQuiz(quizData);
+        setTimeLeft((quizData.timeLimitMinutes || 15) * 60);
       })
       .catch(err => setError(err.response?.data?.message || 'Không thể tải quiz'))
       .finally(() => setLoading(false));
@@ -38,10 +39,11 @@ export default function QuizPage() {
         userId: user.id,
         answers,
       });
-      setResult(res.data.data);
+      const resultData = res.data.data;
+      setResult(resultData);
       setIsSubmitted(true);
-    } catch {
-      setError('Lỗi khi nộp bài. Vui lòng thử lại.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Lỗi khi nộp bài. Vui lòng thử lại.');
     } finally {
       setSubmitting(false);
     }
@@ -71,7 +73,12 @@ export default function QuizPage() {
     </div>
   );
 
-  if (!quiz || !quiz.questions) return null;
+  if (!quiz || !quiz.questions || quiz.questions.length === 0) return (
+    <div className="p-8 text-center">
+      <p className="text-gray-500 mb-4">Quiz chưa có câu hỏi hoặc dữ liệu không hợp lệ.</p>
+      <button onClick={() => navigate(-1)} className="px-4 py-2 bg-blue-600 text-white rounded-lg">Quay lại</button>
+    </div>
+  );
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 

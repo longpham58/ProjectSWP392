@@ -40,7 +40,11 @@ export type HRSchedule = {
   room: string;
   locationType?: 'ONLINE' | 'OFFLINE' | 'HYBRID';
   meetingLink?: string;
+  meetingPassword?: string;
+  maxCapacity?: number;
+  currentEnrolled?: number;
   status?: string;
+  notes?: string;
 };
 
 export type NotificationChannel = 'In-app' | 'Email';
