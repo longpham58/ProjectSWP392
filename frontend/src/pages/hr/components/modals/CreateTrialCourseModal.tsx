@@ -109,7 +109,7 @@ export const CreateTrialCourseModal: React.FC<CreateTrialCourseModalProps> = ({
             onClick={handleClose}
             className="text-gray-500 hover:text-gray-700"
           >
-            ✕
+            &times;
           </button>
         </div>
 

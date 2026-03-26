@@ -60,7 +60,7 @@ function CourseCard({ course, viewMode }: { course: CourseSummary; viewMode: Vie
       </div>
       <div>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
-          <span style={{ fontSize: "11px", color: "#6B7280" }}>Tien do</span>
+          <span style={{ fontSize: "11px", color: "#6B7280" }}>Tiến độ</span>
           <span style={{ fontSize: "11px", fontWeight: 600, color: "#2563EB" }}>{course.progress}%</span>
         </div>
         <div style={{ background: "#E5E7EB", borderRadius: "99px", height: "5px" }}>

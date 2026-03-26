@@ -189,8 +189,22 @@ public class EmployeeService {
                 .filter(cm -> cm.getClassRoom() != null && cm.getClassRoom().getCourse() != null)
                 .map(cm -> {
                     Course c = cm.getClassRoom().getCourse();
-                    String enrollmentStatus = cm.getStatus();
                     int progress = calculateCourseProgress(c.getId(), userId);
+
+                    // Derive enrollment status from course state + certificate
+                    boolean hasCert = certificateRepository.findByUserId(userId)
+                            .stream().anyMatch(cert -> cert.getCourse().getId().equals(c.getId()));
+                    boolean courseEnded = (c.getEndDate() != null && !c.getEndDate().isAfter(java.time.LocalDate.now()))
+                            || (c.getStatus() != null && (c.getStatus().name().equals("INACTIVE") || c.getStatus().name().equals("ARCHIVED")));
+
+                    String enrollmentStatus;
+                    if (hasCert) {
+                        enrollmentStatus = "COMPLETED";
+                    } else if (courseEnded) {
+                        enrollmentStatus = "COMPLETED"; // course ended, show as completed
+                    } else {
+                        enrollmentStatus = "ACTIVE"; // still ongoing
+                    }
 
                     return CourseSummary.builder()
                             .id(c.getId())
@@ -207,7 +221,11 @@ public class EmployeeService {
     }
 
     /**
-     * Calculate course progress = (completedModules + passedQuizzes) / (totalModules + totalQuizzes) * 100
+     * Calculate course progress.
+     * Priority:
+     *  1. If course has modules or quizzes → (completedModules + passedQuizzes) / total * 100
+     *  2. If no modules/quizzes → attendance rate: attendedSessions / totalSessions * 100
+     *  3. If no sessions either → 0
      */
     private int calculateCourseProgress(Integer courseId, Integer userId) {
         List<CourseModule> modules = courseModuleRepository.findByCourseIdOrderByDisplayOrderAsc(courseId);
@@ -216,19 +234,45 @@ public class EmployeeService {
                 .toList();
 
         int totalItems = modules.size() + quizzes.size();
-        if (totalItems == 0) return 0;
 
-        long completedModules = modules.stream().filter(m -> {
-            Optional<UserModuleProgress> prog = userModuleProgressRepository.findByUserIdAndModuleId(userId, m.getId());
-            return prog.isPresent() && Boolean.TRUE.equals(prog.get().getIsCompleted());
-        }).count();
+        if (totalItems > 0) {
+            // Module/quiz based progress
+            long completedModules = modules.stream().filter(m -> {
+                Optional<UserModuleProgress> prog = userModuleProgressRepository.findByUserIdAndModuleId(userId, m.getId());
+                return prog.isPresent() && Boolean.TRUE.equals(prog.get().getIsCompleted());
+            }).count();
 
-        long passedQuizzes = quizzes.stream().filter(q ->
-                quizAttemptRepository.findByQuizIdAndUserId(q.getId(), userId)
-                        .stream().anyMatch(a -> Boolean.TRUE.equals(a.getPassed()))
-        ).count();
+            long passedQuizzes = quizzes.stream().filter(q ->
+                    quizAttemptRepository.findByQuizIdAndUserId(q.getId(), userId)
+                            .stream().anyMatch(a -> Boolean.TRUE.equals(a.getPassed()))
+            ).count();
 
-        return (int) ((completedModules + passedQuizzes) * 100 / totalItems);
+            return (int) ((completedModules + passedQuizzes) * 100 / totalItems);
+        }
+
+        // Fallback: attendance-based progress
+        // Find all classes this user belongs to for this course
+        List<ClassMember> memberships = classMemberRepository.findByUserId(userId).stream()
+                .filter(cm -> cm.getClassRoom() != null
+                        && cm.getClassRoom().getCourse() != null
+                        && cm.getClassRoom().getCourse().getId().equals(courseId))
+                .toList();
+
+        if (memberships.isEmpty()) return 0;
+
+        int totalSessions = 0;
+        int attendedSessions = 0;
+
+        for (ClassMember cm : memberships) {
+            List<Session> sessions = sessionRepository.findByClassRoomIdOrderByDateAsc(cm.getClassRoom().getId());
+            totalSessions += sessions.size();
+            if (!sessions.isEmpty()) {
+                List<Long> sessionIds = sessions.stream().map(Session::getId).toList();
+                attendedSessions += attendanceRepository.countByUserIdAndSessionIds(userId, sessionIds);
+            }
+        }
+
+        return totalSessions > 0 ? (int) Math.round(attendedSessions * 100.0 / totalSessions) : 0;
     }
 
     @Transactional

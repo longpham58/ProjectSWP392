@@ -5,6 +5,7 @@ import { ClassManagePage } from './component/ClassManage';
 import { SchedulePage } from './component/Schedule';
 import NotificationSection from './components/NotificationSection';
 import { UserAccountManagePage } from './component/UserAccountManage';
+import { HrCertificatePage } from './component/HrCertificatePage';
 
 import { Footer } from '../../components/Footer';
 import { DashboardAnalytics } from './components/DashboardAnalytics';
@@ -12,16 +13,16 @@ import courseApi from '../../api/course.api.wrapper';
 import type { CourseDto } from '../../api/course.api';
 import '@/assets/styles/HRDashboardPage.css';
 
-type CurrentPageId = 'dashboard' | 'course' | 'classroom' | 'schedule' | 'notification' | 'useraccount';
+type CurrentPageId = 'dashboard' | 'course' | 'classroom' | 'schedule' | 'notification' | 'useraccount' | 'certificate';
 
 const SIDEBAR_ITEMS: ReadonlyArray<{ id: CurrentPageId; label: string }> = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'course', label: 'Course Management' },
-  { id: 'classroom', label: 'Class Management' },
-  { id: 'schedule', label: 'Schedule Management' },
-  { id: 'notification', label: 'Notification Management' },
-  { id: 'useraccount', label: 'User Account Management' },
-
+  { id: 'dashboard', label: 'Tổng quan' },
+  { id: 'course', label: 'Quản lý khóa học' },
+  { id: 'classroom', label: 'Quản lý lớp học' },
+  { id: 'schedule', label: 'Quản lý lịch học' },
+  { id: 'certificate', label: 'Cấp chứng chỉ' },
+  { id: 'notification', label: 'Quản lý thông báo' },
+  { id: 'useraccount', label: 'Quản lý tài khoản' },
 ];
 
 interface HRDashboardPageProps {
@@ -76,7 +77,7 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
           </nav>
           <div className="hr-sidebar-footer">
             <button type="button" className="hr-logout-btn" onClick={onLogout}>
-              Logout
+              Đăng xuất
             </button>
           </div>
         </aside>
@@ -99,10 +100,10 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
                     <thead>
                       <tr>
                         <th>ID</th>
-                        <th>Mã khoá học</th>
-                        <th>Tên khoá học</th>
-                        <th>Trainer</th>
-                        <th>Status</th>
+                        <th>Mã khóa học</th>
+                        <th>Tên khóa học</th>
+                        <th>Giảng viên</th>
+                        <th>Trạng thái</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -147,6 +148,7 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
           {currentPage === 'schedule' && <SchedulePage onSchedulesChanged={notifyHrDataChanged} />}
           {currentPage === 'notification' && <NotificationSection />}
           { currentPage === 'useraccount' && <UserAccountManagePage refreshToken={hrRefreshToken} />}
+          {currentPage === 'certificate' && <HrCertificatePage />}
 
         </main>
       </div>

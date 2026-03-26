@@ -64,7 +64,7 @@ export default function AdminNotificationsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle.trim() || !formMessage.trim()) {
-      setFormError("Title and message are required");
+      setFormError("Tiêu đề và nội dung là bắt buộc");
       return;
     }
 
@@ -108,7 +108,7 @@ export default function AdminNotificationsPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm("Are you sure you want to delete this notification?")) {
+    if (window.confirm("Bạn có chắc muốn xóa thông báo này không?")) {
       try {
         await deleteNotification(id);
         await fetchNotifications();
@@ -146,10 +146,10 @@ export default function AdminNotificationsPage() {
 
   const getTargetLabel = (target: string) => {
     switch (target) {
-      case "ALL": return "All Users";
-      case "EMPLOYEE": return "Employees";
-      case "TRAINER": return "Trainers";
-      case "HR": return "HR Staff";
+      case "ALL": return "Tất cả người dùng";
+      case "EMPLOYEE": return "Nhân viên";
+      case "TRAINER": return "Giảng viên";
+      case "HR": return "Nhân sự";
       default: return target;
     }
   };
@@ -159,8 +159,8 @@ export default function AdminNotificationsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Notification Management</h1>
-          <p className="text-gray-500 mt-1">Send announcements and alerts to your users</p>
+          <h1 className="text-3xl font-bold text-gray-900">Quản lý thông báo</h1>
+          <p className="text-gray-500 mt-1">Gửi thông báo và cảnh báo đến người dùng</p>
         </div>
         <button
           onClick={() => {
@@ -171,7 +171,7 @@ export default function AdminNotificationsPage() {
           className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-5 py-2.5 rounded-xl hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         >
           <PlusCircle size={18} />
-          Create Notification
+          Tạo thông báo
         </button>
       </div>
 
@@ -186,7 +186,7 @@ export default function AdminNotificationsPage() {
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6 border border-gray-100">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold text-gray-800">
-              {modalMode === "edit" ? "Edit Notification" : "Create New Notification"}
+              {modalMode === "edit" ? "Chỉnh sửa thông báo" : "Tạo thông báo mới"}
             </h2>
             <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">
               <X size={20} />
@@ -201,67 +201,67 @@ export default function AdminNotificationsPage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tiêu đề</label>
               <input
                 type="text"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter notification title"
+                placeholder="Nhập tiêu đề thông báo"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nội dung</label>
               <textarea
                 value={formMessage}
                 onChange={(e) => setFormMessage(e.target.value)}
                 rows={4}
                 className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Enter notification message"
+                placeholder="Nhập nội dung thông báo"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Loại</label>
                 <select
                   value={formType}
                   onChange={(e) => setFormType(e.target.value as any)}
                   className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
-                  <option value="ANNOUNCEMENT">Announcement</option>
-                  <option value="SYSTEM">System</option>
-                  <option value="APPROVAL">Approval</option>
-                  <option value="REMINDER">Reminder</option>
+                  <option value="ANNOUNCEMENT">Thông báo</option>
+                  <option value="SYSTEM">Hệ thống</option>
+                  <option value="APPROVAL">Phê duyệt</option>
+                  <option value="REMINDER">Nhắc nhở</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Độ ưu tiên</label>
                 <select
                   value={formPriority}
                   onChange={(e) => setFormPriority(e.target.value as any)}
                   className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
-                  <option value="LOW">Low</option>
-                  <option value="NORMAL">Normal</option>
-                  <option value="HIGH">High</option>
-                  <option value="URGENT">Urgent</option>
+                  <option value="LOW">Thấp</option>
+                  <option value="NORMAL">Bình thường</option>
+                  <option value="HIGH">Cao</option>
+                  <option value="URGENT">Khẩn cấp</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Target</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Đối tượng</label>
                 <select
                   value={formTarget}
                   onChange={(e) => setFormTarget(e.target.value as any)}
                   className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 >
-                  <option value="ALL">All Users</option>
-                  <option value="EMPLOYEE">Employees</option>
-                  <option value="TRAINER">Trainers</option>
-                  <option value="HR">HR Staff</option>
+                  <option value="ALL">Tất cả người dùng</option>
+                  <option value="EMPLOYEE">Nhân viên</option>
+                  <option value="TRAINER">Giảng viên</option>
+                  <option value="HR">Nhân sự</option>
                 </select>
               </div>
             </div>
@@ -285,9 +285,9 @@ export default function AdminNotificationsPage() {
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="animate-spin" size={16} />
-                    Saving...
+                    Đang lưu...
                   </span>
-                ) : modalMode === "edit" ? "Update" : "Save as Draft"
+                ) : modalMode === "edit" ? "Cập nhật" : "Lưu nháp"
                 }
               </button>
             </div>
@@ -333,7 +333,7 @@ export default function AdminNotificationsPage() {
       ) : filteredNotifications.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
           <Bell className="mx-auto text-gray-300 mb-4" size={48} />
-          <p className="text-gray-500 text-lg">No {activeTab.toLowerCase()} notifications found</p>
+          <p className="text-gray-500 text-lg">Không tìm thấy thông báo {activeTab === "Sent" ? "đã gửi" : "nháp"}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -369,10 +369,10 @@ export default function AdminNotificationsPage() {
                       <div className="flex items-center gap-4 mt-3 text-xs text-gray-400">
                         <span className="flex items-center gap-1">
                           <Bell size={14} />
-                          {notif.sentDate || "Not sent"}
+                          {notif.sentDate || "Chưa gửi"}
                         </span>
                         <span className="flex items-center gap-1">
-                          Target: {getTargetLabel(notif.targetRole || "ALL")}
+                          Đối tượng: {getTargetLabel(notif.targetRole || "ALL")}
                         </span>
                       </div>
                     </div>
@@ -385,14 +385,14 @@ export default function AdminNotificationsPage() {
                             className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm"
                           >
                             <Eye size={14} />
-                            View
+                            Xem
                           </button>
                           <button
                             onClick={() => handleDelete(notif.id)}
                             className="flex items-center gap-1 bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-lg text-sm"
                           >
                             <Trash2 size={14} />
-                            Delete
+                            Xóa
                           </button>
                         </>
                       )}
@@ -404,21 +404,21 @@ export default function AdminNotificationsPage() {
                             className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm"
                           >
                             <Edit size={14} />
-                            Edit
+                            Chỉnh sửa
                           </button>
                           <button
                             onClick={() => handleSendNow(notif.id)}
                             className="flex items-center gap-1 bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm"
                           >
                             <Send size={14} />
-                            Send
+                            Gửi
                           </button>
                           <button
                             onClick={() => handleDelete(notif.id)}
                             className="flex items-center gap-1 bg-red-100 text-red-600 hover:bg-red-200 px-4 py-2 rounded-lg text-sm"
                           >
                             <Trash2 size={14} />
-                            Delete
+                            Xóa
                           </button>
                         </>
                       )}
@@ -447,35 +447,35 @@ export default function AdminNotificationsPage() {
             </h2>
 
             <p className="text-sm text-gray-500 mt-1">
-              Priority: <span className={getPriorityColor(selectedNotification.priority || "NORMAL")}>{selectedNotification.priority}</span>
+              Độ ưu tiên: <span className={getPriorityColor(selectedNotification.priority || "NORMAL")}>{selectedNotification.priority}</span>
             </p>
 
             <div className="mt-6 space-y-3 text-sm">
               <div className="flex items-center gap-2 text-gray-600">
                 <Bell size={16} />
-                <span><strong>Sent:</strong> {selectedNotification.sentDate || "Not sent"}</span>
+                <span><strong>Đã gửi:</strong> {selectedNotification.sentDate || "Chưa gửi"}</span>
               </div>
               <div className="flex items-center gap-2 text-gray-600">
-                <span><strong>Target:</strong> {getTargetLabel(selectedNotification.targetRole || "ALL")}</span>
+                <span><strong>Đối tượng:</strong> {getTargetLabel(selectedNotification.targetRole || "ALL")}</span>
               </div>
               <div className="flex items-center gap-2 text-gray-600">
-                <span><strong>Type:</strong> {selectedNotification.type}</span>
+                <span><strong>Loại:</strong> {selectedNotification.type}</span>
               </div>
               <div className="flex items-center gap-2 text-gray-600">
-                <span><strong>Recipients:</strong> {selectedNotification.recipientCount || 0}</span>
+                <span><strong>Người nhận:</strong> {selectedNotification.recipientCount || 0}</span>
               </div>
               <div className="flex items-center gap-2 text-gray-600">
-                <span><strong>Read:</strong> {selectedNotification.readCount || 0}</span>
+                <span><strong>Đã đọc:</strong> {selectedNotification.readCount || 0}</span>
               </div>
               {selectedNotification.expiresAt && (
                 <div className="flex items-center gap-2 text-gray-600">
-                  <span><strong>Expires:</strong> {selectedNotification.expiresAt}</span>
+                  <span><strong>Hết hạn:</strong> {selectedNotification.expiresAt}</span>
                 </div>
               )}
             </div>
 
             <div className="mt-6 p-4 bg-gray-50 rounded-xl">
-              <h3 className="font-semibold text-gray-800 mb-2">Message</h3>
+              <h3 className="font-semibold text-gray-800 mb-2">Nội dung</h3>
               <p className="text-gray-600 text-sm whitespace-pre-wrap">{selectedNotification.content}</p>
             </div>
 
@@ -484,7 +484,7 @@ export default function AdminNotificationsPage() {
                 onClick={() => setShowViewModal(false)}
                 className="bg-gray-200 hover:bg-gray-300 px-5 py-2 rounded-xl transition-colors"
               >
-                Close
+                Đóng
               </button>
             </div>
           </div>

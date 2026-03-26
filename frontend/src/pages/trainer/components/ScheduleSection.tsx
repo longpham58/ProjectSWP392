@@ -133,10 +133,10 @@ const ScheduleSection: React.FC = () => {
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="flex border-b border-gray-200">
           <button onClick={() => setTab('calendar')} className={`px-6 py-3 font-medium text-sm transition ${tab === 'calendar' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}>
-            📅 Lịch theo tuần
+            Lịch theo tuần
           </button>
           <button onClick={() => setTab('list')} className={`px-6 py-3 font-medium text-sm transition ${tab === 'list' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}>
-            📋 Tất cả khóa học & lớp học ({courseGroups.length} khóa)
+            Tất cả khóa học & lớp học ({courseGroups.length} khóa)
           </button>
         </div>
       </div>

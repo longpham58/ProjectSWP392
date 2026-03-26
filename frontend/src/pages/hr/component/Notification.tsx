@@ -214,7 +214,7 @@ export const NotificationPage: React.FC<NotificationPageProps> = ({ onNotificati
           </div>
         </div>
         <div className="notif-stat-card">
-          <div className="notif-stat-icon notif-i-blue">🕒</div>
+          <div className="notif-stat-icon notif-i-blue"></div>
           <div className="notif-stat-meta">
             <div className="notif-stat-value">{notifStats.scheduled}</div>
             <div className="notif-stat-label">Đã lên lịch</div>
@@ -238,7 +238,7 @@ export const NotificationPage: React.FC<NotificationPageProps> = ({ onNotificati
 
       <div className="notif-toolbar">
         <div className="notif-search">
-          <span className="notif-search-icon">🔎</span>
+          <span className="notif-search-icon"></span>
           <input
             id="notif-keyword"
             type="text"
@@ -349,7 +349,7 @@ export const NotificationPage: React.FC<NotificationPageProps> = ({ onNotificati
                       }
                     }}
                   >
-                    🗑
+                    
                   </button>
                 </td>
               </tr>

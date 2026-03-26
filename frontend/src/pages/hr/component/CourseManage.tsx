@@ -90,8 +90,8 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
           <div className="course-subtitle">Tạo, cập nhật và theo dõi khoá học trong hệ thống</div>
         </div>
         <div className="course-topbar-actions">
-          <button type="button" className="course-action-btn secondary">⬇ Export</button>
-          <button type="button" className="course-action-btn secondary">⬆ Import</button>
+          <button type="button" className="course-action-btn secondary">⬇ Xuất</button>
+          <button type="button" className="course-action-btn secondary">⬆ Nhập</button>
           <button type="button" className="course-action-btn primary" onClick={openCreateModal}>
             + Thêm khoá học
           </button>
@@ -103,11 +103,11 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
           <div className="course-stat-icon course-i-green">✓</div>
           <div className="course-stat-meta">
             <div className="course-stat-value">{stats.active}</div>
-            <div className="course-stat-label">Active</div>
+            <div className="course-stat-label">Đang hoạt động</div>
           </div>
         </div>
         <div className="course-stat-card">
-          <div className="course-stat-icon course-i-blue">📚</div>
+          <div className="course-stat-icon course-i-blue"></div>
           <div className="course-stat-meta">
             <div className="course-stat-value">{stats.total}</div>
             <div className="course-stat-label">Tổng khoá học</div>
@@ -117,21 +117,21 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
           <div className="course-stat-icon course-i-amber">✎</div>
           <div className="course-stat-meta">
             <div className="course-stat-value">{stats.draft}</div>
-            <div className="course-stat-label">Draft</div>
+            <div className="course-stat-label">Nháp</div>
           </div>
         </div>
         <div className="course-stat-card">
           <div className="course-stat-icon course-i-red">⏸</div>
           <div className="course-stat-meta">
             <div className="course-stat-value">{stats.inactive}</div>
-            <div className="course-stat-label">Inactive</div>
+            <div className="course-stat-label">Không hoạt động</div>
           </div>
         </div>
       </div>
 
       <div className="course-toolbar">
         <div className="course-search">
-          <span className="course-search-icon">🔎</span>
+          <span className="course-search-icon"></span>
           <input
             id="course-search"
             type="text"
@@ -166,7 +166,7 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
               <th>Phòng ban</th>
               <th>Giảng viên</th>
               <th>Trạng thái</th>
-              <th>Action</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
@@ -203,9 +203,9 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
                   <button
                     type="button"
                     className="course-icon-btn"
-                    title="Delete"
+                    title="Xóa"
                     onClick={async () => {
-                      const ok = window.confirm('Delete this course?');
+                      const ok = window.confirm('Xóa khóa học này?');
                       if (!ok) return;
                       try {
                         await courseApi.deleteCourse(c.id);
@@ -216,7 +216,7 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
                       }
                     }}
                   >
-                    🗑
+                    
                   </button>
                 </td>
               </tr>

@@ -175,8 +175,8 @@ export default function SystemActivitiesPage() {
 
   return (
     <div className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen">
-      <h2 className="text-3xl font-bold text-gray-900 mb-2">System Activities</h2>
-      <p className="text-gray-500 mb-8">Track recent system activities and events</p>
+      <h2 className="text-3xl font-bold text-gray-900 mb-2">Hoạt động hệ thống</h2>
+      <p className="text-gray-500 mb-8">Theo dõi các hoạt động và sự kiện hệ thống gần đây</p>
 
       {/* Filters Section */}
       <div className="bg-white p-4 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 mb-6 flex flex-col md:flex-row justify-between gap-4">
@@ -184,7 +184,7 @@ export default function SystemActivitiesPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Search activities..."
+            placeholder="Tìm kiếm hoạt động..."
             className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -196,14 +196,14 @@ export default function SystemActivitiesPage() {
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
         >
-          <option value="All">All Types</option>
-          <option value="notification">Notifications</option>
-          <option value="enrollment">Enrollments</option>
-          <option value="course">Courses</option>
-          <option value="user">Users</option>
-          <option value="certificate">Certificates</option>
-          <option value="quiz">Quizzes</option>
-          <option value="session">Sessions</option>
+          <option value="All">Tất cả loại</option>
+          <option value="notification">Thông báo</option>
+          <option value="enrollment">Đăng ký</option>
+          <option value="course">Khóa học</option>
+          <option value="user">Người dùng</option>
+          <option value="certificate">Chứng chỉ</option>
+          <option value="quiz">Bài kiểm tra</option>
+          <option value="session">Buổi học</option>
         </select>
 
         <select
@@ -211,9 +211,9 @@ export default function SystemActivitiesPage() {
           value={dateFilter}
           onChange={(e) => setDateFilter(e.target.value as "All" | "7days" | "30days")}
         >
-          <option value="All">All Time</option>
-          <option value="7days">Last 7 Days</option>
-          <option value="30days">Last 30 Days</option>
+          <option value="All">Tất cả thời gian</option>
+          <option value="7days">7 ngày qua</option>
+          <option value="30days">30 ngày qua</option>
         </select>
 
         <button
@@ -222,7 +222,7 @@ export default function SystemActivitiesPage() {
           className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
         >
           <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-          Refresh
+          Làm mới
         </button>
       </div>
 
@@ -276,7 +276,7 @@ export default function SystemActivitiesPage() {
       {!loading && !error && paginatedActivities.length === 0 && (
         <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
           <Activity size={48} className="mx-auto text-gray-300 mb-2" />
-          <p className="text-gray-500">No activities found</p>
+          <p className="text-gray-500">Không tìm thấy hoạt động nào</p>
         </div>
       )}
 
@@ -284,7 +284,7 @@ export default function SystemActivitiesPage() {
       {totalPages > 1 && !loading && (
         <div className="flex justify-between items-center mt-6 bg-white p-4 rounded-xl shadow-sm">
           <p className="text-sm text-gray-600">
-            Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredActivities.length)} of {filteredActivities.length} activities
+            Hiển thị {((currentPage - 1) * ITEMS_PER_PAGE) + 1} đến {Math.min(currentPage * ITEMS_PER_PAGE, filteredActivities.length)} trong {filteredActivities.length} hoạt động
           </p>
 
           <div className="flex gap-2">
@@ -293,14 +293,14 @@ export default function SystemActivitiesPage() {
               onClick={() => setCurrentPage((prev) => prev - 1)}
               className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Previous
+              Trước
             </button>
             <button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((prev) => prev + 1)}
               className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Next
+              Sau
             </button>
           </div>
         </div>

@@ -32,9 +32,9 @@ function CertificateModal({ cert, userName, onClose }: { cert: CertificateDto; u
 <p style="color:#6B7280;font-size:15px">has successfully completed</p>
 <div class="course"><strong>${cert.courseName}</strong></div>
 <div class="meta">
-  <span>📅 ${cert.issueDate}</span>
-  <span>🏆 Score: ${cert.score}/100</span>
-  <span>🎓 Grade: ${cert.grade}</span>
+  <span> ${cert.issueDate}</span>
+  <span> Score: ${cert.score}/100</span>
+  <span> Grade: ${cert.grade}</span>
 </div>
 <div class="badge">✓ ${cert.grade === 'DISTINCTION' ? 'Xuất sắc' : cert.grade === 'MERIT' ? 'Giỏi' : 'Đạt yêu cầu'}</div>
 <div class="code">Certificate Code: ${cert.certificateCode}</div>
@@ -44,7 +44,7 @@ function CertificateModal({ cert, userName, onClose }: { cert: CertificateDto; u
   };
 
   const handleShare = () => {
-    const text = `Tôi vừa hoàn thành khóa học "${cert.courseName}" tại ITMS với điểm ${cert.score}/100! 🎓`;
+    const text = `Tôi vừa hoàn thành khóa học "${cert.courseName}" tại ITMS với điểm ${cert.score}/100! `;
     if (navigator.share) {
       navigator.share({ title: 'Chứng chỉ ITMS', text, url: window.location.href });
     } else {
@@ -119,7 +119,7 @@ export default function CertificatesPage() {
   }, [user?.id]);
 
   const handleShareAll = () => {
-    const text = `Tôi đã hoàn thành ${certificates.length} khóa học tại ITMS! 🎓`;
+    const text = `Tôi đã hoàn thành ${certificates.length} khóa học tại ITMS! `;
     if (navigator.share) {
       navigator.share({ title: 'Thành tích ITMS', text });
     } else {

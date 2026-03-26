@@ -32,12 +32,12 @@ const CreateHrNotificationModal: React.FC<CreateHrNotificationModalProps> = ({ o
           hrNotificationApi.getHrClasses(),
           hrNotificationApi.getHrTrainers()
         ]);
-        console.log('✅ Classes from DB:', classData);
-        console.log('✅ Trainers from DB:', trainerData);
+        console.log('Classes from DB:', classData);
+        console.log('Trainers from DB:', trainerData);
         setClasses(classData);
         setTrainers(trainerData);
       } catch (err: any) {
-        console.error('❌ Failed to fetch data:', err);
+        console.error('Failed to fetch data:', err);
         console.error('Status:', err?.response?.status);
         console.error('Response:', err?.response?.data);
       } finally {
@@ -137,7 +137,7 @@ const CreateHrNotificationModal: React.FC<CreateHrNotificationModalProps> = ({ o
           <label className="block text-sm font-semibold text-gray-700 mb-3">Gửi đến *</label>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">👥 Nhân viên</label>
+              <label className="block text-sm font-medium text-gray-600 mb-2">Nhân viên</label>
               <select
                 value={recipientCategory === 'EMPLOYEES' ? recipientType : ''}
                 onChange={(e) => {
@@ -163,7 +163,7 @@ const CreateHrNotificationModal: React.FC<CreateHrNotificationModalProps> = ({ o
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-600 mb-2">👨‍🏫 Giảng viên</label>
+              <label className="block text-sm font-medium text-gray-600 mb-2">Giảng viên</label>
               <select
                 value={recipientCategory === 'TRAINERS' ? recipientType : ''}
                 onChange={(e) => {

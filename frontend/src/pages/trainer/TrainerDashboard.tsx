@@ -59,7 +59,7 @@ const TrainerDashboard: React.FC = () => {
           <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mb-2 text-white text-2xl font-bold">
             T
           </div>
-          <span className="text-xs text-gray-600 font-medium">Trainer</span>
+          <span className="text-xs text-gray-600 font-medium">Giảng viên</span>
         </div>
 
         {/* Navigation Buttons */}
@@ -71,7 +71,7 @@ const TrainerDashboard: React.FC = () => {
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          Notification
+          Thông báo
         </button>
 
         <button
@@ -82,7 +82,7 @@ const TrainerDashboard: React.FC = () => {
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          Schedule
+          Lịch học
         </button>
 
         <button
@@ -93,10 +93,8 @@ const TrainerDashboard: React.FC = () => {
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          Attendance
+          Điểm danh
         </button>
-
-
 
         <button
           onClick={() => setActiveSection('viewCourse')}
@@ -106,7 +104,7 @@ const TrainerDashboard: React.FC = () => {
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          View Course
+          Xem khóa học
         </button>
 
         <button
@@ -117,7 +115,7 @@ const TrainerDashboard: React.FC = () => {
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          Feedback
+          Phản hồi
         </button>
 
         {/* Spacer */}
@@ -132,7 +130,7 @@ const TrainerDashboard: React.FC = () => {
               ? 'bg-red-300 text-white cursor-not-allowed'
               : 'bg-red-500 text-white hover:bg-red-600'
           }`}
-          title={isLoggingOut ? 'Logging out...' : 'Logout'}
+          title={isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
         >
           {isLoggingOut ? (
             <div className="flex items-center justify-center gap-1">
@@ -140,7 +138,7 @@ const TrainerDashboard: React.FC = () => {
               <span>...</span>
             </div>
           ) : (
-            'Logout'
+            'Đăng xuất'
           )}
         </button>
       </div>

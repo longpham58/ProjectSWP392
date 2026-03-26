@@ -100,7 +100,7 @@ const AttendanceSection: React.FC = () => {
           </div>
         </div>
         <div className="bg-white rounded-lg shadow p-12 text-center">
-          <div className="text-5xl text-gray-300 mb-4">📅</div>
+          <div className="text-5xl text-gray-300 mb-4">[ ]</div>
           <p className="text-gray-600 text-lg font-medium">Hôm nay không có lớp học nào</p>
           <p className="text-gray-400 text-sm mt-2">Điểm danh chỉ khả dụng vào ngày có lịch học</p>
         </div>
@@ -130,7 +130,7 @@ const AttendanceSection: React.FC = () => {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 flex justify-between">
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="text-red-500 font-bold">✕</button>
+          <button onClick={() => setError(null)} className="text-red-500 font-bold">&times;</button>
         </div>
       )}
 
@@ -188,7 +188,7 @@ const AttendanceSection: React.FC = () => {
         </div>
       ) : students.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-12 text-center">
-          <div className="text-5xl text-gray-300 mb-4">📋</div>
+          <div className="text-5xl text-gray-300 mb-4">[ ]</div>
           <p className="text-gray-500">Không có học viên trong lớp này</p>
         </div>
       ) : (
@@ -251,7 +251,7 @@ const AttendanceSection: React.FC = () => {
         <div className="mt-6 flex items-center justify-between">
           <div>
             {hasChanges && !saved && <span className="text-orange-600 text-sm">Có thay đổi chưa lưu</span>}
-            {saved && <span className="text-green-600 text-sm">✓ Đã lưu thành công</span>}
+            {saved && <span className="text-green-600 text-sm">&#10003; Đã lưu thành công</span>}
           </div>
           <div className="flex gap-3">
             <button

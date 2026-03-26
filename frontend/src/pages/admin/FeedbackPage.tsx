@@ -83,16 +83,16 @@ export default function AdminSystemFeedbackPage() {
   const negative = feedbackList.filter(fb => fb.overallRating && fb.overallRating < 3).length;
 
   const kpis = [
-    { title: "Total Feedback", value: total, icon: MessageSquare, gradient: "from-indigo-500 to-purple-400", bgGradient: "from-indigo-50 to-purple-50" },
-    { title: "Positive", value: positive, icon: Star, gradient: "from-green-500 to-emerald-400", bgGradient: "from-green-50 to-emerald-50" },
-    { title: "Neutral", value: neutral, icon: MessageSquare, gradient: "from-yellow-500 to-amber-400", bgGradient: "from-yellow-50 to-amber-50" },
-    { title: "Negative", value: negative, icon: AlertTriangle, gradient: "from-red-500 to-rose-400", bgGradient: "from-red-50 to-rose-50" },
+    { title: "Tổng phản hồi", value: total, icon: MessageSquare, gradient: "from-indigo-500 to-purple-400", bgGradient: "from-indigo-50 to-purple-50" },
+    { title: "Tích cực", value: positive, icon: Star, gradient: "from-green-500 to-emerald-400", bgGradient: "from-green-50 to-emerald-50" },
+    { title: "Trung lập", value: neutral, icon: MessageSquare, gradient: "from-yellow-500 to-amber-400", bgGradient: "from-yellow-50 to-amber-50" },
+    { title: "Tiêu cực", value: negative, icon: AlertTriangle, gradient: "from-red-500 to-rose-400", bgGradient: "from-red-50 to-rose-50" },
   ];
 
   return (
     <div className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen">
-      <h2 className="text-3xl font-bold text-gray-900 mb-2">System Feedback</h2>
-      <p className="text-gray-500 mb-8">View and manage user feedback</p>
+      <h2 className="text-3xl font-bold text-gray-900 mb-2">Phản hồi hệ thống</h2>
+      <p className="text-gray-500 mb-8">Xem và quản lý phản hồi của người dùng</p>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -121,7 +121,7 @@ export default function AdminSystemFeedbackPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Search feedback..."
+            placeholder="Tìm kiếm phản hồi..."
             className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -133,12 +133,12 @@ export default function AdminSystemFeedbackPage() {
           value={ratingFilter}
           onChange={(e) => setRatingFilter(e.target.value as RatingFilter)}
         >
-          <option value="ALL">All Ratings</option>
-          <option value="5">5 Stars</option>
-          <option value="4">4 Stars</option>
-          <option value="3">3 Stars</option>
-          <option value="2">2 Stars</option>
-          <option value="1">1 Star</option>
+          <option value="ALL">Tất cả đánh giá</option>
+          <option value="5">5 sao</option>
+          <option value="4">4 sao</option>
+          <option value="3">3 sao</option>
+          <option value="2">2 sao</option>
+          <option value="1">1 sao</option>
         </select>
 
         <button
@@ -147,7 +147,7 @@ export default function AdminSystemFeedbackPage() {
           className="flex items-center gap-2 px-5 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors disabled:opacity-50"
         >
           <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
-          Refresh
+          Làm mới
         </button>
       </div>
 
@@ -173,22 +173,22 @@ export default function AdminSystemFeedbackPage() {
               <thead className="bg-gradient-to-r from-gray-50 to-slate-50">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Rating
+                    Đánh giá
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Type
+                    Loại
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    User
+                    Người dùng
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Comments
+                    Nhận xét
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Status
+                    Trạng thái
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    Date
+                    Ngày
                   </th>
                 </tr>
               </thead>
@@ -235,7 +235,7 @@ export default function AdminSystemFeedbackPage() {
                         {fb.isAnonymous ? (
                           <span className="text-gray-500 italic flex items-center gap-1">
                             <User size={14} />
-                            Anonymous
+                            Ẩn danh
                           </span>
                         ) : (
                           <div>
@@ -280,7 +280,7 @@ export default function AdminSystemFeedbackPage() {
           {paginatedFeedback.length === 0 && (
             <div className="text-center text-gray-500 py-12">
               <FileText size={48} className="mx-auto text-gray-300 mb-2" />
-              <p>No feedback found.</p>
+              <p>Không tìm thấy phản hồi nào.</p>
             </div>
           )}
 
@@ -288,7 +288,7 @@ export default function AdminSystemFeedbackPage() {
           {totalPages > 1 && (
             <div className="flex justify-between items-center px-6 py-4 border-t border-gray-100">
               <p className="text-sm text-gray-600">
-                Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredFeedback.length)} of {filteredFeedback.length} results
+                Hiển thị {((currentPage - 1) * ITEMS_PER_PAGE) + 1} đến {Math.min(currentPage * ITEMS_PER_PAGE, filteredFeedback.length)} trong {filteredFeedback.length} kết quả
               </p>
               <div className="flex gap-2">
                 <button
@@ -296,14 +296,14 @@ export default function AdminSystemFeedbackPage() {
                   onClick={() => setCurrentPage((prev) => prev - 1)}
                   className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Previous
+                  Trước
                 </button>
                 <button
                   disabled={currentPage === totalPages}
                   onClick={() => setCurrentPage((prev) => prev + 1)}
                   className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Next
+                  Sau
                 </button>
               </div>
             </div>

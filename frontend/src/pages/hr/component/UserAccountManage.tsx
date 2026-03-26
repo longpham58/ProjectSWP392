@@ -65,24 +65,24 @@ export const UserAccountManagePage: React.FC<UserAccountManagePageProps> = ({ re
           <div className="ua-subtitle">Quản lý người dùng và phân quyền trong hệ thống</div>
         </div>
         <div className="ua-topbar-actions">
-          <button type="button" className="ua-action-btn secondary">⬇ Export</button>
-          <button type="button" className="ua-action-btn primary">⬆ Import danh sách</button>
+          <button type="button" className="ua-action-btn secondary">⬇ Xuất</button>
+          <button type="button" className="ua-action-btn primary">⬆ Nhập danh sách</button>
         </div>
       </div>
 
       <div className="ua-stats">
         <div className="ua-stat-card">
-          <div className="ua-stat-icon ua-i-green">✓</div>
+          <div className="ua-stat-icon ua-i-green">&#10003;</div>
           <div className="ua-stat-meta">
             <div className="ua-stat-value">{stats.active}</div>
             <div className="ua-stat-label">Đang hoạt động</div>
           </div>
         </div>
         <div className="ua-stat-card">
-          <div className="ua-stat-icon ua-i-blue">👤</div>
+          <div className="ua-stat-icon ua-i-blue">U</div>
           <div className="ua-stat-meta">
             <div className="ua-stat-value">{stats.trainers}</div>
-            <div className="ua-stat-label">Trainer</div>
+            <div className="ua-stat-label">Giảng viên</div>
           </div>
         </div>
         <div className="ua-stat-card">
@@ -103,7 +103,7 @@ export const UserAccountManagePage: React.FC<UserAccountManagePageProps> = ({ re
 
       <div className="ua-toolbar">
         <div className="ua-search">
-          <span className="ua-search-icon">🔎</span>
+          <span className="ua-search-icon">&#128269;</span>
           <input
             id="user-keyword"
             type="text"
@@ -132,11 +132,11 @@ export const UserAccountManagePage: React.FC<UserAccountManagePageProps> = ({ re
         <table className="user-account-table">
           <thead>
             <tr>
-              <th>UserID</th>
-              <th>Fullname</th>
+              <th>Mã người dùng</th>
+              <th>Họ và tên</th>
               <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
+              <th>Vai trò</th>
+              <th>Trạng thái</th>
             </tr>
           </thead>
           <tbody>

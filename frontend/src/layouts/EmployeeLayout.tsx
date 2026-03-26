@@ -33,7 +33,7 @@ export default function EmployeeLayout() {
   }, []);
 
   const navItems = [
-    { to: "/employee", end: true, icon: LayoutDashboard, label: "Dashboard" },
+    { to: "/employee", end: true, icon: LayoutDashboard, label: "Tổng quan" },
     { to: "/employee/my-courses", end: false, icon: BookOpen, label: "Khóa học của tôi" },
     { to: "/employee/certificates", end: false, icon: Award, label: "Chứng chỉ" },
     { to: "/employee/schedule", end: false, icon: CalendarDays, label: "Lịch học" },
@@ -56,7 +56,7 @@ export default function EmployeeLayout() {
               </div>
               <div className="text-left">
                 <h1 className="text-xl font-bold text-gray-900 leading-tight">Training Management</h1>
-                <p className="text-xs text-gray-500">Employee Portal</p>
+                <p className="text-xs text-gray-500">Cổng nhân viên</p>
               </div>
             </button>
 
@@ -140,7 +140,7 @@ export default function EmployeeLayout() {
       <footer className="bg-white border-t flex-shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-sm text-gray-500">
-            © 2026 Training Management System
+            © 2026 Hệ thống Quản lý Đào tạo
           </p>
         </div>
       </footer>

@@ -16,12 +16,12 @@ function HomePage() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">ITMS</h1>
-                <p className="text-xs text-gray-600">Training Management</p>
+                <p className="text-xs text-gray-600">Quản lý Đào tạo</p>
               </div>
             </div>
             <Link to="/login">
               <button className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 font-medium">
-                Sign In
+                Đăng nhập
               </button>
             </Link>
           </div>
@@ -34,34 +34,34 @@ function HomePage() {
         <div className="max-w-7xl mx-auto px-6 py-20 relative">
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-block mb-4 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
-              🎓 Welcome to ITMS Platform
+               Chào mừng đến với Nền tảng ITMS
             </div>
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Empower Your Team with
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Professional Training</span>
+              Nâng cao năng lực đội ngũ với
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> Đào tạo Chuyên nghiệp</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Centralized learning platform for employees and trainers. 
-              Learn, grow, and get certified with our comprehensive training programs.
+              Nền tảng học tập tập trung cho nhân viên và giảng viên.
+              Học hỏi, phát triển và nhận chứng chỉ với các chương trình đào tạo toàn diện.
             </p>
             <div className="flex gap-4 justify-center">
               <Link to="/login">
                 <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-2xl transition-all duration-300 font-semibold text-lg">
-                  Get Started →
+                  Bắt đầu ngay →
                 </button>
               </Link>
               <button className="px-8 py-4 bg-white text-gray-700 rounded-xl hover:shadow-lg transition-all duration-300 font-semibold text-lg border-2 border-gray-200">
-                Learn More
+                Tìm hiểu thêm
               </button>
             </div>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-16">
-            <StatCard icon="📚" value="50+" label="Active Courses" />
-            <StatCard icon="👥" value="500+" label="Students" />
-            <StatCard icon="🎓" value="1000+" label="Certificates" />
-            <StatCard icon="⭐" value="4.8/5" label="Average Rating" />
+            <StatCard icon="" value="50+" label="Khóa học đang hoạt động" />
+            <StatCard icon="" value="500+" label="Học viên" />
+            <StatCard icon="" value="1000+" label="Chứng chỉ" />
+            <StatCard icon="" value="4.8/5" label="Đánh giá trung bình" />
           </div>
         </div>
       </section>
@@ -70,8 +70,8 @@ function HomePage() {
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Courses</h2>
-            <p className="text-gray-600 text-lg">Explore our most popular training programs</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Khóa học nổi bật</h2>
+            <p className="text-gray-600 text-lg">Khám phá các chương trình đào tạo phổ biến nhất</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {featuredCourses.map(course => (
@@ -85,39 +85,39 @@ function HomePage() {
       <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose ITMS?</h2>
-            <p className="text-gray-600 text-lg">Everything you need for effective training management</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Tại sao chọn ITMS?</h2>
+            <p className="text-gray-600 text-lg">Tất cả những gì bạn cần để quản lý đào tạo hiệu quả</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard
-              icon="🎯"
-              title="Personalized Learning"
-              description="Tailored training paths based on your role and skill level"
+              icon=""
+              title="Học tập cá nhân hóa"
+              description="Lộ trình đào tạo phù hợp với vai trò và trình độ của bạn"
             />
             <FeatureCard
-              icon="📊"
-              title="Progress Tracking"
-              description="Monitor your learning journey with detailed analytics"
+              icon=""
+              title="Theo dõi tiến độ"
+              description="Giám sát hành trình học tập với phân tích chi tiết"
             />
             <FeatureCard
-              icon="🏆"
-              title="Certifications"
-              description="Earn recognized certificates upon course completion"
+              icon=""
+              title="Chứng chỉ"
+              description="Nhận chứng chỉ được công nhận khi hoàn thành khóa học"
             />
             <FeatureCard
-              icon="👨‍🏫"
-              title="Expert Trainers"
-              description="Learn from industry professionals and experienced trainers"
+              icon=""
+              title="Giảng viên chuyên nghiệp"
+              description="Học từ các chuyên gia ngành và giảng viên giàu kinh nghiệm"
             />
             <FeatureCard
-              icon="💬"
-              title="Interactive Learning"
-              description="Engage with materials, quizzes, and feedback systems"
+              icon=""
+              title="Học tập tương tác"
+              description="Tương tác với tài liệu, bài kiểm tra và hệ thống phản hồi"
             />
             <FeatureCard
-              icon="📱"
-              title="Accessible Anywhere"
-              description="Learn at your own pace, anytime and anywhere"
+              icon=""
+              title="Truy cập mọi nơi"
+              description="Học theo tốc độ của bạn, bất cứ lúc nào và bất cứ đâu"
             />
           </div>
         </div>
@@ -126,13 +126,13 @@ function HomePage() {
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
         <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">Ready to Start Learning?</h2>
+          <h2 className="text-4xl font-bold text-white mb-6">Sẵn sàng bắt đầu học?</h2>
           <p className="text-xl text-blue-100 mb-8">
-            Join hundreds of employees advancing their careers through our training programs
+            Tham gia cùng hàng trăm nhân viên đang phát triển sự nghiệp qua các chương trình đào tạo của chúng tôi
           </p>
           <Link to="/login">
             <button className="px-10 py-4 bg-white text-blue-600 rounded-xl hover:shadow-2xl transition-all duration-300 font-bold text-lg">
-              Sign In Now →
+              Đăng nhập ngay →
             </button>
           </Link>
         </div>
@@ -150,36 +150,36 @@ function HomePage() {
                 <span className="font-bold text-lg">ITMS</span>
               </div>
               <p className="text-gray-400 text-sm">
-                Internal Training Management System for professional development
+                Hệ thống Quản lý Đào tạo Nội bộ cho phát triển chuyên nghiệp
               </p>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Platform</h3>
+              <h3 className="font-semibold mb-4">Nền tảng</h3>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition">Courses</a></li>
-                <li><a href="#" className="hover:text-white transition">Trainers</a></li>
-                <li><a href="#" className="hover:text-white transition">Certifications</a></li>
+                <li><a href="#" className="hover:text-white transition">Khóa học</a></li>
+                <li><a href="#" className="hover:text-white transition">Giảng viên</a></li>
+                <li><a href="#" className="hover:text-white transition">Chứng chỉ</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Support</h3>
+              <h3 className="font-semibold mb-4">Hỗ trợ</h3>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition">Contact Us</a></li>
+                <li><a href="#" className="hover:text-white transition">Trung tâm trợ giúp</a></li>
+                <li><a href="#" className="hover:text-white transition">Liên hệ</a></li>
                 <li><a href="#" className="hover:text-white transition">FAQ</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold mb-4">Company</h3>
+              <h3 className="font-semibold mb-4">Công ty</h3>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><a href="#" className="hover:text-white transition">About</a></li>
-                <li><a href="#" className="hover:text-white transition">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition">Privacy</a></li>
+                <li><a href="#" className="hover:text-white transition">Giới thiệu</a></li>
+                <li><a href="#" className="hover:text-white transition">Tuyển dụng</a></li>
+                <li><a href="#" className="hover:text-white transition">Chính sách</a></li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
-            <p>&copy; 2026 ITMS. All rights reserved.</p>
+            <p>&copy; 2026 ITMS. Bản quyền thuộc về ITMS.</p>
           </div>
         </div>
       </footer>
@@ -227,10 +227,10 @@ function CourseCard({ course }: { course: any }) {
         <p className="text-gray-600 text-sm mb-4 line-clamp-2">{course.description}</p>
         <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center gap-1">
-            <span>⏱️ {course.duration_hours}h</span>
+            <span> {course.duration_hours}h</span>
           </div>
           <div className="flex items-center gap-1">
-            <span>👤 {course.trainer}</span>
+            <span> {course.trainer}</span>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import type { NavLinkProps } from "react-router-dom";
 import { useAuthStore } from "../stores/auth.store";
-import "../assets/styles/TrainerDashboard.css"; // 🔥 Use trainer layout styles for admin as well
+import "../assets/styles/TrainerDashboard.css"; //  Use trainer layout styles for admin as well
 
 export default function AdminLayout() {
   const { user, logout } = useAuthStore();
@@ -16,17 +16,17 @@ export default function AdminLayout() {
     isActive ? "nav-btn active" : "nav-btn";
 
   return (
-    <div className="trainer-layout"> {/* 🔥 use trainer layout */}
+    <div className="trainer-layout"> {/*  use trainer layout */}
 
       {/* ================= HEADER ================= */}
       <header className="trainer-header">
         <div className="header-left">
-          <h1 className="header-title">Training Management - Admin Portal</h1>
+          <h1 className="header-title">Hệ thống Quản lý Đào tạo - Cổng Admin</h1>
         </div>
 
         <div className="header-right">
           <span className="user-name">
-            👋 {user?.fullName}
+             {user?.fullName}
           </span>
           <button className="logout-btn" onClick={handleLogout}>
             Đăng xuất
@@ -40,7 +40,7 @@ export default function AdminLayout() {
         {/* ========== SIDEBAR ========== */}
         <aside className="trainer-sidebar">
           <div className="trainer-profile">
-            <div className="profile-avatar">👤</div>
+            <div className="profile-avatar"></div>
             <div className="profile-name">
               {user?.fullName}
             </div>
@@ -48,31 +48,31 @@ export default function AdminLayout() {
 
           <nav className="trainer-nav">
             <NavLink to="dashboard" className={getNavClass}>
-              📊 Dashboard
+               Tổng quan
             </NavLink>
 
             <NavLink to="users" className={getNavClass}>
-              👥 Manage Users
+               Quản lý người dùng
             </NavLink>
 
             <NavLink to="courses" className={getNavClass}>
-              📚 Manage Courses
+               Quản lý khóa học
             </NavLink>
 
             <NavLink to="analytics" className={getNavClass}>
-              📈 Analytics
+               Phân tích
             </NavLink>
 
             <NavLink to="notifications" className={getNavClass}>
-              🔔 Notifications
+               Thông báo
             </NavLink>
 
             <NavLink to="system-activities" className={getNavClass}>
-              📝 System Activities
+               Hoạt động hệ thống
             </NavLink>
 
             <NavLink to="feedback" className={getNavClass}>
-              💬 System Feedback
+               Phản hồi hệ thống
             </NavLink>
           </nav>
         </aside>

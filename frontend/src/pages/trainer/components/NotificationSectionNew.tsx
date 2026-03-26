@@ -84,10 +84,10 @@ const NotificationSectionNew: React.FC = () => {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'URGENT': return '🔴';
-      case 'FEEDBACK': return '💬';
-      case 'GENERAL': return 'ℹ️';
-      default: return '📢';
+      case 'URGENT': return '[!]';
+      case 'FEEDBACK': return '[FB]';
+      case 'GENERAL': return '[i]';
+      default: return '[*]';
     }
   };
 
@@ -211,7 +211,7 @@ const NotificationSectionNew: React.FC = () => {
         
         {!loading && filteredNotifications.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
-            <div className="text-6xl text-gray-300 mb-4">📭</div>
+            <div className="text-6xl text-gray-300 mb-4">[ ]</div>
             <p className="text-gray-500 text-lg">
               {currentCategory === 'inbox' && 'Không có thông báo mới'}
               {currentCategory === 'sent' && 'Chưa có thông báo đã gửi'}
@@ -251,12 +251,12 @@ const NotificationSectionNew: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <span>⏰ {formatTime(notification.sentDate)}</span>
+                    <span>{formatTime(notification.sentDate)}</span>
                     {currentCategory === 'inbox' && notification.sender && (
-                      <span>👤 {notification.sender}</span>
+                      <span>{notification.sender}</span>
                     )}
                     {currentCategory === 'sent' && notification.recipients && (
-                      <span>📧 Đến: {notification.recipients.join(', ')}</span>
+                      <span>Đến: {notification.recipients.join(', ')}</span>
                     )}
                   </div>
                   <div className="flex gap-2 mt-4">

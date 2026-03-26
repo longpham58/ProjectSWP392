@@ -37,8 +37,8 @@ export default function LoginPage() {
   if (oauthError) {
     setError(
       oauthError === "account_not_registered"
-        ? "Your Google account is not registered"
-        : "Google login failed"
+        ? "Tài khoản Google của bạn chưa được đăng ký"
+        : "Đăng nhập Google thất bại"
     );
   }
 }, [oauthError]);
@@ -59,7 +59,7 @@ export default function LoginPage() {
       const target = getHomeByRole(role);
       navigate(target, { replace: true });
   } catch {
-    // ❌ Do nothing
+    // Do nothing
     // Error is already stored in Zustand (error state)
   }
   };
@@ -68,15 +68,15 @@ export default function LoginPage() {
     <div className="container">
       <div className="left-section">
         <div className="welcome-content">
-          <h1 className="welcome-title">Welcome to Training Management System</h1>
-          <p className="welcome-subtitle">Your Learning Journey Starts Here</p>
-          <p className="tagline">Manage your training courses and track your progress</p>
+          <h1 className="welcome-title">Chào mừng đến với Hệ thống Quản lý Đào tạo</h1>
+          <p className="welcome-subtitle">Hành trình học tập của bạn bắt đầu từ đây</p>
+          <p className="tagline">Quản lý khóa học đào tạo và theo dõi tiến độ của bạn</p>
         </div>
       </div>
 
       <div className="right-section">
         <div className="login-container">
-          <h2 className="login-title">Sign In</h2>
+          <h2 className="login-title">Đăng nhập</h2>
           {error && <div className="error-message">{error}</div>}
 
           <form onSubmit={handleSubmit}>
@@ -84,7 +84,7 @@ export default function LoginPage() {
             <div className="input-wrapper">
               <input
                 type="text"
-                placeholder="Username"
+                placeholder="Tên đăng nhập"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
@@ -95,7 +95,7 @@ export default function LoginPage() {
             <div className="input-wrapper">
               <input
                 type={showPassword ? "text" : "password"}
-                placeholder="Password"
+                placeholder="Mật khẩu"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -122,7 +122,7 @@ export default function LoginPage() {
             {/* Forgot */}
             <div className="links-row">
               <a href="/forgot-password" className="link-text">
-                Forgot Password?
+                Quên mật khẩu?
               </a>
             </div>
 
@@ -134,19 +134,19 @@ export default function LoginPage() {
                 onChange={(e) => setRememberMe(e.target.checked)}
               />
               <div className="checkbox-content">
-                <span className="checkbox-title">Remember me</span>
+                <span className="checkbox-title">Ghi nhớ đăng nhập</span>
               </div>
             </label>
 
             {/* Submit */}
             <button type="submit" className="signin-btn" disabled={loading}>
-              {loading ? "Signing in..." : "Sign In →"}
+              {loading ? "Đang đăng nhập..." : "Đăng nhập →"}
             </button>
           </form>
 
           {/* Google Login */}
           <div className="social-login">
-            <p className="social-text">Or sign in with</p>
+            <p className="social-text">Hoặc đăng nhập với</p>
             <div className="social-icons">
               <button className="social-icon google" type="button" onClick={handleGoogleLogin}>
                 <svg viewBox="0 0 24 24" width="20" height="20">

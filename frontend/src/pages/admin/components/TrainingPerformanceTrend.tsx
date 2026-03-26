@@ -48,11 +48,20 @@ export default function TrainingPerformanceTrend({
     }
   };
 
+  const getTabLabel = (tab: string) => {
+    switch (tab) {
+      case "completion": return "Hoàn thành";
+      case "attendance": return "Điểm danh";
+      case "enrollment": return "Đăng ký";
+      default: return tab;
+    }
+  };
+
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <h3 className="text-lg font-semibold text-gray-800">
-          Training Performance Trend (1 Year)
+          Xu hướng hiệu suất đào tạo (1 năm)
         </h3>
 
         <div className="flex gap-2 bg-gray-50 p-1.5 rounded-xl">
@@ -68,7 +77,7 @@ export default function TrainingPerformanceTrend({
                     : "text-gray-600 hover:bg-white hover:shadow-sm"
                 }`}
               >
-                {tab}
+                {getTabLabel(tab)}
               </button>
             );
           })}

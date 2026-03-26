@@ -82,7 +82,7 @@ export function FeedbackSection({ courseId, userId }: { courseId: number; userId
           onClick={() => interactive && onChange?.(i)}
           className={`text-2xl ${interactive ? 'cursor-pointer hover:scale-110 transition-transform' : 'cursor-default'} ${i <= n ? 'text-yellow-400' : 'text-gray-300'}`}
         >
-          ★
+          *
         </button>
       ))}
     </div>
@@ -104,7 +104,7 @@ export function FeedbackSection({ courseId, userId }: { courseId: number; userId
             return (
               <div key={star} className="flex items-center gap-2 mb-1">
                 <span className="text-sm w-4">{star}</span>
-                <span className="text-yellow-400 text-sm">★</span>
+                <span className="text-yellow-400 text-sm">*</span>
                 <div className="flex-1 bg-gray-200 rounded-full h-2">
                   <div className="bg-yellow-400 h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
                 </div>
@@ -204,7 +204,7 @@ export function FeedbackSection({ courseId, userId }: { courseId: number; userId
                 </div>
                 <div className="flex gap-0.5">
                   {[1,2,3,4,5].map(i => (
-                    <span key={i} className={`text-lg ${i <= fb.rating ? 'text-yellow-400' : 'text-gray-200'}`}>★</span>
+                    <span key={i} className={`text-lg ${i <= fb.rating ? 'text-yellow-400' : 'text-gray-200'}`}>*</span>
                   ))}
                 </div>
               </div>

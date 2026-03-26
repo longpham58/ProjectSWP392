@@ -8,7 +8,7 @@ interface EmptyStateProps {
   };
 }
 
-export default function EmptyState({ icon = '📭', title, description, action }: EmptyStateProps) {
+export default function EmptyState({ icon = '', title, description, action }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4">
       <div className="text-6xl mb-4">{icon}</div>
@@ -31,7 +31,7 @@ export default function EmptyState({ icon = '📭', title, description, action }
 export function NoCoursesFound() {
   return (
     <EmptyState
-      icon="🔍"
+      icon=""
       title="Không tìm thấy khóa học"
       description="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm"
     />
@@ -41,7 +41,7 @@ export function NoCoursesFound() {
 export function NoNotifications() {
   return (
     <EmptyState
-      icon="🔔"
+      icon=""
       title="Không có thông báo"
       description="Bạn đã xem hết tất cả thông báo"
     />
@@ -51,7 +51,7 @@ export function NoNotifications() {
 export function NoCertificates() {
   return (
     <EmptyState
-      icon="🏆"
+      icon=""
       title="Chưa có chứng chỉ"
       description="Hoàn thành khóa học để nhận chứng chỉ"
     />

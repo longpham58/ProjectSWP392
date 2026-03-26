@@ -37,9 +37,9 @@ export default function OtpPage() {
 
   return (
     <div className="login-container">
-      <h2 className="login-title">Verify OTP</h2>
+      <h2 className="login-title">Xác thực OTP</h2>
 
-      {/* 🔴 ERROR MESSAGE */}
+      {/* ERROR MESSAGE */}
       {error && (
         <div className="error-message">
           <i className="fas fa-exclamation-circle"></i>
@@ -48,7 +48,7 @@ export default function OtpPage() {
       )}
 
       <p className="otp-description">
-        Enter the 6-digit code sent to your email
+        Nhập mã 6 chữ số đã được gửi đến email của bạn
       </p>
 
       <form onSubmit={handleVerify}>
@@ -56,7 +56,7 @@ export default function OtpPage() {
           <i className="input-icon fas fa-key"></i>
           <input
             type="text"
-            placeholder="6-digit OTP"
+            placeholder="Mã OTP 6 chữ số"
             value={otp}
             maxLength={6}
             onChange={(e) => setOtp(e.target.value)}
@@ -69,11 +69,11 @@ export default function OtpPage() {
   onClick={resendOtp}
   disabled={seconds > 0}
 >
-  Resend OTP {seconds > 0 && `(${seconds}s)`}
+  Gửi lại OTP {seconds > 0 && `(${seconds}s)`}
 </button>
 
         <button className="signin-btn" type="submit" disabled={loading}>
-          {loading ? "Verifying..." : "Verify OTP"}
+          {loading ? "Đang xác thực..." : "Xác thực OTP"}
         </button>
       </form>
     </div>

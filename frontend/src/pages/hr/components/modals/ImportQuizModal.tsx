@@ -246,7 +246,7 @@ export const ImportQuizModal: React.FC<ImportQuizModalProps> = ({
             onClick={handleClose}
             className="text-gray-500 hover:text-gray-700"
           >
-            ✕
+            &times;
           </button>
         </div>
 
@@ -276,7 +276,7 @@ export const ImportQuizModal: React.FC<ImportQuizModalProps> = ({
                 onClick={handleDownloadTemplate}
                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm"
               >
-                📥 Tải Template Excel
+                Tải Template Excel
               </button>
               <p className="text-xs text-gray-500 mt-1">
                 Tải template để xem định dạng file Excel cần thiết
@@ -296,7 +296,7 @@ export const ImportQuizModal: React.FC<ImportQuizModalProps> = ({
               />
               {file && (
                 <p className="text-sm text-green-600 mt-1">
-                  ✓ Đã chọn: {file.name}
+                  &#10003; Đã chọn: {file.name}
                 </p>
               )}
             </div>
@@ -423,7 +423,7 @@ export const ImportQuizModal: React.FC<ImportQuizModalProps> = ({
                           onClick={() => removeQuestion(index)}
                           className="text-red-500 hover:text-red-700 text-sm"
                         >
-                          🗑️ Xóa
+                          Xóa
                         </button>
                       )}
                     </div>

@@ -18,11 +18,11 @@ const ViewNotificationModal: React.FC<ViewNotificationModalProps> = ({
 }) => {
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'URGENT': return '🔴';
-      case 'FEEDBACK': return '💬';
-      case 'INFO': return 'ℹ️';
-      case 'ANNOUNCEMENT': return '📢';
-      default: return '📢';
+      case 'URGENT': return '[!]';
+      case 'FEEDBACK': return '[FB]';
+      case 'INFO': return '[i]';
+      case 'ANNOUNCEMENT': return '[*]';
+      default: return '[*]';
     }
   };
 
@@ -77,7 +77,7 @@ const ViewNotificationModal: React.FC<ViewNotificationModalProps> = ({
               onClick={onClose}
               className="p-2 hover:bg-gray-100 rounded-full transition flex-shrink-0"
             >
-              ✕
+              &times;
             </button>
           </div>
         </div>

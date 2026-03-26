@@ -151,11 +151,11 @@ const NotificationSectionNew: React.FC = () => {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'ANNOUNCEMENT': return '📢';
-      case 'SYSTEM': return '⚙️';
-      case 'REMINDER': return '⏰';
-      case 'GENERAL': return '📝';
-      default: return '📝';
+      case 'ANNOUNCEMENT': return '[*]';
+      case 'SYSTEM': return '[S]';
+      case 'REMINDER': return '[R]';
+      case 'GENERAL': return '[G]';
+      default: return '[G]';
     }
   };
 
@@ -215,9 +215,9 @@ const NotificationSectionNew: React.FC = () => {
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6">
             {[
-              { key: 'inbox', label: 'Hộp thư đến', icon: '📥' },
-              { key: 'sent', label: 'Đã gửi', icon: '📤' },
-              { key: 'draft', label: 'Nháp', icon: '📝' },
+              { key: 'inbox', label: 'Hộp thư đến', icon: '[In]' },
+              { key: 'sent', label: 'Đã gửi', icon: '[Out]' },
+              { key: 'draft', label: 'Nháp', icon: '[D]' },
             ].map((tab) => (
               <button
                 key={tab.key}

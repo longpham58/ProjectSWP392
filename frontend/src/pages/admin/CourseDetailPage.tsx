@@ -38,15 +38,15 @@ export default function AdminCourseDetailPage() {
             <BookOpen className="text-red-500" size={32} />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">
-            Course not found
+            Không tìm thấy khóa học
           </h2>
-          <p className="text-gray-500 mb-6">The course you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-500 mb-6">Khóa học bạn đang tìm không tồn tại hoặc đã bị xóa.</p>
           <button 
             onClick={() => navigate("/admin/courses")}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
           >
             <ArrowLeft size={16} />
-            Back to Courses
+            Quay lại danh sách khóa học
           </button>
         </div>
       </div>
@@ -57,10 +57,10 @@ export default function AdminCourseDetailPage() {
 
   // KPI stats
   const kpis = [
-    { label: "Students", value: course.studentCount || 0, icon: Users, gradient: "from-green-500 to-emerald-400" },
-    { label: "Classes", value: course.classCount || 0, icon: BookOpen, gradient: "from-indigo-500 to-purple-400" },
-    { label: "Duration", value: `${course.durationHours || 0}h`, icon: Clock, gradient: "from-amber-500 to-orange-400" },
-    { label: "Passing", value: `${course.passingScore || 0}%`, icon: Award, gradient: "from-blue-500 to-cyan-400" },
+    { label: "Học viên", value: course.studentCount || 0, icon: Users, gradient: "from-green-500 to-emerald-400" },
+    { label: "Lớp học", value: course.classCount || 0, icon: BookOpen, gradient: "from-indigo-500 to-purple-400" },
+    { label: "Thời lượng", value: `${course.durationHours || 0}h`, icon: Clock, gradient: "from-amber-500 to-orange-400" },
+    { label: "Điểm đạt", value: `${course.passingScore || 0}%`, icon: Award, gradient: "from-blue-500 to-cyan-400" },
   ];
 
   return (
@@ -74,7 +74,7 @@ export default function AdminCourseDetailPage() {
           className="inline-flex items-center gap-2 text-gray-500 hover:text-indigo-600 transition-colors mb-4"
         >
           <ArrowLeft size={16} />
-          Back to Courses
+          Quay lại danh sách khóa học
         </button>
       </div>
 
@@ -122,33 +122,33 @@ export default function AdminCourseDetailPage() {
 
         {/* INFO GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-gray-100 text-sm">
-          <InfoItem icon={User} label="Trainer" value={course.trainerName || "Not assigned"} />
-          <InfoItem icon={Calendar} label="Created At" value={course.createdAt ? new Date(course.createdAt).toLocaleDateString() : "N/A"} />
-          <InfoItem icon={Award} label="Level" value={course.level || "N/A"} />
+          <InfoItem icon={User} label="Giảng viên" value={course.trainerName || "Chưa phân công"} />
+          <InfoItem icon={Calendar} label="Ngày tạo" value={course.createdAt ? new Date(course.createdAt).toLocaleDateString() : "N/A"} />
+          <InfoItem icon={Award} label="Cấp độ" value={course.level || "N/A"} />
         </div>
       </div>
 
       {/* =========================
           DESCRIPTION
       ========================= */}
-      <SectionCard title="Description" icon={FileText}>
+      <SectionCard title="Mô tả" icon={FileText}>
         <p className="text-gray-600 leading-relaxed">
-          {course.description || "No description available."}
+          {course.description || "Không có mô tả."}
         </p>
       </SectionCard>
 
       {/* =========================
           ADDITIONAL INFO
       ========================= */}
-      <SectionCard title="Course Details" icon={BookOpen}>
+      <SectionCard title="Chi tiết khóa học" icon={BookOpen}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-gray-50 rounded-xl p-4">
-            <p className="text-gray-500 text-sm mb-1">Max Attempts</p>
-            <p className="font-semibold text-gray-900">{course.maxAttempts || "Unlimited"}</p>
+            <p className="text-gray-500 text-sm mb-1">Số lần thử tối đa</p>
+            <p className="font-semibold text-gray-900">{course.maxAttempts || "Không giới hạn"}</p>
           </div>
           <div className="bg-gray-50 rounded-xl p-4">
-            <p className="text-gray-500 text-sm mb-1">Prerequisites</p>
-            <p className="font-semibold text-gray-900">{(course as any).prerequisites || "None"}</p>
+            <p className="text-gray-500 text-sm mb-1">Điều kiện tiên quyết</p>
+            <p className="font-semibold text-gray-900">{(course as any).prerequisites || "Không có"}</p>
           </div>
         </div>
       </SectionCard>
@@ -157,7 +157,7 @@ export default function AdminCourseDetailPage() {
           OBJECTIVES
       ========================= */}
       {course.objectives && (
-        <SectionCard title="Learning Objectives" icon={Award}>
+        <SectionCard title="Mục tiêu học tập" icon={Award}>
           <p className="text-gray-600 whitespace-pre-line leading-relaxed">
             {(course as any).objectives}
           </p>
@@ -168,7 +168,7 @@ export default function AdminCourseDetailPage() {
           MATERIALS
       ========================= */}
       {course.materials && course.materials.length > 0 && (
-        <SectionCard title="Course Materials" icon={Folder}>
+        <SectionCard title="Tài liệu khóa học" icon={Folder}>
           <div className="space-y-3">
             {course.materials.map((material: any) => (
               <div 
@@ -188,7 +188,7 @@ export default function AdminCourseDetailPage() {
                 <div className="flex items-center gap-3">
                   {material.isRequired && (
                     <span className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded-full font-medium">
-                      Required
+                      Bắt buộc
                     </span>
                   )}
                   {material.fileUrl && (
@@ -198,7 +198,7 @@ export default function AdminCourseDetailPage() {
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                     >
-                      View
+                      Xem
                     </a>
                   )}
                 </div>

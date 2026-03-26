@@ -198,7 +198,7 @@ export const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
             onClick={handleClose}
             className="text-gray-500 hover:text-gray-700"
           >
-            ✕
+            &times;
           </button>
         </div>
 
@@ -349,7 +349,7 @@ export const CreateQuizModal: React.FC<CreateQuizModalProps> = ({
                       onClick={() => removeQuestion(index)}
                       className="text-red-500 hover:text-red-700"
                     >
-                      🗑️ Xóa
+                      Xóa
                     </button>
                   )}
                 </div>

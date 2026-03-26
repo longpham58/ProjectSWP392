@@ -21,12 +21,12 @@ export default function UsersPage() {
 
   // Handle delete user
   const handleDelete = async (id: number) => {
-    if (confirm("Are you sure you want to delete this user?")) {
+    if (confirm("Bạn có chắc muốn xóa người dùng này không?")) {
       try {
         await deleteUser(id);
       } catch (error) {
         console.error("Failed to delete user:", error);
-        alert("Failed to delete user. Please try again.");
+        alert("Xóa người dùng thất bại. Vui lòng thử lại.");
       }
     }
   };
@@ -37,7 +37,7 @@ export default function UsersPage() {
       await toggleUserStatus(id);
     } catch (error) {
       console.error("Failed to toggle user status:", error);
-      alert("Failed to update user status. Please try again.");
+      alert("Cập nhật trạng thái người dùng thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -45,11 +45,11 @@ export default function UsersPage() {
   const handleImport = async (file: File) => {
     try {
       const count = await importUsers(file);
-      alert(`Successfully imported ${count} users`);
+      alert(`Đã nhập thành công ${count} người dùng`);
       fetchUsers();
     } catch (error) {
       console.error("Failed to import users:", error);
-      alert("Failed to import users. Please try again.");
+      alert("Nhập người dùng thất bại. Vui lòng thử lại.");
     }
   };
 
@@ -123,16 +123,16 @@ export default function UsersPage() {
   const active = users.filter(u => u.status === "Active").length;
 
   const kpis = [
-    { title: "Total Users", value: total, icon: User, gradient: "from-indigo-500 to-purple-400", bgGradient: "from-indigo-50 to-purple-50" },
-    { title: "Admins", value: admins, icon: Shield, gradient: "from-blue-500 to-cyan-400", bgGradient: "from-blue-50 to-cyan-50" },
-    { title: "Employees", value: employees, icon: User, gradient: "from-green-500 to-emerald-400", bgGradient: "from-green-50 to-emerald-50" },
-    { title: "Active", value: active, icon: Shield, gradient: "from-amber-500 to-orange-400", bgGradient: "from-amber-50 to-orange-50" },
+    { title: "Tổng người dùng", value: total, icon: User, gradient: "from-indigo-500 to-purple-400", bgGradient: "from-indigo-50 to-purple-50" },
+    { title: "Quản trị viên", value: admins, icon: Shield, gradient: "from-blue-500 to-cyan-400", bgGradient: "from-blue-50 to-cyan-50" },
+    { title: "Nhân viên", value: employees, icon: User, gradient: "from-green-500 to-emerald-400", bgGradient: "from-green-50 to-emerald-50" },
+    { title: "Đang hoạt động", value: active, icon: Shield, gradient: "from-amber-500 to-orange-400", bgGradient: "from-amber-50 to-orange-50" },
   ];
 
   return (
     <div className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen">
-      <h2 className="text-3xl font-bold text-gray-900 mb-2">Users Management</h2>
-      <p className="text-gray-500 mb-8">Manage system users and their roles</p>
+      <h2 className="text-3xl font-bold text-gray-900 mb-2">Quản lý người dùng</h2>
+      <p className="text-gray-500 mb-8">Quản lý người dùng hệ thống và vai trò của họ</p>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -161,7 +161,7 @@ export default function UsersPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Search by name or email..."
+            placeholder="Tìm theo tên hoặc email..."
             className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             value={search}
             onChange={(e) => {
@@ -179,11 +179,11 @@ export default function UsersPage() {
             setCurrentPage(1);
           }}
         >
-          <option value="All">All Roles</option>
+          <option value="All">Tất cả vai trò</option>
           <option value="ADMIN">Admin</option>
           <option value="HR">HR</option>
-          <option value="TRAINER">Trainer</option>
-          <option value="EMPLOYEE">Employee</option>
+          <option value="TRAINER">Giảng viên</option>
+          <option value="EMPLOYEE">Nhân viên</option>
         </select>
 
         <select
@@ -194,7 +194,7 @@ export default function UsersPage() {
             setCurrentPage(1);
           }}
         >
-          <option value="All">All Departments</option>
+          <option value="All">Tất cả phòng ban</option>
           {[...new Set(users.map(u => u.department).filter(Boolean))].map(dept => (
             <option key={dept} value={dept}>{dept}</option>
           ))}
@@ -208,9 +208,9 @@ export default function UsersPage() {
             setCurrentPage(1);
           }}
         >
-          <option value="All">All Status</option>
-          <option value="Active">Active</option>
-          <option value="Locked">Locked</option>
+          <option value="All">Tất cả trạng thái</option>
+          <option value="Active">Hoạt động</option>
+          <option value="Locked">Bị khóa</option>
         </select>
 
         <div className="flex gap-2">
@@ -241,13 +241,13 @@ export default function UsersPage() {
           <table className="min-w-full text-sm">
             <thead className="bg-gradient-to-r from-gray-50 to-slate-50 text-left">
               <tr>
-                <th className="p-4 font-semibold text-gray-700">User ID</th>
-                <th className="p-4 font-semibold text-gray-700">Name</th>
+                <th className="p-4 font-semibold text-gray-700">Mã người dùng</th>
+                <th className="p-4 font-semibold text-gray-700">Tên</th>
                 <th className="p-4 font-semibold text-gray-700">Email</th>
-                <th className="p-4 font-semibold text-gray-700">Department</th>
-                <th className="p-4 font-semibold text-gray-700">Role</th>
-                <th className="p-4 font-semibold text-gray-700">Status</th>
-                <th className="p-4 font-semibold text-gray-700">Actions</th>
+                <th className="p-4 font-semibold text-gray-700">Phòng ban</th>
+                <th className="p-4 font-semibold text-gray-700">Vai trò</th>
+                <th className="p-4 font-semibold text-gray-700">Trạng thái</th>
+                <th className="p-4 font-semibold text-gray-700">Hành động</th>
               </tr>
             </thead>
 
@@ -304,7 +304,7 @@ export default function UsersPage() {
                   <td colSpan={7} className="text-center p-12 text-gray-500">
                     <div className="flex flex-col items-center">
                       <User size={48} className="text-gray-300 mb-2" />
-                      <p>No users found.</p>
+                      <p>Không tìm thấy người dùng nào.</p>
                     </div>
                   </td>
                 </tr>
@@ -317,7 +317,7 @@ export default function UsersPage() {
       {/* Pagination */}
       <div className="flex justify-between items-center mt-6 bg-white p-4 rounded-xl shadow-sm">
         <p className="text-sm text-gray-600">
-          Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredUsers.length)} of {filteredUsers.length} results
+          Hiển thị {((currentPage - 1) * ITEMS_PER_PAGE) + 1} đến {Math.min(currentPage * ITEMS_PER_PAGE, filteredUsers.length)} trong {filteredUsers.length} kết quả
         </p>
 
         <div className="flex gap-2">
