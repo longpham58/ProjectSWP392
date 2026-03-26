@@ -16,7 +16,7 @@ export const DashboardAnalytics: React.FC<DashboardAnalyticsProps> = ({ refreshT
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="hr-stat-card" style={{ opacity: 0.6 }}>
             <div className="hr-stat-value">--</div>
-            <div className="hr-stat-label">Loading...</div>
+            <div className="hr-stat-label">Đang tải...</div>
           </div>
         ))}
       </div>
@@ -36,10 +36,10 @@ export const DashboardAnalytics: React.FC<DashboardAnalyticsProps> = ({ refreshT
 
   return (
     <div className="hr-stats">
-      <StatCard title="Tổng khoá học" value={s.totalCourses} icon="📚" variant="blue" />
-      <StatCard title="Tổng lịch học" value={s.totalSchedules} icon="🗓" variant="green" />
-      <StatCard title="Tổng thông báo" value={s.totalNotifications} icon="🔔" variant="amber" />
-      <StatCard title="Trainer" value={s.totalTrainers} icon="👤" variant="red" />
+      <StatCard title="Tổng khoá học" value={s.totalCourses} icon="" variant="blue" />
+      <StatCard title="Tổng lịch học" value={s.totalSchedules} icon="" variant="green" />
+      <StatCard title="Tổng thông báo" value={s.totalNotifications} icon="" variant="amber" />
+      <StatCard title="Giảng viên" value={s.totalTrainers} icon="" variant="red" />
     </div>
   );
 };

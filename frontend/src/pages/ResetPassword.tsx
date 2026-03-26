@@ -44,29 +44,29 @@ export default function ResetPasswordPage() {
     setLocalError(null);
 
     if (!email) {
-      setLocalError("Email is missing. Please start the forgot password process again.");
+      setLocalError("Email bị thiếu. Vui lòng bắt đầu lại quá trình quên mật khẩu.");
       return;
     }
 
     if (otp.length !== 6) {
-      setLocalError("Please enter a valid 6-digit OTP");
+      setLocalError("Vui lòng nhập mã OTP hợp lệ gồm 6 chữ số");
       return;
     }
 
     if (newPassword.length < 6) {
-      setLocalError("Password must be at least 6 characters");
+      setLocalError("Mật khẩu phải có ít nhất 6 ký tự");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setLocalError("Passwords do not match");
+      setLocalError("Mật khẩu không khớp");
       return;
     }
 
     // First verify OTP
     const otpSuccess = await verifyOtp(email, otp);
     if (!otpSuccess) {
-      setLocalError(error || "Invalid OTP");
+      setLocalError(error || "Mã OTP không hợp lệ");
       return;
     }
 
@@ -77,7 +77,7 @@ export default function ResetPasswordPage() {
     if (passwordSuccess) {
       setSuccess(true);
     } else {
-      setLocalError(error || "Failed to reset password");
+      setLocalError(error || "Đặt lại mật khẩu thất bại");
     }
   };
 
@@ -86,25 +86,25 @@ export default function ResetPasswordPage() {
       <div className="container">
         <div className="left-section">
           <div className="welcome-content">
-            <h1 className="welcome-title">Success!</h1>
-            <p className="welcome-subtitle">Password Reset Complete</p>
+            <h1 className="welcome-title">Thành công!</h1>
+            <p className="welcome-subtitle">Đặt lại mật khẩu hoàn tất</p>
             <div className="icon-wrapper">
-              <div className="star star-yellow">★</div>
+              <div className="star star-yellow">*</div>
               <div className="airplane-icon">
                 <i className="fas fa-check-circle"></i>
               </div>
-              <div className="star star-purple">★</div>
+              <div className="star star-purple">*</div>
             </div>
-            <p className="tagline">Your password has been reset successfully</p>
+            <p className="tagline">Mật khẩu của bạn đã được đặt lại thành công</p>
           </div>
         </div>
         <div className="right-section">
           <div className="login-container">
             <div className="success-message">
-              <h2>Password Reset Successful</h2>
-              <p>You can now log in with your new password.</p>
+              <h2>Đặt lại mật khẩu thành công</h2>
+              <p>Bạn có thể đăng nhập bằng mật khẩu mới.</p>
               <Link to="/login" className="signin-btn" style={{ display: 'inline-block', textDecoration: 'none' }}>
-                Go to Login
+                Đến trang đăng nhập
               </Link>
             </div>
           </div>
@@ -118,29 +118,29 @@ export default function ResetPasswordPage() {
       {/* LEFT */}
       <div className="left-section">
         <div className="welcome-content">
-          <h1 className="welcome-title">Reset Password</h1>
-          <p className="welcome-subtitle">Create New Password</p>
+          <h1 className="welcome-title">Đặt lại mật khẩu</h1>
+          <p className="welcome-subtitle">Tạo mật khẩu mới</p>
 
           <div className="icon-wrapper">
-            <div className="star star-yellow">★</div>
+            <div className="star star-yellow">*</div>
             <div className="airplane-icon">
               <i className="fas fa-lock"></i>
             </div>
-            <div className="star star-purple">★</div>
+            <div className="star star-purple">*</div>
           </div>
 
-          <p className="tagline">Enter OTP and new password below</p>
+          <p className="tagline">Nhập OTP và mật khẩu mới bên dưới</p>
         </div>
       </div>
 
       {/* RIGHT */}
       <div className="right-section">
         <div className="login-container">
-          <h2 className="login-title">Reset Password</h2>
+          <h2 className="login-title">Đặt lại mật khẩu</h2>
           
           {email && (
             <p className="forgot-description">
-              Resetting password for: <strong>{email}</strong>
+              Đặt lại mật khẩu cho: <strong>{email}</strong>
             </p>
           )}
 
@@ -155,7 +155,7 @@ export default function ResetPasswordPage() {
               <i className="fas fa-key input-icon"></i>
               <input
                 type="text"
-                placeholder="Enter 6-digit OTP"
+                placeholder="Nhập mã OTP 6 chữ số"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                 maxLength={6}
@@ -167,7 +167,7 @@ export default function ResetPasswordPage() {
               <i className="fas fa-lock input-icon"></i>
               <input
                 type="password"
-                placeholder="New password"
+                placeholder="Mật khẩu mới"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
@@ -178,7 +178,7 @@ export default function ResetPasswordPage() {
               <i className="fas fa-lock input-icon"></i>
               <input
                 type="password"
-                placeholder="Confirm new password"
+                placeholder="Xác nhận mật khẩu mới"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -190,13 +190,13 @@ export default function ResetPasswordPage() {
               className="signin-btn"
               disabled={loading || otp.length !== 6 || !newPassword || !confirmPassword}
             >
-              {loading ? "Resetting..." : "Reset Password"}
+              {loading ? "Đang đặt lại..." : "Đặt lại mật khẩu"}
             </button>
           </form>
 
           <div className="back-to-login">
             <Link to="/forgot-password" className="link-text">
-              <i className="fas fa-arrow-left"></i> Start Over
+              <i className="fas fa-arrow-left"></i> Bắt đầu lại
             </Link>
           </div>
         </div>

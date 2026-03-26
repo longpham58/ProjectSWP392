@@ -93,7 +93,7 @@ export const QuizListModal: React.FC<QuizListModalProps> = ({
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
           >
-            ✕
+            &times;
           </button>
         </div>
 
@@ -112,10 +112,10 @@ export const QuizListModal: React.FC<QuizListModalProps> = ({
                     <h3 className="font-semibold text-lg">{quiz.title}</h3>
                     <p className="text-gray-600 text-sm mt-1">{quiz.description}</p>
                     <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                      <span>📝 {quiz.totalQuestions} câu hỏi</span>
-                      <span>⏱️ {quiz.durationMinutes} phút</span>
-                      <span>🎯 {quiz.passingScore}% để qua</span>
-                      <span>🔄 Tối đa {quiz.maxAttempts} lần</span>
+                      <span>{quiz.totalQuestions} câu hỏi</span>
+                      <span>{quiz.durationMinutes} phút</span>
+                      <span>{quiz.passingScore}% để qua</span>
+                      <span>Tối đa {quiz.maxAttempts} lần</span>
                       <span className={`px-2 py-1 rounded text-xs ${
                         quiz.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                       }`}>
@@ -182,7 +182,7 @@ const QuizQuestionsView: React.FC<{
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700"
             >
-              ✕
+              &times;
             </button>
           </div>
         </div>
@@ -213,7 +213,7 @@ const QuizQuestionsView: React.FC<{
               </div>
               
               <div className="text-sm text-green-600 font-medium mb-2">
-                ✓ Đáp án đúng: {question.correctAnswer}
+                &#10003; Đáp án đúng: {question.correctAnswer}
               </div>
               
               {question.explanation && (

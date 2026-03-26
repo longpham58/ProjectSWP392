@@ -57,7 +57,7 @@ export default function AnalyticsPage() {
           onClick={() => fetchAnalytics()}
           className="mt-4 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors"
         >
-          Retry
+          Thử lại
         </button>
       </div>
     );
@@ -66,35 +66,35 @@ export default function AnalyticsPage() {
   // KPI Values from analytics API
   const kpis = [
     { 
-      title: "Active Users (7d)", 
+      title: "Người dùng hoạt động (7 ngày)", 
       value: analytics?.activeUsers7d || 0,
       icon: Users,
       gradient: "from-blue-500 to-cyan-400",
       bgGradient: "from-blue-50 to-cyan-50"
     },
     { 
-      title: "Enrollment Growth", 
+      title: "Tăng trưởng đăng ký", 
       value: (analytics?.enrollmentGrowth || 0) + "%",
       icon: TrendingUp,
       gradient: "from-green-500 to-emerald-400",
       bgGradient: "from-green-50 to-emerald-50"
     },
     { 
-      title: "Completion Rate", 
+      title: "Tỷ lệ hoàn thành", 
       value: (analytics?.completionRate || 0) + "%",
       icon: Award,
       gradient: "from-purple-500 to-pink-400",
       bgGradient: "from-purple-50 to-pink-50"
     },
     { 
-      title: "Total Enrollments", 
+      title: "Tổng đăng ký", 
       value: analytics?.totalEnrollments || 0,
       icon: BookOpen,
       gradient: "from-amber-500 to-orange-400",
       bgGradient: "from-amber-50 to-orange-50"
     },
     { 
-      title: "Security Alerts", 
+      title: "Cảnh báo bảo mật", 
       value: analytics?.securityAlerts || 0,
       icon: AlertTriangle,
       gradient: "from-red-500 to-rose-400",
@@ -158,8 +158,8 @@ export default function AnalyticsPage() {
     <div className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen">
       {/* Header */}
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900">Analytics Overview</h2>
-        <p className="text-gray-500 mt-1">Track training performance and engagement metrics</p>
+        <h2 className="text-3xl font-bold text-gray-900">Tổng quan phân tích</h2>
+        <p className="text-gray-500 mt-1">Theo dõi hiệu suất đào tạo và các chỉ số tương tác</p>
       </div>
 
       {/* KPI Cards */}
@@ -196,7 +196,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100">
           <h3 className="text-lg font-semibold mb-4 text-gray-800">
-            Completion by Department
+            Hoàn thành theo phòng ban
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={departmentData}>
@@ -238,7 +238,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 gap-6">
         <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 h-[320px]">
           <h3 className="text-lg font-semibold mb-4 text-gray-800">
-            Training Hours Trend (Last 6 Months)
+            Xu hướng giờ đào tạo (6 tháng gần đây)
           </h3>
           <ResponsiveContainer width="100%" height="85%">
             <LineChart data={trainingHoursData}>
@@ -261,7 +261,7 @@ export default function AnalyticsPage() {
                 strokeWidth={3}
                 dot={{ fill: '#2563eb', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6 }}
-                name="Total Hours"
+                name="Tổng giờ"
               />
 
               <Line
@@ -271,7 +271,7 @@ export default function AnalyticsPage() {
                 strokeWidth={3}
                 dot={{ fill: '#16a34a', strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6 }}
-                name="Avg Hours / Employee"
+                name="Giờ TB / Nhân viên"
               />
             </LineChart>
           </ResponsiveContainer>

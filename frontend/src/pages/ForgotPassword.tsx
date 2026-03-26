@@ -25,28 +25,28 @@ export default function ForgotPasswordPage() {
       {/* LEFT */}
       <div className="left-section">
         <div className="welcome-content">
-          <h1 className="welcome-title">Reset Password</h1>
-          <p className="welcome-subtitle">Recover Your Account</p>
+          <h1 className="welcome-title">Đặt lại mật khẩu</h1>
+          <p className="welcome-subtitle">Khôi phục tài khoản của bạn</p>
 
           <div className="icon-wrapper">
-            <div className="star star-yellow">★</div>
+            <div className="star star-yellow">*</div>
             <div className="airplane-icon">
               <i className="fas fa-key"></i>
             </div>
-            <div className="star star-purple">★</div>
+            <div className="star star-purple">*</div>
           </div>
 
-          <p className="tagline">We'll help you get back into your account</p>
+          <p className="tagline">Chúng tôi sẽ giúp bạn lấy lại tài khoản</p>
         </div>
       </div>
 
       {/* RIGHT */}
       <div className="right-section">
         <div className="login-container">
-          <h2 className="login-title">Forgot Password?</h2>
+          <h2 className="login-title">Quên mật khẩu?</h2>
 
           <p className="forgot-description">
-            Enter your email address and we'll send you an OTP code to reset your password.
+            Nhập địa chỉ email của bạn và chúng tôi sẽ gửi mã OTP để đặt lại mật khẩu.
           </p>
 
           {/* ERROR */}
@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
               borderRadius: '5px',
               marginBottom: '15px'
             }}>
-              Redirecting to reset password page...
+              Đang chuyển đến trang đặt lại mật khẩu...
             </div>
           )}
 
@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
               <i className="fas fa-envelope input-icon"></i>
               <input
                 type="email"
-                placeholder="Enter your email address"
+                placeholder="Nhập địa chỉ email của bạn"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -82,13 +82,13 @@ export default function ForgotPasswordPage() {
               className="signin-btn"
               disabled={loading || !email || success}
             >
-              {loading ? "Sending..." : "Send OTP"}
+              {loading ? "Đang gửi..." : "Gửi OTP"}
             </button>
           </form>
 
           <div className="back-to-login">
             <Link to="/login" className="link-text">
-              <i className="fas fa-arrow-left"></i> Back to Sign In
+              <i className="fas fa-arrow-left"></i> Quay lại đăng nhập
             </Link>
           </div>
         </div>

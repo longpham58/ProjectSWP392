@@ -291,8 +291,6 @@ CREATE TABLE Session (
     class_id            INT           NOT NULL,   -- lớp học của buổi này
     schedule_id         INT           NULL,        -- NULL nếu tạo thủ công
     trainer_id          INT           NULL,        -- trainer phụ trách buổi này, điểm danh buổi này
-    session_name        NVARCHAR(255) NOT NULL,  -- tên buổi học
-    session_number      INT           NULL,        -- số thứ tự buổi trong lớp
     date                DATE          NOT NULL,
     time_start          TIME          NOT NULL,
     time_end            TIME          NOT NULL,
@@ -417,83 +415,6 @@ BEGIN
 
         SET @current_date = DATEADD(DAY, 1, @current_date);
     END
-END;
-GO
-
--- =====================================================
--- STORED PROCEDURE: SP_GetCourseSchedule
--- Get course schedule for a user who is a class member of a specific class
--- Returns sessions ordered by date and time
---
--- Cách dùng:
---   EXEC SP_GetCourseSchedule @user_id = 5, @class_id = 1;
--- =====================================================
-CREATE OR ALTER PROCEDURE SP_GetCourseSchedule
-    @user_id INT,
-    @class_id INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- First check if user is a member of this class
-    IF NOT EXISTS (
-        SELECT 1 FROM ClassMember 
-        WHERE user_id = @user_id 
-          AND class_id = @class_id 
-          AND status = 'ACTIVE'
-    )
-    BEGIN
-        RAISERROR('User is not a member of this class.', 16, 1);
-        RETURN;
-    END
-
-    -- Get sessions for the class
-    SELECT 
-        s.id AS session_id,
-        s.course_id,
-        c.code AS course_code,
-        c.name AS course_name,
-        s.class_id,
-        cr.class_code,
-        cr.class_name,
-        s.schedule_id,
-        s.trainer_id,
-        u.full_name AS trainer_name,
-        s.date,
-        s.time_start,
-        s.time_end,
-        s.location,
-        s.location_type,
-        s.meeting_link,
-        s.max_capacity,
-        s.current_enrolled,
-        s.status,
-        s.cancellation_reason,
-        s.notes,
-        s.created_at,
-        -- Calculate session number within the class
-        (
-            SELECT COUNT(s2.id) + 1 
-            FROM Session s2 
-            WHERE s2.class_id = s.class_id 
-              AND (s2.date < s.date OR (s2.date = s.date AND s2.time_start < s.time_start))
-        ) AS session_number,
-        -- Day of week (0 = Sunday, 1 = Monday, etc.)
-        CASE DATEPART(WEEKDAY, s.date)
-            WHEN 1 THEN 0  -- Sunday
-            WHEN 2 THEN 1  -- Monday
-            WHEN 3 THEN 2  -- Tuesday
-            WHEN 4 THEN 3  -- Wednesday
-            WHEN 5 THEN 4  -- Thursday
-            WHEN 6 THEN 5  -- Friday
-            WHEN 7 THEN 6  -- Saturday
-        END AS day_of_week
-    FROM Session s
-    INNER JOIN Course c ON c.id = s.course_id
-    INNER JOIN ClassRoom cr ON cr.id = s.class_id
-    LEFT JOIN [User] u ON u.id = s.trainer_id
-    WHERE s.class_id = @class_id
-    ORDER BY s.date ASC, s.time_start ASC;
 END;
 GO
 
@@ -909,3 +830,289 @@ GO
 --   WHERE s.class_id = 1
 --   ORDER BY s.date, s.time_start;
 -- =====================================================
+
+USE ITMS;
+GO
+
+-- Drop old constraint
+DECLARE @ConstraintName NVARCHAR(200);
+SELECT @ConstraintName = name 
+FROM sys.check_constraints 
+WHERE parent_object_id = OBJECT_ID('Notification') 
+  AND definition LIKE '%[[]type[]]%'
+  AND definition NOT LIKE '%reference_type%'
+  AND definition NOT LIKE '%recipient_type%';
+
+IF @ConstraintName IS NOT NULL
+BEGIN
+    DECLARE @DropSql NVARCHAR(MAX) = 'ALTER TABLE [dbo].[Notification] DROP CONSTRAINT [' + @ConstraintName + ']';
+    EXEC sp_executesql @DropSql;
+    PRINT 'Dropped: ' + @ConstraintName;
+END
+GO
+
+-- Add new constraint
+ALTER TABLE [dbo].[Notification]
+ADD CONSTRAINT CK_Notification_type 
+CHECK ([type] IN ('APPROVAL', 'REMINDER', 'GENERAL', 'ALERT'));
+GO
+
+
+SELECT c.name, c.definition 
+FROM sys.check_constraints c
+INNER JOIN sys.tables t ON c.parent_object_id = t.object_id
+WHERE t.name = 'Notification' AND c.definition LIKE '%type%';
+
+ALTER TABLE [dbo].[Notification] DROP CONSTRAINT [CK__Notificati__type__7755B73D];
+
+SELECT c.name, c.definition 
+FROM sys.check_constraints c
+INNER JOIN sys.tables t ON c.parent_object_id = t.object_id
+WHERE t.name = 'Notification' AND c.definition LIKE '%type%'
+  AND c.definition NOT LIKE '%reference_type%'
+  AND c.definition NOT LIKE '%recipient_type%';
+
+  SELECT COLUMN_NAME, IS_NULLABLE
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'Notification' AND IS_NULLABLE = 'NO';
+
+-- Check all constraints on Notification table
+SELECT 
+    CONSTRAINT_NAME,
+    CONSTRAINT_TYPE
+FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+WHERE TABLE_NAME = 'Notification';
+
+-- Check if trainer user exists
+SELECT id, username, full_name 
+FROM [User] 
+WHERE username = 'trainer001';
+USE ITMS;
+
+
+SELECT c.name, c.definition 
+FROM sys.check_constraints c
+INNER JOIN sys.tables t ON c.parent_object_id = t.object_id
+WHERE t.name = 'Notification';
+
+
+SELECT c.name, c.definition 
+FROM sys.check_constraints c
+INNER JOIN sys.tables t ON c.parent_object_id = t.object_id
+WHERE t.name = 'Notification' AND c.name = 'CK__Notificat__recip__793DFFAF';
+GO
+
+-- Drop old recipient_type constraint
+ALTER TABLE [dbo].[Notification] 
+DROP CONSTRAINT [CK__Notificat__recip__793DFFAF];
+GO
+
+-- Add new constraint with correct values matching frontend
+ALTER TABLE [dbo].[Notification]
+ADD CONSTRAINT CK_Notification_recipient_type 
+CHECK ([recipient_type] IS NULL OR [recipient_type] IN ('STUDENTS', 'HR', 'ALL', 'SYSTEM'));
+GO
+
+-- Also check priority constraint - drop and recreate to ensure NORMAL is included
+ALTER TABLE [dbo].[Notification] 
+DROP CONSTRAINT [CK__Notificat__prior__7B264821];
+GO
+
+ALTER TABLE [dbo].[Notification]
+ADD CONSTRAINT CK_Notification_priority 
+CHECK ([priority] IN ('LOW', 'NORMAL', 'HIGH', 'URGENT'));
+GO
+
+-- Verify all constraints
+SELECT c.name, c.definition 
+FROM sys.check_constraints c
+INNER JOIN sys.tables t ON c.parent_object_id = t.object_id
+WHERE t.name = 'Notification';
+GO
+
+PRINT 'Done! All constraints fixed.';
+GO
+
+USE ITMS;
+GO
+
+ALTER TABLE [dbo].[Notification] 
+DROP CONSTRAINT [CK__Notificat__refer__7849DB76];
+GO
+
+ALTER TABLE [dbo].[Notification]
+ADD CONSTRAINT CK_Notification_reference_type 
+CHECK ([reference_type] IS NULL OR [reference_type] IN 
+    ('GENERAL', 'ENROLLMENT', 'SESSION', 'COURSE', 'QUIZ', 'CERTIFICATE'));
+GO
+
+PRINT 'Done!';
+
+-- =====================================================
+-- Fix Feedback table: make enrollment_id and session_id nullable
+-- Add missing columns to match Java entity
+-- =====================================================
+
+-- 1. Drop unique constraint first (references the columns we need to alter)
+IF EXISTS (SELECT 1 FROM sys.key_constraints WHERE name = 'UQ_Feedback_EnrollmentSession')
+    ALTER TABLE Feedback DROP CONSTRAINT UQ_Feedback_EnrollmentSession;
+
+-- 2. Drop FK constraints on enrollment_id and session_id
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Feedback_Enrollment')
+    ALTER TABLE Feedback DROP CONSTRAINT FK_Feedback_Enrollment;
+
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Feedback_Session')
+    ALTER TABLE Feedback DROP CONSTRAINT FK_Feedback_Session;
+
+-- 3. Make enrollment_id and session_id nullable
+ALTER TABLE Feedback ALTER COLUMN enrollment_id INT NULL;
+ALTER TABLE Feedback ALTER COLUMN session_id INT NULL;
+
+-- 4. Re-add FK constraints (nullable)
+ALTER TABLE Feedback ADD CONSTRAINT FK_Feedback_Enrollment
+    FOREIGN KEY (enrollment_id) REFERENCES Enrollment(id);
+
+ALTER TABLE Feedback ADD CONSTRAINT FK_Feedback_Session
+    FOREIGN KEY (session_id) REFERENCES Session(id);
+
+-- 5. Re-add unique constraint including user_id so each user can have one feedback per session
+--    (drop old one first if somehow it was re-added)
+IF EXISTS (SELECT 1 FROM sys.key_constraints WHERE name = 'UQ_Feedback_UserSession')
+    ALTER TABLE Feedback DROP CONSTRAINT UQ_Feedback_UserSession;
+
+ALTER TABLE Feedback ADD CONSTRAINT UQ_Feedback_UserSession
+    UNIQUE (user_id, session_id);
+
+-- 6. Add missing columns if not exist
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Feedback') AND name = 'type')
+    ALTER TABLE Feedback ADD type NVARCHAR(50) NULL DEFAULT 'COURSE_FEEDBACK';
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Feedback') AND name = 'status')
+    ALTER TABLE Feedback ADD status NVARCHAR(50) NULL DEFAULT 'OPEN';
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Feedback') AND name = 'recipient_id')
+    ALTER TABLE Feedback ADD recipient_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Feedback') AND name = 'is_violation')
+    ALTER TABLE Feedback ADD is_violation BIT NULL DEFAULT 0;
+
+-- =====================================================
+-- Create Comment table if not exists
+-- =====================================================
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Comment')
+BEGIN
+    CREATE TABLE [Comment] (
+        id          INT           IDENTITY(1,1) PRIMARY KEY,
+        course_id   INT           NOT NULL,
+        user_id     INT           NOT NULL,
+        content     NVARCHAR(MAX) NOT NULL,
+        parent_id   INT           NULL,
+        like_count  INT           NOT NULL DEFAULT 0,
+        created_at  DATETIME      NOT NULL DEFAULT GETDATE(),
+
+        CONSTRAINT FK_Comment_Course
+            FOREIGN KEY (course_id) REFERENCES Course(id) ON DELETE CASCADE,
+        CONSTRAINT FK_Comment_User
+            FOREIGN KEY (user_id) REFERENCES [User](id),
+        CONSTRAINT FK_Comment_Parent
+            FOREIGN KEY (parent_id) REFERENCES [Comment](id)
+    );
+    PRINT 'Comment table created successfully.';
+END
+ELSE
+    PRINT 'Comment table already exists.';
+
+PRINT 'Done.';
+
+
+
+-- =====================================================
+-- Fix Feedback table: make enrollment_id and session_id nullable
+-- Add course_id column for direct course linking
+-- Add missing columns to match Java entity
+-- =====================================================
+
+-- 1. Drop constraints that block column changes
+IF EXISTS (SELECT 1 FROM sys.key_constraints WHERE name = 'UQ_Feedback_EnrollmentSession')
+    ALTER TABLE Feedback DROP CONSTRAINT UQ_Feedback_EnrollmentSession;
+
+IF EXISTS (SELECT 1 FROM sys.key_constraints WHERE name = 'UQ_Feedback_UserSession')
+    ALTER TABLE Feedback DROP CONSTRAINT UQ_Feedback_UserSession;
+
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Feedback_Enrollment')
+    ALTER TABLE Feedback DROP CONSTRAINT FK_Feedback_Enrollment;
+
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Feedback_Session')
+    ALTER TABLE Feedback DROP CONSTRAINT FK_Feedback_Session;
+
+-- 2. Make enrollment_id and session_id nullable
+ALTER TABLE Feedback ALTER COLUMN enrollment_id INT NULL;
+ALTER TABLE Feedback ALTER COLUMN session_id INT NULL;
+
+-- 3. Re-add FK constraints (nullable)
+ALTER TABLE Feedback ADD CONSTRAINT FK_Feedback_Enrollment
+    FOREIGN KEY (enrollment_id) REFERENCES Enrollment(id);
+
+ALTER TABLE Feedback ADD CONSTRAINT FK_Feedback_Session
+    FOREIGN KEY (session_id) REFERENCES Session(id);
+
+-- 4. Add course_id column (direct link to course)
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Feedback') AND name = 'course_id')
+    ALTER TABLE Feedback ADD course_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_Feedback_Course')
+    ALTER TABLE Feedback ADD CONSTRAINT FK_Feedback_Course
+        FOREIGN KEY (course_id) REFERENCES Course(id);
+
+-- 5. Add other missing columns
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Feedback') AND name = 'type')
+    ALTER TABLE Feedback ADD type NVARCHAR(50) NULL DEFAULT 'COURSE_FEEDBACK';
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Feedback') AND name = 'status')
+    ALTER TABLE Feedback ADD status NVARCHAR(50) NULL DEFAULT 'OPEN';
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Feedback') AND name = 'recipient_id')
+    ALTER TABLE Feedback ADD recipient_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('Feedback') AND name = 'is_violation')
+    ALTER TABLE Feedback ADD is_violation BIT NULL DEFAULT 0;
+
+-- 6. Backfill course_id from existing session links
+UPDATE f
+SET f.course_id = s.course_id
+FROM Feedback f
+JOIN Session s ON f.session_id = s.id
+WHERE f.course_id IS NULL AND f.session_id IS NOT NULL;
+
+-- 7. Fix NULL type on existing rows
+UPDATE Feedback
+SET type = 'COURSE_FEEDBACK', status = 'OPEN', is_anonymous = 0, is_violation = 0
+WHERE type IS NULL;
+
+-- =====================================================
+-- Create Comment table if not exists
+-- =====================================================
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Comment')
+BEGIN
+    CREATE TABLE [Comment] (
+        id          INT           IDENTITY(1,1) PRIMARY KEY,
+        course_id   INT           NOT NULL,
+        user_id     INT           NOT NULL,
+        content     NVARCHAR(MAX) NOT NULL,
+        parent_id   INT           NULL,
+        like_count  INT           NOT NULL DEFAULT 0,
+        created_at  DATETIME      NOT NULL DEFAULT GETDATE(),
+
+        CONSTRAINT FK_Comment_Course
+            FOREIGN KEY (course_id) REFERENCES Course(id) ON DELETE CASCADE,
+        CONSTRAINT FK_Comment_User
+            FOREIGN KEY (user_id) REFERENCES [User](id),
+        CONSTRAINT FK_Comment_Parent
+            FOREIGN KEY (parent_id) REFERENCES [Comment](id)
+    );
+    PRINT 'Comment table created.';
+END
+ELSE
+    PRINT 'Comment table already exists.';
+
+PRINT 'Done.';

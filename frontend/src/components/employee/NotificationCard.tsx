@@ -21,11 +21,11 @@ export default function NotificationCard({ notification, onMarkAsRead }: Notific
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'info': return '📘';
-      case 'warning': return '⚠️';
-      case 'success': return '✅';
-      case 'error': return '❌';
-      default: return '📌';
+      case 'info': return '';
+      case 'warning': return '';
+      case 'success': return '';
+      case 'error': return '';
+      default: return '';
     }
   };
 
@@ -50,7 +50,7 @@ export default function NotificationCard({ notification, onMarkAsRead }: Notific
           <p className="text-sm text-gray-700 mb-3">{notification.message}</p>
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-500">
-              📅 {new Date(notification.date).toLocaleDateString('vi-VN')}
+               {new Date(notification.date).toLocaleDateString('vi-VN')}
             </span>
             <div className="flex gap-2">
               {!notification.read && (

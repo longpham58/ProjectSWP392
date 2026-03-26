@@ -30,11 +30,11 @@ export default function TopCoursesChart({ courseData }: Props): React.ReactNode 
     <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-800">
-          Top 10 Course Completion Rates
+          Top 10 tỷ lệ hoàn thành khóa học
         </h3>
 
         <span className="text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-lg">
-          Sorted by highest completion
+          Sắp xếp theo tỷ lệ cao nhất
         </span>
       </div>
 
@@ -99,12 +99,12 @@ export default function TopCoursesChart({ courseData }: Props): React.ReactNode 
       <div className="flex items-center gap-6 mt-4 text-sm">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded bg-gradient-to-r from-indigo-500 to-purple-500" />
-          <span className="text-gray-600">Healthy Performance</span>
+          <span className="text-gray-600">Hiệu suất tốt</span>
         </div>
 
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-red-500 rounded" />
-          <span className="text-gray-600">Below 70% (Needs Attention)</span>
+          <span className="text-gray-600">Dưới 70% (Cần chú ý)</span>
         </div>
       </div>
     </div>

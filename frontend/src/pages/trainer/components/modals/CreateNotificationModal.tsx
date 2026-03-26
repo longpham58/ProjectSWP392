@@ -23,22 +23,22 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClo
     const fetchClasses = async () => {
       setLoadingCourses(true);
       try {
-        console.log('🔍 Fetching trainer classes...');
+        console.log('Fetching trainer classes...');
         const response = await trainerApi.getTrainerClasses();
-        console.log('✅ Full API response:', response);
-        console.log('📚 Available classes:', response);
+        console.log('Full API response:', response);
+        console.log('Available classes:', response);
         
         if (response && Array.isArray(response)) {
-          console.log('✅ Setting available classes:', response);
+          console.log('Setting available classes:', response);
           setAvailableClasses(response);
         } else {
-          console.warn('⚠️ Response is not an array:', response);
+          console.warn('Response is not an array:', response);
           setAvailableClasses([]);
         }
       } catch (err: any) {
-        console.error('❌ Failed to fetch classes:', err);
-        console.error('❌ Error response:', err.response);
-        console.error('❌ Error message:', err.message);
+        console.error('Failed to fetch classes:', err);
+        console.error('Error response:', err.response);
+        console.error('Error message:', err.message);
         // Fallback to empty array
         setAvailableClasses([]);
       } finally {
@@ -62,7 +62,7 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClo
     if (selectedClasses.length === availableClasses.length) {
       setSelectedClasses([]);
     } else {
-      setSelectedClasses(availableClasses.map(c => c.code)); // ✅ Đúng - chỉ lấy code
+      setSelectedClasses(availableClasses.map(c => c.code)); // Đúng - chỉ lấy code
     }
     setErrors({ ...errors, selectedClasses: '' });
   };
@@ -102,8 +102,8 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClo
       alert('Đã gửi thông báo thành công!');
       onClose();
     } catch (err: any) {
-      console.error('❌ Error sending notification:', err);
-      console.error('❌ Error response:', err.response);
+      console.error('Error sending notification:', err);
+      console.error('Error response:', err.response);
       alert('Gửi thông báo thất bại! ' + (err.response?.data?.message || err.message));
     }
   };
@@ -115,7 +115,7 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClo
     }
 
     try {
-      console.log('💾 Saving draft with data:', {
+      console.log('Saving draft with data:', {
         title,
         message: content,
         type: 'GENERAL',
@@ -137,8 +137,8 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({ onClo
       alert('Đã lưu nháp thành công!');
       onClose();
     } catch (err: any) {
-      console.error('❌ Error saving draft:', err);
-      console.error('❌ Error response:', err.response);
+      console.error('Error saving draft:', err);
+      console.error('Error response:', err.response);
       alert('Lưu nháp thất bại! ' + (err.response?.data?.message || err.message));
     }
   };

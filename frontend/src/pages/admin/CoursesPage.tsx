@@ -55,10 +55,10 @@ export default function AdminCoursesPage() {
   const archived = courses.filter(c => c.status === "ARCHIVED").length;
 
   const kpis = [
-    { title: "Total Courses", value: total, icon: BookOpen, gradient: "from-indigo-500 to-purple-400", bgGradient: "from-indigo-50 to-purple-50" },
-    { title: "Active", value: active, icon: Award, gradient: "from-green-500 to-emerald-400", bgGradient: "from-green-50 to-emerald-50" },
-    { title: "Draft", value: draft, icon: FileText, gradient: "from-amber-500 to-orange-400", bgGradient: "from-amber-50 to-orange-50" },
-    { title: "Archived", value: archived, icon: BookOpen, gradient: "from-gray-500 to-slate-400", bgGradient: "from-gray-50 to-slate-50" },
+    { title: "Tổng khóa học", value: total, icon: BookOpen, gradient: "from-indigo-500 to-purple-400", bgGradient: "from-indigo-50 to-purple-50" },
+    { title: "Đang hoạt động", value: active, icon: Award, gradient: "from-green-500 to-emerald-400", bgGradient: "from-green-50 to-emerald-50" },
+    { title: "Nháp", value: draft, icon: FileText, gradient: "from-amber-500 to-orange-400", bgGradient: "from-amber-50 to-orange-50" },
+    { title: "Đã lưu trữ", value: archived, icon: BookOpen, gradient: "from-gray-500 to-slate-400", bgGradient: "from-gray-50 to-slate-50" },
   ];
 
   return (
@@ -67,9 +67,9 @@ export default function AdminCoursesPage() {
       {/* HEADER */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">
-          Course Management
+          Quản lý khóa học
         </h1>
-        <p className="text-gray-500 mt-1">Manage and organize training courses</p>
+        <p className="text-gray-500 mt-1">Quản lý và tổ chức các khóa đào tạo</p>
       </div>
 
       {/* KPI SECTION */}
@@ -99,7 +99,7 @@ export default function AdminCoursesPage() {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
           <input
             type="text"
-            placeholder="Search by name or code..."
+            placeholder="Tìm theo tên hoặc mã..."
             className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl w-full focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             value={search}
             onChange={(e) => {
@@ -117,7 +117,7 @@ export default function AdminCoursesPage() {
             setCurrentPage(1);
           }}
         >
-          <option value="ALL">All Status</option>
+          <option value="ALL">Tất cả trạng thái</option>
           <option value="ACTIVE">ACTIVE</option>
           <option value="DRAFT">DRAFT</option>
           <option value="INACTIVE">INACTIVE</option>
@@ -128,22 +128,22 @@ export default function AdminCoursesPage() {
       {/* TABLE */}
       <div className="bg-white shadow-sm rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 border border-gray-100">
         {loading ? (
-          <div className="p-12 text-center text-gray-500">Loading...</div>
+          <div className="p-12 text-center text-gray-500">Đang tải...</div>
         ) : (
           <table className="min-w-full text-sm">
             <thead className="bg-gradient-to-r from-gray-50 to-slate-50 text-left">
               <tr>
-                <TableHead>Code</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Trainer</TableHead>
-                <TableHead>Level</TableHead>
-                <TableHead>Classes</TableHead>
-                <TableHead>Students</TableHead>
-                <TableHead>Duration</TableHead>
-                <TableHead>Passing</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Action</TableHead>
+                <TableHead>Mã</TableHead>
+                <TableHead>Tên</TableHead>
+                <TableHead>Giảng viên</TableHead>
+                <TableHead>Cấp độ</TableHead>
+                <TableHead>Lớp học</TableHead>
+                <TableHead>Học viên</TableHead>
+                <TableHead>Thời lượng</TableHead>
+                <TableHead>Điểm đạt</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead>Ngày tạo</TableHead>
+                <TableHead>Hành động</TableHead>
               </tr>
             </thead>
 
@@ -193,7 +193,7 @@ export default function AdminCoursesPage() {
                       className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium transition-colors"
                     >
                       <Eye size={14} />
-                      View
+                      Xem
                     </Link>
                   </TableCell>
                 </tr>
@@ -204,7 +204,7 @@ export default function AdminCoursesPage() {
                   <td colSpan={11} className="text-center p-12 text-gray-500">
                     <div className="flex flex-col items-center">
                       <BookOpen size={48} className="text-gray-300 mb-2" />
-                      <p>No courses found.</p>
+                      <p>Không tìm thấy khóa học nào.</p>
                     </div>
                   </td>
                 </tr>
@@ -217,7 +217,7 @@ export default function AdminCoursesPage() {
       {/* PAGINATION */}
       <div className="flex justify-between items-center mt-6 bg-white p-4 rounded-xl shadow-sm">
         <p className="text-sm text-gray-600">
-          Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredCourses.length)} of {filteredCourses.length} results
+          Hiển thị {((currentPage - 1) * itemsPerPage) + 1} đến {Math.min(currentPage * itemsPerPage, filteredCourses.length)} trong {filteredCourses.length} kết quả
         </p>
 
         <div className="flex gap-2">

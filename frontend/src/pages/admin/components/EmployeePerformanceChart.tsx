@@ -28,7 +28,7 @@ export default function EmployeePerformanceChart({ data }: Props): React.ReactNo
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100">
       <h3 className="text-lg font-semibold mb-4 text-gray-800">
-        Employee Performance Distribution
+        Phân bổ hiệu suất nhân viên
       </h3>
 
       <ResponsiveContainer width="100%" height={350}>
@@ -52,7 +52,7 @@ export default function EmployeePerformanceChart({ data }: Props): React.ReactNo
 
           <Tooltip
             formatter={(value) =>
-              value == null ? "" : `${value} Employees`
+              value == null ? "" : `${value} Nhân viên`
             }
             contentStyle={{ 
               borderRadius: '12px', 
@@ -71,15 +71,15 @@ export default function EmployeePerformanceChart({ data }: Props): React.ReactNo
       <div className="mt-4 p-4 bg-gray-50 rounded-xl text-sm space-y-2">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-green-500" />
-          <span className="text-gray-600"><span className="text-green-600 font-medium">High:</span> Performing above expectations</span>
+          <span className="text-gray-600"><span className="text-green-600 font-medium">Cao:</span> Hiệu suất vượt kỳ vọng</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-amber-500" />
-          <span className="text-gray-600"><span className="text-amber-600 font-medium">Medium:</span> Acceptable performance</span>
+          <span className="text-gray-600"><span className="text-amber-600 font-medium">Trung bình:</span> Hiệu suất chấp nhận được</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-red-500" />
-          <span className="text-gray-600"><span className="text-red-600 font-medium">Low:</span> Needs attention</span>
+          <span className="text-gray-600"><span className="text-red-600 font-medium">Thấp:</span> Cần chú ý</span>
         </div>
       </div>
     </div>

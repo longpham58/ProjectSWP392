@@ -80,7 +80,7 @@ export default function AdminDashboard() {
 
   const kpiCards = [
     {
-      title: "Total Users",
+      title: "Tổng người dùng",
       value: stats?.totalUsers ?? 0,
       icon: Users,
       gradient: "from-violet-500 to-purple-600",
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
       iconColor: "text-violet-600",
     },
     {
-      title: "Active Users",
+      title: "Người dùng hoạt động",
       value: stats?.activeUsers ?? 0,
       icon: Activity,
       gradient: "from-emerald-500 to-teal-600",
@@ -96,7 +96,7 @@ export default function AdminDashboard() {
       iconColor: "text-emerald-600",
     },
     {
-      title: "Total Courses",
+      title: "Tổng khóa học",
       value: stats?.totalCourses ?? 0,
       icon: BookOpen,
       gradient: "from-blue-500 to-cyan-600",
@@ -104,7 +104,7 @@ export default function AdminDashboard() {
       iconColor: "text-blue-600",
     },
     {
-      title: "Total Classes",
+      title: "Tổng lớp học",
       value: stats?.totalClasses ?? 0,
       icon: FolderKanban,
       gradient: "from-orange-500 to-amber-600",
@@ -117,8 +117,8 @@ export default function AdminDashboard() {
     <div className="p-6 bg-gradient-to-br from-gray-50 to-slate-100 min-h-screen">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-        <p className="text-gray-500 mt-1">Welcome back! Here's what's happening with your training system.</p>
+        <h1 className="text-3xl font-bold text-gray-900">Tổng quan Dashboard</h1>
+        <p className="text-gray-500 mt-1">Chào mừng trở lại! Đây là những gì đang xảy ra với hệ thống đào tạo của bạn.</p>
       </div>
 
       {/* KPI CARDS */}
@@ -162,8 +162,7 @@ export default function AdminDashboard() {
         <div className="px-6 py-4 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-indigo-600" />
-            Course Completion Trend
-          </h3>
+            Xu hướng hoàn thành khóa học          </h3>
         </div>
         <div className="p-6">
           <CompletionTrend monthlyData={monthlyData} />
@@ -177,7 +176,7 @@ export default function AdminDashboard() {
           <div className="px-6 py-4 border-b border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Clock className="w-5 h-5 text-indigo-600" />
-              Recent System Activity
+              Hoạt động hệ thống gần đây
             </h3>
           </div>
           <div className="p-6">
@@ -203,7 +202,7 @@ export default function AdminDashboard() {
             ) : (
               <div className="text-center py-8">
                 <Activity className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">No recent activities</p>
+                <p className="text-sm text-gray-500">Không có hoạt động gần đây</p>
               </div>
             )}
           </div>
@@ -214,7 +213,7 @@ export default function AdminDashboard() {
           <div className="px-6 py-4 border-b border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Users className="w-5 h-5 text-indigo-600" />
-              Role Distribution
+              Phân bổ vai trò
             </h3>
           </div>
           <div className="p-6">
@@ -243,7 +242,7 @@ export default function AdminDashboard() {
             ) : (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">No role data available</p>
+                <p className="text-sm text-gray-500">Không có dữ liệu vai trò</p>
               </div>
             )}
           </div>
@@ -256,7 +255,7 @@ export default function AdminDashboard() {
           <div className="px-6 py-4 border-b border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Shield className="w-5 h-5 text-indigo-600" />
-              Security Status
+              Trạng thái bảo mật
             </h3>
           </div>
           <div className="p-6">
@@ -266,7 +265,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-3 p-3 bg-red-50 rounded-xl border border-red-100">
                     <Shield className="w-5 h-5 text-red-500" />
                     <span className="text-sm text-red-700 font-medium">
-                      {securityAlerts} security alert(s) requiring attention
+                      {securityAlerts} cảnh báo bảo mật cần xử lý
                     </span>
                   </div>
                 )}
@@ -274,7 +273,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl border border-orange-100">
                     <Activity className="w-5 h-5 text-orange-500" />
                     <span className="text-sm text-orange-700 font-medium">
-                      {failedLogins} failed login attempt(s) detected
+                      {failedLogins} lần đăng nhập thất bại được phát hiện
                     </span>
                   </div>
                 )}
@@ -283,7 +282,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-100">
                 <Shield className="w-6 h-6 text-green-500" />
                 <span className="text-sm text-green-700 font-medium">
-                  All systems secure. No alerts at this time.
+                  Tất cả hệ thống an toàn. Không có cảnh báo nào.
                 </span>
               </div>
             )}
@@ -294,19 +293,19 @@ export default function AdminDashboard() {
           <div className="px-6 py-4 border-b border-gray-100">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-indigo-600" />
-              Feedback Tickets
+              Phiếu phản hồi
             </h3>
           </div>
           <div className="p-6">
             <div className="flex items-center justify-between p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
               <div>
-                <p className="text-sm text-gray-600">Open System Feedback</p>
+                <p className="text-sm text-gray-600">Phản hồi hệ thống đang mở</p>
                 <p className="text-2xl font-bold text-gray-900 mt-1">{stats?.openFeedback ?? 0}</p>
               </div>
               <MessageSquare className="w-10 h-10 text-indigo-400" />
             </div>
             <p className="text-sm text-gray-500 mt-3">
-              pending system feedback tickets awaiting review
+              phiếu phản hồi hệ thống đang chờ xem xét
             </p>
           </div>
         </div>

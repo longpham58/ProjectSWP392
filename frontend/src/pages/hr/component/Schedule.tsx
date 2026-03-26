@@ -228,7 +228,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
             <div className="schedule-subtitle">Tạo lịch dạy theo trainer và theo dõi lịch đã tạo</div>
           </div>
           <div className="schedule-topbar-actions">
-            <button type="button" className="schedule-btn secondary">⬇ Export</button>
+            <button type="button" className="schedule-btn secondary">⬇ Xuất</button>
           </div>
         </div>
 
@@ -237,45 +237,45 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
             <div className="schedule-stat-icon schedule-i-green">✓</div>
             <div className="schedule-stat-meta">
               <div className="schedule-stat-value">{stats.scheduled}</div>
-              <div className="schedule-stat-label">Scheduled</div>
+              <div className="schedule-stat-label">Đã lên lịch</div>
             </div>
           </div>
           <div className="schedule-stat-card">
-            <div className="schedule-stat-icon schedule-i-blue">🗓</div>
+            <div className="schedule-stat-icon schedule-i-blue"></div>
             <div className="schedule-stat-meta">
               <div className="schedule-stat-value">{stats.total}</div>
               <div className="schedule-stat-label">Tổng lịch</div>
             </div>
           </div>
           <div className="schedule-stat-card">
-            <div className="schedule-stat-icon schedule-i-amber">🏁</div>
+            <div className="schedule-stat-icon schedule-i-amber"></div>
             <div className="schedule-stat-meta">
               <div className="schedule-stat-value">{stats.completed}</div>
-              <div className="schedule-stat-label">Completed</div>
+              <div className="schedule-stat-label">Đã hoàn thành</div>
             </div>
           </div>
           <div className="schedule-stat-card">
-            <div className="schedule-stat-icon schedule-i-red">👤</div>
+            <div className="schedule-stat-icon schedule-i-red"></div>
             <div className="schedule-stat-meta">
               <div className="schedule-stat-value">{stats.trainers}</div>
-              <div className="schedule-stat-label">Trainer</div>
+              <div className="schedule-stat-label">Giảng viên</div>
             </div>
           </div>
         </div>
 
         <div className="schedule-create-card">
           <h2 className="schedule-create-title">
-            {editingId ? 'Edit learning schedule' : 'Create learning schedule per Trainer'}
+            {editingId ? 'Chỉnh sửa lịch học' : 'Tạo lịch học theo Giảng viên'}
           </h2>
           <div className="schedule-create-grid">
             <div className="schedule-create-field">
-              <label htmlFor="schedule-trainer">Trainer account</label>
+              <label htmlFor="schedule-trainer">Tài khoản giảng viên</label>
               <select
                 id="schedule-trainer"
                 value={selectedTrainer}
                 onChange={(e) => setSelectedTrainer(e.target.value)}
               >
-                <option value="">Choose trainer</option>
+                <option value="">Chọn giảng viên</option>
                 {availableTrainers.map((t) => (
                   <option key={t.username} value={t.username}>
                     {t.fullName} ({t.username})
@@ -284,14 +284,14 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
               </select>
             </div>
             <div className="schedule-create-field">
-              <label htmlFor="schedule-course-code">Course code</label>
+              <label htmlFor="schedule-course-code">Mã khóa học</label>
               <select
                 id="schedule-course-code"
                 value={newCourseCode}
                 onChange={(e) => handleCourseChange(e.target.value)}
                 onFocus={() => fetchCourses()}
               >
-                <option value="">Choose course</option>
+                <option value="">Chọn khóa học</option>
                 {newCourseCode && !availableCourses.some((c) => c.code === newCourseCode) && (
                   <option value={newCourseCode}>{newCourseCode}</option>
                 )}
@@ -303,7 +303,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
               </select>
             </div>
             <div className="schedule-create-field">
-              <label htmlFor="schedule-start-date">Start date</label>
+              <label htmlFor="schedule-start-date">Ngày bắt đầu</label>
               <input
                 id="schedule-start-date"
                 type="date"
@@ -312,7 +312,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
               />
             </div>
             <div className="schedule-create-field">
-              <label htmlFor="schedule-end-date">End date</label>
+              <label htmlFor="schedule-end-date">Ngày kết thúc</label>
               <input
                 id="schedule-end-date"
                 type="date"
@@ -321,16 +321,16 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
               />
             </div>
             <div className="schedule-create-field schedule-create-field-full">
-              <label>Weekdays</label>
+              <label>Các ngày trong tuần</label>
               <div className="schedule-weekday-multiselect">
                 {[
-                  { value: '1', label: 'Mon' },
-                  { value: '2', label: 'Tue' },
-                  { value: '3', label: 'Wed' },
-                  { value: '4', label: 'Thu' },
-                  { value: '5', label: 'Fri' },
-                  { value: '6', label: 'Sat' },
-                  { value: '0', label: 'Sun' },
+                  { value: '1', label: 'T2' },
+                  { value: '2', label: 'T3' },
+                  { value: '3', label: 'T4' },
+                  { value: '4', label: 'T5' },
+                  { value: '5', label: 'T6' },
+                  { value: '6', label: 'T7' },
+                  { value: '0', label: 'CN' },
                 ].map((d) => (
                   <button
                     key={d.value}
@@ -347,7 +347,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
               </div>
             </div>
             <div className="schedule-create-field">
-              <label htmlFor="schedule-start-time">Start time</label>
+              <label htmlFor="schedule-start-time">Giờ bắt đầu</label>
               <input
                 id="schedule-start-time"
                 type="time"
@@ -359,7 +359,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
               />
             </div>
             <div className="schedule-create-field">
-              <label htmlFor="schedule-end-time">End time</label>
+              <label htmlFor="schedule-end-time">Giờ kết thúc</label>
               <input
                 id="schedule-end-time"
                 type="time"
@@ -371,13 +371,13 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
               />
             </div>
             <div className="schedule-create-field">
-              <label htmlFor="schedule-class-code">Class</label>
+              <label htmlFor="schedule-class-code">Lớp học</label>
               <select
                 id="schedule-class-code"
                 value={newClassCode}
                 onChange={(e) => setNewClassCode(e.target.value)}
               >
-                <option value="">Choose class</option>
+                <option value="">Chọn lớp học</option>
                 {availableRooms
                   .filter((room) => !newCourseCode || room.courseCode === newCourseCode)
                   .map((room) => (
@@ -388,7 +388,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
               </select>
             </div>
             <div className="schedule-create-field">
-              <label htmlFor="schedule-location-type">Study mode</label>
+              <label htmlFor="schedule-location-type">Hình thức học</label>
               <select
                 id="schedule-location-type"
                 value={newLocationType}
@@ -400,7 +400,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
             </div>
             <div className="schedule-create-field">
               <label htmlFor="schedule-class-meet">
-                Room/Meet
+                Phòng/Link
               </label>
               {newLocationType === 'OFFLINE' ? (
                 <>
@@ -536,7 +536,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
                   });
               }}
             >
-              {editingId ? 'Save changes' : 'Create schedule'}
+              {editingId ? 'Lưu thay đổi' : 'Tạo lịch học'}
             </button>
             <button
               type="button"
@@ -556,7 +556,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
                 setEditingId(null);
               }}
             >
-              {editingId ? 'Cancel' : 'Reset'}
+              {editingId ? 'Hủy' : 'Đặt lại'}
             </button>
             {formMessage && (
               <span style={{ marginLeft: 10, fontSize: 13, color: '#555' }}>{formMessage}</span>
@@ -565,7 +565,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
         </div>
         <div className="schedule-toolbar">
           <div className="schedule-searchbar">
-            <span className="schedule-search-icon">🔎</span>
+            <span className="schedule-search-icon"></span>
             <input
               id="schedule-search"
               type="text"
@@ -605,22 +605,22 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
 
         <div ref={tableTopRef} />
         <div className="schedule-table-wrap">
-          <div className="schedule-table-title">Schedules created by HR</div>
+          <div className="schedule-table-title">Lịch học được tạo bởi HR</div>
           <table className="schedule-table">
           <thead>
             <tr>
-              <th>Trainer</th>
-              <th>Course code</th>
-              <th>Course name</th>
-              <th>Class</th>
-              <th>Weekday</th>
-              <th>Date</th>
-              <th>Course end</th>
-              <th>Time</th>
-              <th>Mode</th>
-              <th>Room/Meet</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Giảng viên</th>
+              <th>Mã khóa học</th>
+              <th>Tên khóa học</th>
+              <th>Lớp học</th>
+              <th>Thứ</th>
+              <th>Ngày</th>
+              <th>Kết thúc khóa</th>
+              <th>Thời gian</th>
+              <th>Hình thức</th>
+              <th>Phòng/Link</th>
+              <th>Trạng thái</th>
+              <th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -666,13 +666,13 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                     >
-                      Edit
+                      Sửa
                     </button>
                     <button
                       type="button"
                       className="schedule-action-btn danger"
                       onClick={async () => {
-                        const ok = window.confirm('Delete this schedule?');
+                        const ok = window.confirm('Xóa lịch học này?');
                         if (!ok) return;
                         try {
                           await hrScheduleService.remove(s.id);
@@ -686,7 +686,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
                         }
                       }}
                     >
-                      Delete
+                      Xóa
                     </button>
                   </div>
                 </td>

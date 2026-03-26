@@ -49,7 +49,7 @@ export default function CompletionTrend({
             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
             padding: '12px 16px'
           }}
-          formatter={(value) => [`${value}%`, 'Completion']}
+          formatter={(value) => [`${value}%`, 'Hoàn thành']}
           labelStyle={{ color: '#64748b', marginBottom: '4px' }}
         />
         <Line

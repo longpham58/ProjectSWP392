@@ -1,189 +1,191 @@
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\exception\GlobalExceptionHandler.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\EmployeeDashboardController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Comment.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Role.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\TrainerNotificationService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\exception\OtpException.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\QuizAttemptRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\RoleRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\UserController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\config\SwaggerConfig.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\HrClassController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\ClassRoom.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\UserService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\config\SecurityConfig.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\HrDashboardController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\SessionService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\ModuleProgressController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\HrClassMemberService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\EmployeeDashboardService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\DepartmentRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\UserRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\NotificationType.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\ExcelImportService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Enrollment.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Notification.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\EmployeeService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Feedback.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\FeedbackService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\CourseModule.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\HrEmployeeController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\Level.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminAnalyticsDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\ClassMemberRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\employee\EmployeeDtos.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\security\CustomUserDetailsService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\CourseRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\JwtService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\config\WebConfig.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\HrScheduleService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\UserProfileStatsDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\security\CustomUserDetails.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\UpdateSessionRequest.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\TrainerScheduleController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\NotificationPriority.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizSubmitRequest.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\HrDashboardService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\AdminFeedbackController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Material.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\CompletionStatus.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\HrFeedbackController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\HrScheduleController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminDashboardDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\UserRole.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\LoginResponse.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\EmailService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Department.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Certificate.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\CertificateService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\LearningStreakService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\HealthController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\CourseDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\AdminDashboardController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\LocationType.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\HrClassMemberController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\SessionController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\HrTrainerDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\FeedbackStatus.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\config\MailConfig.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizQuestionImportDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\Grade.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Attendance.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\TrainerScheduleService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\ItmsApplication.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\CourseController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizImportDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\config\PasswordEncoderConfig.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\NotificationDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizResultDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Progress.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\FeedbackController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\CourseModuleDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\VerifyOtpRequest.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\TrainerNotificationDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\HrEmployeeDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\AuthController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\HrDashboardStatsDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\QuizQuestionRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\HrEmployeeService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\EnrollmentRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\SessionRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\HrNotificationController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\FeedbackRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\ModuleRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\config\DataSeeder.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\QuizController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizQuestionDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\UserDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminNotificationDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\RecentActivityDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\CourseModuleService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\ClassMemberDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\SessionAttendanceDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Session.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\VerifyForgotPasswordOtpRequest.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\ClassRoomService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\TrainerNotificationController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\ForgotPasswordRequest.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\SessionStatus.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\HrClassDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\NotificationService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\CourseScheduleRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\MaterialType.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\config\OAuth2SuccessHandler.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\TrainerScheduleDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\RecipientType.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\LoginRequest.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\DepartmentDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\User.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\AttendanceController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\TrainerController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\ResetPasswordRequest.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\CertificateController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Lesson.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\QuizAttempt.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\TrainerAttendanceService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\ModuleProgressService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\CourseStatus.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\AttendanceService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\CourseService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\exception\ResourceNotFoundException.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\FeedbackType.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\AdminService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\HrNotificationService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\OtpService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\CourseScheduleDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\QuizRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\HrCourseDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Quiz.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\HrNotificationDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\NotificationRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\config\DatabaseConstraintFixer.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\LessonRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminCourseDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\CertificateDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizAttemptDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\MaterialRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\CommentRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\exception\ApiException.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\EmployeeController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Course.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\ModuleProgressDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\Module.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminCourseDetailDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\QuizQuestion.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\AttendanceRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\HrScheduleDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminClassDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\QuizRequiredModule.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\exception\UserAlreadyExistsException.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\HrCourseController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\NotificationController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\controller\LearningStreakController.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\UserModuleProgress.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\config\TomcatSessionConfig.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\UserModuleProgressRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\common\ResponseDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\CreateSessionRequest.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\FeedbackDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\QuizAnswer.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\HrClassService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\EnrollmentStatus.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\ClassRoomRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\CertificateRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\DeadlineDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\EmployeeClassDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\UserInfo.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\QuizRequiredModuleRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\CourseSchedule.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\TrainerCourseEnrollmentDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\TodayProgressDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\service\QuizService.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\CourseModuleRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\ClassAttendanceDto.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\entity\ClassMember.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\repository\UserRoleRepository.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\common\ReferenceType.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\TrainerNotificationRequest.java
-D:\final swp391\ProjectSWP392\backend\src\main\java\com\itms\dto\QuestionResultDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\config\SwaggerConfig.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\NotificationDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\CourseStatus.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Department.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\EnrollmentRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\FeedbackType.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\AttendanceService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\NotificationService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\TrainerNotificationDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\security\CustomUserDetailsService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\Level.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\HrScheduleDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\config\PasswordEncoderConfig.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\TrainerScheduleService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\UserDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\UpdateSessionRequest.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\HrDashboardController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\TrainerNotificationController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\ClassAttendanceDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\HrDashboardService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\LessonRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\JwtService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\config\TomcatSessionConfig.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\HrClassService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\QuizService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\exception\ApiException.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\exception\GlobalExceptionHandler.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\CourseController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\EmployeeService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\CourseSchedule.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\TrainerController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\UserModuleProgressRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\CreateSessionRequest.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\exception\ResourceNotFoundException.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\QuizQuestionRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\QuizAttemptRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\AuthController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\Grade.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\HrCourseDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\config\OAuth2SuccessHandler.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminClassDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\QuizRequiredModule.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\exception\AccountLockedException.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\CourseModuleService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\CourseDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\UserInfo.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizAttemptDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\TrainerNotificationRequest.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\EmailService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminAnalyticsDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\QuestionResultDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\CompletionStatus.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\DepartmentRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\HrCourseController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\QuizRequiredModuleRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\CertificateDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\TrainerScheduleController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\HrDashboardStatsDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\HealthController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminNotificationDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\TrainerScheduleDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\UserProfileStatsDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\QuizAnswer.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\ClassMemberRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\DeadlineDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizSubmitRequest.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\ModuleProgressController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\ModuleProgressDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\AttendanceController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\MaterialRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\AdminFeedbackController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\config\SecurityConfig.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\FeedbackService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\UserController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Comment.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\QuizQuestion.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\UserRoleRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\HrNotificationController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\CourseScheduleDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizQuestionDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\ClassMember.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\HrClassMemberController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\AdminDashboardController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\EmployeeController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\QuizAttempt.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Enrollment.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\QuizController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Quiz.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\MaterialType.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\HrScheduleService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\SessionStatus.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\TrainerNotificationService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\ClassMemberDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\ResetPasswordRequest.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\NotificationRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\FeedbackDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\UserModuleProgress.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\CommentRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminCourseDetailDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\RecentActivityDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\CourseService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Attendance.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\CourseRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizQuestionImportDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\config\DatabaseConstraintFixer.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\EmployeeDashboardController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\HrEmployeeService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\UserService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\TodayProgressDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\ClassRoom.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\employee\EmployeeDtos.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\HrFeedbackController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\ReferenceType.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\AttendanceRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\HrNotificationService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\TrainerAttendanceService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Role.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\SessionService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\EnrollmentStatus.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Lesson.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Session.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\ClassRoomRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\exception\OtpException.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\HrClassMemberService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\ModuleRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\CertificateController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminCourseDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\HrClassDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\LearningStreakService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\AdminService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\ClassRoomService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\CertificateService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\HrEmployeeController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\TrainerCourseEnrollmentDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\CourseModuleRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Notification.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\RecipientType.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\CourseModule.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\ForgotPasswordRequest.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\CourseCompletionDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\LoginResponse.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\VerifyOtpRequest.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\HrEmployeeDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\CertificateRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\exception\UserAlreadyExistsException.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Feedback.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\config\WebConfig.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\common\ResponseDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\FeedbackStatus.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizImportDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\SessionAttendanceDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\LocationType.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\ItmsApplication.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\QuizRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\ModuleProgressService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\NotificationPriority.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\ExcelImportService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\config\DataSeeder.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Material.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\UserRole.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\QuizResultDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\OtpService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\VerifyForgotPasswordOtpRequest.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Progress.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\service\EmployeeDashboardService.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\User.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\HrTrainerDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\CourseScheduleRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\SessionRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\common\NotificationType.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\DepartmentDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\CourseModuleDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\EmployeeClassDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\SessionController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\HrNotificationDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\NotificationController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\config\MailConfig.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\HrClassController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\FeedbackRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\LearningStreakController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\auth\LoginRequest.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\FeedbackController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\controller\HrScheduleController.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\UserRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\repository\RoleRepository.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\dto\AdminDashboardDto.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Course.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Module.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\security\CustomUserDetails.java
+C:\Users\huy\IdeaProjects\ProjectSWP392\backend\src\main\java\com\itms\entity\Certificate.java

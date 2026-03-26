@@ -157,11 +157,11 @@ const NotificationSection: React.FC = () => {
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'URGENT': return '🔴';
-      case 'FEEDBACK': return '💬';
-      case 'INFO': return 'ℹ️';
-      case 'ANNOUNCEMENT': return '📢';
-      default: return '📢';
+      case 'URGENT': return '[!]';
+      case 'FEEDBACK': return '[FB]';
+      case 'INFO': return '[i]';
+      case 'ANNOUNCEMENT': return '[*]';
+      default: return '[*]';
     }
   };
 
@@ -347,12 +347,12 @@ const NotificationSection: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <span>⏰ {formatDateTime(notification.createdAt)}</span>
+                      <span>{formatDateTime(notification.createdAt)}</span>
                       {notification.category === 'inbox' && notification.sender && (
-                        <span>👤 {notification.sender}</span>
+                        <span>{notification.sender}</span>
                       )}
                       {notification.category === 'sent' && notification.recipients && (
-                        <span>📧 Đến: {notification.recipients.join(', ')}</span>
+                        <span>Đến: {notification.recipients.join(', ')}</span>
                       )}
                     </div>
                     <div className="flex gap-2 mt-4">

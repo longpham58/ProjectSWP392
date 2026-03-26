@@ -31,6 +31,7 @@ public class TrainerAttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final CourseScheduleRepository courseScheduleRepository;
     private final UserRepository userRepository;
+    private final CertificateService certificateService;
 
     /**
      * Get classes that have a session TODAY for this trainer.
@@ -170,6 +171,25 @@ public class TrainerAttendanceService {
             log.info("Saved attendance for userId={}", update.getUserId());
         }
         log.info("saveClassAttendance completed successfully");
+
+        // ── Auto-issue certificates ──────────────────────────────────────────
+        // After saving all attendance, check if each student has completed
+        // all sessions in this class and meets the passing threshold.
+        Course course = classRoom.getCourse();
+        User trainerUser = userRepository.getReferenceById(trainerId);
+
+        List<Session> allClassSessions = sessionRepository.findByClassRoomIdOrderByDateAsc(classRoom.getId());
+        boolean isLastSession = allClassSessions.stream()
+                .allMatch(s -> s.getStatus() == SessionStatus.COMPLETED
+                        || s.getId().equals(session.getId()));
+
+        if (isLastSession) {
+            for (TrainerController.StudentAttendanceItem update : updates) {
+                User student = userRepository.getReferenceById(update.getUserId());
+                certificateService.tryIssueCertificateOnCourseCompletion(
+                        student, course, classRoom.getId(), trainerUser);
+            }
+        }
     }
 
     private Session createSession(ClassRoom classRoom, LocalDate date, User trainer) {

@@ -85,7 +85,7 @@ const ViewCourseSection: React.FC = () => {
     <div className="p-8">
       {/* Header */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">View Course</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Xem khóa học</h1>
         <p className="text-gray-500 mt-1">Quản lý khóa học và tài liệu học tập</p>
       </div>
 
@@ -122,7 +122,7 @@ const ViewCourseSection: React.FC = () => {
                     </div>
                   </div>
                   {selectedCourse?.id === course.id && (
-                    <span className="text-blue-500 text-xl">✓</span>
+                    <span className="text-blue-500 text-xl">&#10003;</span>
                   )}
                 </div>
               </div>
@@ -180,7 +180,7 @@ const ViewCourseSection: React.FC = () => {
                           className="px-3 py-1.5 bg-purple-500 text-white rounded text-sm hover:bg-purple-600 transition"
                           title="Import câu hỏi từ Excel"
                         >
-                          📊 Import Quiz
+                          Import Quiz
                         </button>
                         
                         {/* Create Quiz Manually button */}
@@ -192,7 +192,7 @@ const ViewCourseSection: React.FC = () => {
                           className="px-3 py-1.5 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition"
                           title="Tạo quiz thủ công"
                         >
-                          ✏️ Tạo Quiz
+                          Tạo Quiz
                         </button>
                         
                         {/* View Quiz button */}
@@ -204,7 +204,7 @@ const ViewCourseSection: React.FC = () => {
                           className="px-3 py-1.5 bg-green-500 text-white rounded text-sm hover:bg-green-600 transition"
                           title="Xem danh sách quiz"
                         >
-                          📋 Xem Quiz
+                          Xem Quiz
                         </button>
                         
                         {/* Upload button */}
