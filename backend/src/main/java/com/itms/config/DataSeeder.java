@@ -150,6 +150,13 @@ public class DataSeeder {
                     today.minusMonths(3), today.minusDays(7),   // ended 7 days ago
                     "DevOps", 70.0);
 
+            // ── NEW: Data Science course — also ENDED (same end date as DevOps) ─
+            Course dataScienceCourse = saveCourse(courseRepository, "DS001", "Data Science with Python",
+                    "Machine learning, data analysis and visualization",
+                    "Python basics", 55.0, t3, admin,
+                    today.minusMonths(3), today.minusDays(7),   // ended same day as DevOps
+                    "Data Science", 70.0);
+
             // ── ClassRooms ───────────────────────────────────────────────────
             ClassRoom javaClass1   = saveClass(classRoomRepository, "JAVA001-2024-01",   "Java Class Spring 2024",    javaCourse,   t1, 25, admin);
             ClassRoom javaClass2   = saveClass(classRoomRepository, "JAVA001-2024-02",   "Java Class Summer 2024",    javaCourse,   t1, 30, admin);
@@ -158,6 +165,7 @@ public class DataSeeder {
             ClassRoom sqlClass1    = saveClass(classRoomRepository, "SQL001-2024-01",    "SQL Database Class",        sqlCourse,    t4, 30, admin);
             ClassRoom pythonClass1 = saveClass(classRoomRepository, "PYTHON001-2024-01", "Python Programming Class",  pythonCourse, t5, 25, admin);
             ClassRoom devopsClass1 = saveClass(classRoomRepository, "DEVOPS001-2024-01", "DevOps Batch 2024",         devopsCourse, t1, 20, admin);
+            ClassRoom dsClass1     = saveClass(classRoomRepository, "DS001-2024-01",     "Data Science Batch 2024",   dataScienceCourse, t3, 20, admin);
 
             // ── ClassMembers ─────────────────────────────────────────────────
             addMember(classMemberRepository, javaClass1,   emp1, admin);
@@ -183,43 +191,138 @@ public class DataSeeder {
             addMember(classMemberRepository, devopsClass1, emp3, admin);
             addMember(classMemberRepository, devopsClass1, emp4, admin);
 
+            // Data Science class: emp2, emp3, emp5 enrolled
+            addMember(classMemberRepository, dsClass1, emp2, admin);
+            addMember(classMemberRepository, dsClass1, emp3, admin);
+            addMember(classMemberRepository, dsClass1, emp5, admin);
+
             // ── CourseSchedules (active courses) ─────────────────────────────
+            // OFFLINE schedules
             saveSchedule(courseScheduleRepository, javaCourse,   javaClass1,   t1, "MON", LocalTime.of(8,0),  LocalTime.of(10,0), "Phòng 101", admin);
             saveSchedule(courseScheduleRepository, javaCourse,   javaClass1,   t1, "WED", LocalTime.of(8,0),  LocalTime.of(10,0), "Phòng 101", admin);
             saveSchedule(courseScheduleRepository, javaCourse,   javaClass2,   t1, "TUE", LocalTime.of(13,0), LocalTime.of(15,0), "Phòng 102", admin);
             saveSchedule(courseScheduleRepository, javaCourse,   javaClass2,   t1, "THU", LocalTime.of(13,0), LocalTime.of(15,0), "Phòng 102", admin);
             saveSchedule(courseScheduleRepository, springCourse, springClass1, t2, "TUE", LocalTime.of(8,0),  LocalTime.of(10,0), "Phòng 201", admin);
             saveSchedule(courseScheduleRepository, springCourse, springClass1, t2, "FRI", LocalTime.of(8,0),  LocalTime.of(10,0), "Phòng 201", admin);
-            saveSchedule(courseScheduleRepository, reactCourse,  reactClass1,  t3, "WED", LocalTime.of(13,0), LocalTime.of(15,0), "Phòng 301", admin);
-            saveSchedule(courseScheduleRepository, reactCourse,  reactClass1,  t3, "SAT", LocalTime.of(8,0),  LocalTime.of(10,0), "Phòng 301", admin);
-            saveSchedule(courseScheduleRepository, sqlCourse,    sqlClass1,    t4, "MON", LocalTime.of(13,0), LocalTime.of(15,0), "Phòng 401", admin);
-            saveSchedule(courseScheduleRepository, sqlCourse,    sqlClass1,    t4, "THU", LocalTime.of(8,0),  LocalTime.of(10,0), "Phòng 401", admin);
             saveSchedule(courseScheduleRepository, pythonCourse, pythonClass1, t5, "WED", LocalTime.of(8,0),  LocalTime.of(10,0), "Phòng 501", admin);
             saveSchedule(courseScheduleRepository, pythonCourse, pythonClass1, t5, "FRI", LocalTime.of(13,0), LocalTime.of(15,0), "Phòng 501", admin);
+            // ONLINE schedules
+            saveScheduleWithType(courseScheduleRepository, reactCourse, reactClass1, t3, "WED", LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/react-class-001");
+            saveScheduleWithType(courseScheduleRepository, reactCourse, reactClass1, t3, "SAT", LocalTime.of(8,0),  LocalTime.of(10,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/react-class-001");
+            saveScheduleWithType(courseScheduleRepository, sqlCourse,   sqlClass1,   t4, "MON", LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://zoom.us/j/sql-class-001");
+            saveScheduleWithType(courseScheduleRepository, sqlCourse,   sqlClass1,   t4, "THU", LocalTime.of(8,0),  LocalTime.of(10,0), "ONLINE", admin, LocationType.ONLINE, "https://zoom.us/j/sql-class-001");
 
-            // ── DevOps: 6 completed sessions (in the past) ───────────────────
-            // Week 1
+            // ── DevOps: 6 completed sessions OFFLINE (in the past) ──────────
             Session d1 = saveSession(sessionRepository, devopsCourse, devopsClass1, t1,
-                    today.minusWeeks(10), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin);
+                    today.minusWeeks(10), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin, LocationType.OFFLINE, null);
             Session d2 = saveSession(sessionRepository, devopsCourse, devopsClass1, t1,
-                    today.minusWeeks(9).plusDays(2), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin);
+                    today.minusWeeks(9).plusDays(2), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin, LocationType.OFFLINE, null);
             Session d3 = saveSession(sessionRepository, devopsCourse, devopsClass1, t1,
-                    today.minusWeeks(8), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin);
+                    today.minusWeeks(8), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin, LocationType.OFFLINE, null);
             Session d4 = saveSession(sessionRepository, devopsCourse, devopsClass1, t1,
-                    today.minusWeeks(7).plusDays(2), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin);
+                    today.minusWeeks(7).plusDays(2), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin, LocationType.OFFLINE, null);
             Session d5 = saveSession(sessionRepository, devopsCourse, devopsClass1, t1,
-                    today.minusWeeks(6), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin);
+                    today.minusWeeks(6), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin, LocationType.OFFLINE, null);
             Session d6 = saveSession(sessionRepository, devopsCourse, devopsClass1, t1,
-                    today.minusWeeks(5).plusDays(2), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin);
+                    today.minusWeeks(5).plusDays(2), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 601", admin, LocationType.OFFLINE, null);
 
             List<Session> devopsSessions = List.of(d1, d2, d3, d4, d5, d6);
 
-            // ── Attendance for DevOps ─────────────────────────────────────────
-            // emp1: attended all 6 → 100% → DISTINCTION
-            // emp2: attended 5/6  → 83%  → MERIT
-            // emp3: attended 4/6  → 67%  → below threshold (no cert)
-            // emp4: attended 6/6  → 100% → DISTINCTION
+            // ── Data Science: 5 completed sessions ONLINE (in the past) ─────
+            Session ds1 = saveSession(sessionRepository, dataScienceCourse, dsClass1, t3,
+                    today.minusWeeks(10), LocalTime.of(14,0), LocalTime.of(16,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/ds-batch-001");
+            Session ds2 = saveSession(sessionRepository, dataScienceCourse, dsClass1, t3,
+                    today.minusWeeks(9), LocalTime.of(14,0), LocalTime.of(16,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/ds-batch-001");
+            Session ds3 = saveSession(sessionRepository, dataScienceCourse, dsClass1, t3,
+                    today.minusWeeks(8), LocalTime.of(14,0), LocalTime.of(16,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/ds-batch-001");
+            Session ds4 = saveSession(sessionRepository, dataScienceCourse, dsClass1, t3,
+                    today.minusWeeks(7), LocalTime.of(14,0), LocalTime.of(16,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/ds-batch-001");
+            Session ds5 = saveSession(sessionRepository, dataScienceCourse, dsClass1, t3,
+                    today.minusWeeks(6), LocalTime.of(14,0), LocalTime.of(16,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/ds-batch-001");
 
+            List<Session> dsSessions = List.of(ds1, ds2, ds3, ds4, ds5);
+
+            // ── Active course sessions (OFFLINE + ONLINE) for HR schedule demo ─
+
+            // ── Java OFFLINE: 3 past + 4 upcoming sessions ───────────────────
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass1, t1,
+                    today.minusWeeks(3), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 101", admin, LocationType.OFFLINE, null, SessionStatus.COMPLETED);
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass1, t1,
+                    today.minusWeeks(2), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 101", admin, LocationType.OFFLINE, null, SessionStatus.COMPLETED);
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass1, t1,
+                    today.minusWeeks(1), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 101", admin, LocationType.OFFLINE, null, SessionStatus.COMPLETED);
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass1, t1,
+                    today.plusDays(3), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 101", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass1, t1,
+                    today.plusDays(7), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 101", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass1, t1,
+                    today.plusDays(10), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 101", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass1, t1,
+                    today.plusDays(14), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 101", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+
+            // ── Java Class 2 OFFLINE: 2 past + 3 upcoming ───────────────────
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass2, t1,
+                    today.minusWeeks(2), LocalTime.of(13,0), LocalTime.of(15,0), "Phòng 102", admin, LocationType.OFFLINE, null, SessionStatus.COMPLETED);
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass2, t1,
+                    today.minusWeeks(1), LocalTime.of(13,0), LocalTime.of(15,0), "Phòng 102", admin, LocationType.OFFLINE, null, SessionStatus.COMPLETED);
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass2, t1,
+                    today.plusDays(4), LocalTime.of(13,0), LocalTime.of(15,0), "Phòng 102", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass2, t1,
+                    today.plusDays(11), LocalTime.of(13,0), LocalTime.of(15,0), "Phòng 102", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, javaCourse, javaClass2, t1,
+                    today.plusDays(18), LocalTime.of(13,0), LocalTime.of(15,0), "Phòng 102", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+
+            // ── React ONLINE: 2 past + 4 upcoming sessions ───────────────────
+            saveSessionWithStatus(sessionRepository, reactCourse, reactClass1, t3,
+                    today.minusWeeks(3), LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/react-class-001", SessionStatus.COMPLETED);
+            saveSessionWithStatus(sessionRepository, reactCourse, reactClass1, t3,
+                    today.minusWeeks(1), LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/react-class-001", SessionStatus.COMPLETED);
+            saveSessionWithStatus(sessionRepository, reactCourse, reactClass1, t3,
+                    today.plusDays(2), LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/react-class-001", SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, reactCourse, reactClass1, t3,
+                    today.plusDays(9), LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/react-class-001", SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, reactCourse, reactClass1, t3,
+                    today.plusDays(16), LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/react-class-001", SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, reactCourse, reactClass1, t3,
+                    today.plusDays(23), LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://meet.google.com/react-class-001", SessionStatus.SCHEDULED);
+
+            // ── Spring Boot OFFLINE: 2 past + 3 upcoming ────────────────────
+            saveSessionWithStatus(sessionRepository, springCourse, springClass1, t2,
+                    today.minusWeeks(2), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 201", admin, LocationType.OFFLINE, null, SessionStatus.COMPLETED);
+            saveSessionWithStatus(sessionRepository, springCourse, springClass1, t2,
+                    today.minusWeeks(1), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 201", admin, LocationType.OFFLINE, null, SessionStatus.COMPLETED);
+            saveSessionWithStatus(sessionRepository, springCourse, springClass1, t2,
+                    today.plusDays(5), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 201", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, springCourse, springClass1, t2,
+                    today.plusDays(12), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 201", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, springCourse, springClass1, t2,
+                    today.plusDays(19), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 201", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+
+            // ── SQL ONLINE: 1 past + 3 upcoming ─────────────────────────────
+            saveSessionWithStatus(sessionRepository, sqlCourse, sqlClass1, t4,
+                    today.minusWeeks(1), LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://zoom.us/j/sql-class-001", SessionStatus.COMPLETED);
+            saveSessionWithStatus(sessionRepository, sqlCourse, sqlClass1, t4,
+                    today.plusDays(1), LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://zoom.us/j/sql-class-001", SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, sqlCourse, sqlClass1, t4,
+                    today.plusDays(8), LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://zoom.us/j/sql-class-001", SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, sqlCourse, sqlClass1, t4,
+                    today.plusDays(15), LocalTime.of(13,0), LocalTime.of(15,0), "ONLINE", admin, LocationType.ONLINE, "https://zoom.us/j/sql-class-001", SessionStatus.SCHEDULED);
+
+            // ── Python OFFLINE: 1 past + 3 upcoming ─────────────────────────
+            saveSessionWithStatus(sessionRepository, pythonCourse, pythonClass1, t5,
+                    today.minusWeeks(1), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 501", admin, LocationType.OFFLINE, null, SessionStatus.COMPLETED);
+            saveSessionWithStatus(sessionRepository, pythonCourse, pythonClass1, t5,
+                    today.plusDays(6), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 501", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, pythonCourse, pythonClass1, t5,
+                    today.plusDays(13), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 501", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+            saveSessionWithStatus(sessionRepository, pythonCourse, pythonClass1, t5,
+                    today.plusDays(20), LocalTime.of(8,0), LocalTime.of(10,0), "Phòng 501", admin, LocationType.OFFLINE, null, SessionStatus.SCHEDULED);
+
+            // ── Attendance for DevOps (OFFLINE) ──────────────────────────────
+            // emp1: 6/6 → 100% → DISTINCTION
+            // emp2: 5/6 → 83%  → MERIT
+            // emp3: 4/6 → 67%  → below threshold (no cert)
+            // emp4: 6/6 → 100% → DISTINCTION
             seedAttendance(enrollmentRepository, attendanceRepository,
                     emp1, devopsSessions, new boolean[]{true, true, true, true, true, true}, t1);
             seedAttendance(enrollmentRepository, attendanceRepository,
@@ -229,6 +332,51 @@ public class DataSeeder {
             seedAttendance(enrollmentRepository, attendanceRepository,
                     emp4, devopsSessions, new boolean[]{true, true, true, true, true, true}, t1);
 
+            // ── Attendance for Data Science (ONLINE) ─────────────────────────
+            // emp2: 5/5 → 100% → DISTINCTION
+            // emp3: 4/5 → 80%  → MERIT
+            // emp5: 5/5 → 100% → DISTINCTION
+            seedAttendance(enrollmentRepository, attendanceRepository,
+                    emp2, dsSessions, new boolean[]{true, true, true, true, true}, t3);
+            seedAttendance(enrollmentRepository, attendanceRepository,
+                    emp3, dsSessions, new boolean[]{true, true, true, true, false}, t3);
+            seedAttendance(enrollmentRepository, attendanceRepository,
+                    emp5, dsSessions, new boolean[]{true, true, true, true, true}, t3);
+
+            // ── Quizzes for Java course (trainer t1 created) ─────────────────
+            Quiz javaQuiz1 = saveQuiz(quizRepository, javaCourse, t1,
+                    "Java Basics Quiz", "Kiểm tra kiến thức Java cơ bản", "POST_TEST",
+                    5, new java.math.BigDecimal("5"), new java.math.BigDecimal("70"), 30, 3, false);
+            saveQuizQuestions(quizRepository, javaQuiz1, new String[][]{
+                {"Java là ngôn ngữ lập trình gì?", "Biên dịch", "Thông dịch", "Biên dịch sang bytecode", "Script", "C"},
+                {"JVM là viết tắt của?", "Java Virtual Machine", "Java Variable Method", "Java Version Manager", "Java Vendor Module", "A"},
+                {"Kiểu dữ liệu nào không phải primitive trong Java?", "int", "double", "String", "boolean", "C"},
+                {"Từ khóa nào dùng để kế thừa trong Java?", "implements", "extends", "inherits", "super", "B"},
+                {"Phương thức main trong Java có signature nào?", "public void main()", "static void main(String[])", "public static void main(String[] args)", "void main(String args)", "C"}
+            });
+
+            Quiz javaQuiz2 = saveQuiz(quizRepository, javaCourse, t1,
+                    "Java OOP Quiz", "Kiểm tra lập trình hướng đối tượng", "POST_TEST",
+                    4, new java.math.BigDecimal("4"), new java.math.BigDecimal("70"), 20, 3, false);
+            saveQuizQuestions(quizRepository, javaQuiz2, new String[][]{
+                {"Tính đóng gói (Encapsulation) là gì?", "Ẩn dữ liệu và cung cấp interface", "Kế thừa từ class cha", "Ghi đè phương thức", "Tạo nhiều đối tượng", "A"},
+                {"Interface trong Java có thể có?", "Constructor", "Abstract methods và default methods", "Private fields", "Static blocks", "B"},
+                {"Từ khóa 'super' dùng để?", "Tạo đối tượng mới", "Gọi constructor/method của class cha", "Khai báo biến static", "Xử lý exception", "B"},
+                {"Polymorphism cho phép?", "Một class có nhiều constructor", "Một method có nhiều implementation", "Một biến có nhiều kiểu", "Một class kế thừa nhiều class", "B"}
+            });
+
+            // ── Quiz for Spring course (trainer t2 created) ──────────────────
+            Quiz springQuiz = saveQuiz(quizRepository, springCourse, t2,
+                    "Spring Boot Basics", "Kiểm tra kiến thức Spring Boot", "POST_TEST",
+                    4, new java.math.BigDecimal("4"), new java.math.BigDecimal("70"), 25, 3, false);
+            saveQuizQuestions(quizRepository, springQuiz, new String[][]{
+                {"@SpringBootApplication bao gồm annotation nào?", "@Component", "@Configuration, @EnableAutoConfiguration, @ComponentScan", "@Service", "@Repository", "B"},
+                {"Spring IoC Container là gì?", "Một loại database", "Container quản lý lifecycle của beans", "Framework test", "Build tool", "B"},
+                {"@RestController khác @Controller ở điểm nào?", "Không khác gì", "Tự động thêm @ResponseBody", "Chỉ dùng cho GET", "Không cần @RequestMapping", "B"},
+                {"application.properties dùng để?", "Viết code Java", "Cấu hình ứng dụng Spring Boot", "Định nghĩa entity", "Tạo database", "B"}
+            });
+
+            System.out.println("Total quizzes: " + quizRepository.count());
             System.out.println("ITMS seed data completed successfully");
             System.out.println("Total courses: "    + courseRepository.count());
             System.out.println("Total classrooms: " + classRoomRepository.count());
@@ -309,10 +457,24 @@ public class DataSeeder {
                               Course course, ClassRoom cls, User trainer,
                               String day, LocalTime start, LocalTime end,
                               String location, User createdBy) {
+        saveScheduleWithType(repo, course, cls, trainer, day, start, end, location, createdBy, LocationType.OFFLINE, null);
+    }
+
+    private void saveScheduleWithType(CourseScheduleRepository repo,
+                                      Course course, ClassRoom cls, User trainer,
+                                      String day, LocalTime start, LocalTime end,
+                                      String location, User createdBy,
+                                      LocationType locationType, String meetingLink) {
         CourseSchedule s = new CourseSchedule();
         s.setCourse(course); s.setClassRoom(cls); s.setTrainer(trainer);
         s.setDayOfWeek(day); s.setTimeStart(start); s.setTimeEnd(end);
-        s.setLocation(location); s.setLocationType(LocationType.OFFLINE);
+        s.setLocationType(locationType != null ? locationType : LocationType.OFFLINE);
+        if (locationType == LocationType.ONLINE) {
+            s.setLocation("ONLINE");
+            s.setMeetingLink(meetingLink);
+        } else {
+            s.setLocation(location);
+        }
         s.setCreatedAt(LocalDateTime.now()); s.setCreatedBy(createdBy);
         repo.save(s);
     }
@@ -320,12 +482,29 @@ public class DataSeeder {
     private Session saveSession(SessionRepository repo,
                                 Course course, ClassRoom cls, User trainer,
                                 LocalDate date, LocalTime start, LocalTime end,
-                                String location, User createdBy) {
+                                String location, User createdBy,
+                                LocationType locationType, String meetingLink) {
+        return saveSessionWithStatus(repo, course, cls, trainer, date, start, end,
+                location, createdBy, locationType, meetingLink, SessionStatus.COMPLETED);
+    }
+
+    private Session saveSessionWithStatus(SessionRepository repo,
+                                          Course course, ClassRoom cls, User trainer,
+                                          LocalDate date, LocalTime start, LocalTime end,
+                                          String location, User createdBy,
+                                          LocationType locationType, String meetingLink,
+                                          SessionStatus status) {
         Session s = new Session();
         s.setCourse(course); s.setClassRoom(cls); s.setTrainer(trainer);
         s.setDate(date); s.setTimeStart(start); s.setTimeEnd(end);
-        s.setLocation(location); s.setLocationType(LocationType.OFFLINE);
-        s.setStatus(SessionStatus.COMPLETED);
+        s.setLocationType(locationType != null ? locationType : LocationType.OFFLINE);
+        if (locationType == LocationType.ONLINE) {
+            s.setLocation("ONLINE");
+            s.setMeetingLink(meetingLink);
+        } else {
+            s.setLocation(location);
+        }
+        s.setStatus(status != null ? status : SessionStatus.SCHEDULED);
         s.setMaxCapacity(cls.getMaxStudents() != null ? cls.getMaxStudents() : 30);
         s.setCurrentEnrolled(0); s.setCreatedAt(LocalDateTime.now()); s.setCreatedBy(createdBy);
         return repo.save(s);
@@ -364,5 +543,54 @@ public class DataSeeder {
             }
             attRepo.save(att);
         }
+    }
+
+    private Quiz saveQuiz(QuizRepository repo, Course course, User createdBy,
+                          String title, String description, String quizType,
+                          int totalQuestions, java.math.BigDecimal totalMarks,
+                          java.math.BigDecimal passingScore, int durationMinutes,
+                          int maxAttempts, boolean isFinalExam) {
+        return repo.save(Quiz.builder()
+                .course(course)
+                .title(title)
+                .description(description)
+                .quizType(quizType)
+                .totalQuestions(totalQuestions)
+                .totalMarks(totalMarks)
+                .passingScore(passingScore)
+                .durationMinutes(durationMinutes)
+                .maxAttempts(maxAttempts)
+                .randomizeQuestions(false)
+                .showCorrectAnswers(true)
+                .isActive(true)
+                .isFinalExam(isFinalExam)
+                .createdBy(createdBy)
+                .createdAt(LocalDateTime.now())
+                .build());
+    }
+
+    /**
+     * questions: each row = {questionText, optionA, optionB, optionC, optionD, correctAnswer}
+     */
+    private void saveQuizQuestions(QuizRepository repo, Quiz quiz, String[][] questions) {
+        List<com.itms.entity.QuizQuestion> list = new java.util.ArrayList<>();
+        for (int i = 0; i < questions.length; i++) {
+            String[] q = questions[i];
+            list.add(com.itms.entity.QuizQuestion.builder()
+                    .quiz(quiz)
+                    .questionText(q[0])
+                    .questionType("MULTIPLE_CHOICE")
+                    .optionA(q[1])
+                    .optionB(q[2])
+                    .optionC(q[3])
+                    .optionD(q[4])
+                    .correctAnswer(q[5])
+                    .marks(java.math.BigDecimal.ONE)
+                    .displayOrder(i + 1)
+                    .createdAt(LocalDateTime.now())
+                    .build());
+        }
+        quiz.setQuestions(list);
+        repo.save(quiz);
     }
 }

@@ -31,6 +31,14 @@ public class HrScheduleController {
         return ResponseEntity.ok(ResponseDto.success(hrScheduleService.getAll(), "HR schedules retrieved"));
     }
 
+    /** Get trainer(s) for a specific course — used by schedule form */
+    @GetMapping("/trainers-by-course/{courseCode}")
+    public ResponseEntity<ResponseDto<List<java.util.Map<String, String>>>> getTrainersByCourse(
+            @PathVariable("courseCode") String courseCode) {
+        List<java.util.Map<String, String>> trainers = hrScheduleService.getTrainersByCourse(courseCode);
+        return ResponseEntity.ok(ResponseDto.success(trainers, "Trainers retrieved"));
+    }
+
     @PostMapping
     public ResponseEntity<ResponseDto<HrScheduleDto>> create(@RequestBody HrScheduleDto request) {
         HrScheduleDto created = hrScheduleService.create(request);

@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -18,8 +16,8 @@ public class AdminNotificationDto {
     private String type;
     private String priority;
     private String targetRole;
-    private LocalDate sentDate;
-    private LocalDate expiresAt;
+    private String sentDate;
+    private String expiresAt;
     private Long recipientCount;
     private Long readCount;
     private String status;

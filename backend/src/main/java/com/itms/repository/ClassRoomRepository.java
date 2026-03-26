@@ -13,6 +13,12 @@ import java.util.Optional;
 public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
 
     /**
+     * Find all classrooms with course and trainer eagerly loaded
+     */
+    @Query("SELECT c FROM ClassRoom c LEFT JOIN FETCH c.course LEFT JOIN FETCH c.trainer")
+    List<ClassRoom> findAllWithCourseAndTrainer();
+
+    /**
      * Find classroom by class code (with course eagerly loaded)
      */
     @Query("SELECT c FROM ClassRoom c LEFT JOIN FETCH c.course WHERE c.classCode = :classCode")
@@ -30,9 +36,9 @@ public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
     List<ClassRoom> findByTrainerIdWithCourse(@Param("trainerId") Integer trainerId);
     
     /**
-     * Find all classrooms for a course
+     * Find all classrooms for a course (with trainer eagerly loaded)
      */
-    @Query("SELECT c FROM ClassRoom c WHERE c.course.id = :courseId")
+    @Query("SELECT c FROM ClassRoom c LEFT JOIN FETCH c.course LEFT JOIN FETCH c.trainer WHERE c.course.id = :courseId")
     List<ClassRoom> findByCourseId(@Param("courseId") Integer courseId);
     
     /**

@@ -256,13 +256,13 @@ export const employeeApi = {
 
   // Quiz
   getQuizzes: (courseId: number, userId: number) =>
-    axios.get<{ data: QuizDto[] }>(`${BASE}/courses/${courseId}/quizzes`, { params: { userId } }),
+    axios.get<{ success: boolean; data: QuizDto[]; message: string }>(`${BASE}/courses/${courseId}/quizzes`, { params: { userId } }),
 
   getQuiz: (courseId: number, quizId: number, userId: number) =>
-    axios.get<{ data: QuizDto }>(`${BASE}/courses/${courseId}/quizzes/${quizId}`, { params: { userId } }),
+    axios.get<{ success: boolean; data: QuizDto; message: string }>(`${BASE}/courses/${courseId}/quizzes/${quizId}`, { params: { userId } }),
 
   submitQuiz: (courseId: number, quizId: number, payload: { userId: number; answers: Record<number, number> }) =>
-    axios.post<{ data: QuizResultDto }>(`${BASE}/courses/${courseId}/quizzes/${quizId}/submit`, payload),
+    axios.post<{ success: boolean; data: QuizResultDto; message: string }>(`${BASE}/courses/${courseId}/quizzes/${quizId}/submit`, payload),
 
   getAttemptResult: (attemptId: number, userId: number) =>
     axios.get<{ data: QuizResultDto }>(`${BASE}/quiz-attempts/${attemptId}`, { params: { userId } }),

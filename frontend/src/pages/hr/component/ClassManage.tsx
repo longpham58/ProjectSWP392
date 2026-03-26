@@ -144,9 +144,10 @@ export const ClassManagePage: React.FC<ClassManagePageProps> = ({ onClassesChang
   };
 
   const filtered = classes.filter(c =>
-    c.classCode?.toLowerCase().includes(search.toLowerCase()) ||
-    c.className?.toLowerCase().includes(search.toLowerCase()) ||
-    c.courseName?.toLowerCase().includes(search.toLowerCase())
+    (c.classCode || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.className || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.courseName || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.courseCode || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (

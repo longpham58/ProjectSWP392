@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -27,8 +28,12 @@ public class HrClassController {
     private final HrClassService hrClassService;
 
     @GetMapping
-    public ResponseEntity<ResponseDto<List<HrClassDto>>> getAll() {
-        return ResponseEntity.ok(ResponseDto.success(hrClassService.getAll(), "HR classes retrieved"));
+    public ResponseEntity<ResponseDto<List<HrClassDto>>> getAll(
+            @RequestParam(required = false) Integer courseId) {
+        List<HrClassDto> result = courseId != null
+                ? hrClassService.getByCourseId(courseId)
+                : hrClassService.getAll();
+        return ResponseEntity.ok(ResponseDto.success(result, "HR classes retrieved"));
     }
 
     @GetMapping("/trainers")

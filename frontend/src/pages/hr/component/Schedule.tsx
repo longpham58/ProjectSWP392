@@ -35,11 +35,22 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
   const [availableTrainers, setAvailableTrainers] = useState<Array<{ username: string; fullName: string }>>([]);
   const [availableRooms, setAvailableRooms] = useState<HRClassroom[]>([]);
 
-  const handleCourseChange = (nextCourseCode: string) => {
+  const handleCourseChange = async (nextCourseCode: string) => {
     setNewCourseCode(nextCourseCode);
-    const selectedCourse = availableCourses.find((c) => c.code === nextCourseCode);
-    if (selectedCourse?.trainerUsername) {
-      setSelectedTrainer(selectedCourse.trainerUsername);
+    setSelectedTrainer('');
+    if (!nextCourseCode) {
+      // reset to all trainers
+      try { const list = await courseApi.getTrainers(); setAvailableTrainers(list); } catch { setAvailableTrainers([]); }
+      return;
+    }
+    // Fetch only trainers for this course
+    try {
+      const res = await import('../../../lib/axios').then(m => m.default.get(`/hr/schedules/trainers-by-course/${nextCourseCode}`));
+      const trainers = (res.data as any)?.data ?? [];
+      setAvailableTrainers(trainers);
+      if (trainers.length === 1) setSelectedTrainer(trainers[0].username);
+    } catch {
+      setAvailableTrainers([]);
     }
   };
 

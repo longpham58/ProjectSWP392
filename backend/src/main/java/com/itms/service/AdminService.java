@@ -563,9 +563,27 @@ public class AdminService {
 
     // ========== NOTIFICATIONS ==========
     public List<AdminNotificationDto> getAllNotifications(Boolean isDraft) {
-        // Use optimized query to only get admin broadcast notifications
-        List<Notification> notifications = notificationRepository.findNotificationsForAdminUsers();
-        
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !(auth.getPrincipal() instanceof CustomUserDetails)) {
+            return List.of();
+        }
+        Integer senderId = ((CustomUserDetails) auth.getPrincipal()).getId();
+
+        // Return both drafts and sent, filtered by sender (the admin who created them)
+        List<Notification> notifications;
+        if (isDraft == null) {
+            // Return all: drafts + sent by this admin
+            List<Notification> drafts = notificationRepository.findDraftsBySenderId(senderId);
+            List<Notification> sent   = notificationRepository.findSentBySenderId(senderId);
+            notifications = new java.util.ArrayList<>();
+            notifications.addAll(drafts);
+            notifications.addAll(sent);
+        } else if (isDraft) {
+            notifications = notificationRepository.findDraftsBySenderId(senderId);
+        } else {
+            notifications = notificationRepository.findSentBySenderId(senderId);
+        }
+
         return notifications.stream()
                 .map(this::mapToAdminNotificationDto)
                 .collect(Collectors.toList());
@@ -612,7 +630,7 @@ public class AdminService {
                 .user(sender) 
                 .sender(sender)
                 .sentDate(java.time.LocalDateTime.now())
-                .expiresAt(dto.getExpiresAt() != null ? dto.getExpiresAt().atStartOfDay() : null)
+                .expiresAt(dto.getExpiresAt() != null ? java.time.LocalDate.parse(dto.getExpiresAt()).atStartOfDay() : null)
                 .isDraft(dto.getStatus() != null && dto.getStatus().equals("DRAFT"))
                 .isRead(false)
                 .build();
@@ -640,7 +658,7 @@ public class AdminService {
         }
         if (dto.getPriority() != null) notification.setPriority(com.itms.common.NotificationPriority.valueOf(dto.getPriority()));
         if (dto.getTargetRole() != null) notification.setRecipientType(dto.getTargetRole());
-        if (dto.getExpiresAt() != null) notification.setExpiresAt(dto.getExpiresAt().atStartOfDay());
+        if (dto.getExpiresAt() != null) notification.setExpiresAt(java.time.LocalDate.parse(dto.getExpiresAt()).atStartOfDay());
         if (dto.getStatus() != null) notification.setIsDraft(dto.getStatus().equals("DRAFT"));
         
         notification = notificationRepository.save(notification);
@@ -660,6 +678,8 @@ public class AdminService {
         
         notification = notificationRepository.save(notification);
         
+        // Fan out to recipients
+        sendNotificationToRecipients(notification);
         
         return mapToAdminNotificationDto(notification);
     }
@@ -672,8 +692,8 @@ public class AdminService {
                 .type(n.getType())
                 .priority(n.getPriority() != null ? n.getPriority().name() : null)
                 .targetRole(n.getRecipientType())
-                .sentDate(n.getSentDate() != null ? n.getSentDate().toLocalDate() : null)
-                .expiresAt(n.getExpiresAt() != null ? n.getExpiresAt().toLocalDate() : null)
+                .sentDate(n.getSentDate() != null ? n.getSentDate().toString() : null)
+                .expiresAt(n.getExpiresAt() != null ? n.getExpiresAt().toString() : null)
                 .readCount(n.getIsRead() != null && n.getIsRead() ? 1L : 0L)
                 .status(n.getIsDraft() != null && n.getIsDraft() ? "DRAFT" : "SENT")
                 .senderName(n.getSender() != null ? n.getSender().getFullName() : null)

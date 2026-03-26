@@ -204,7 +204,7 @@ export default function CourseDetailPage() {
     if (selectedTab !== 'quiz' || !courseId || !user?.id) return;
     setQuizzesLoading(true);
     employeeApi.getQuizzes(Number(courseId), user.id)
-      .then(res => setQuizzes(res.data))
+      .then(res => setQuizzes(res.data.data ?? []))
       .catch(() => setQuizzes([]))
       .finally(() => setQuizzesLoading(false));
   }, [selectedTab, courseId, user?.id]);
