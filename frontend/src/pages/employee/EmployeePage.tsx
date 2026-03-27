@@ -57,10 +57,6 @@ export default function EmployeePage() {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/* Welcome */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-1">Xin chào, {user?.fullName} </h1>
-      </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

@@ -379,6 +379,16 @@ public class QuizService {
     }
 
     /**
+     * Get all quizzes for a course (for trainer management - no userId needed)
+     */
+    public List<QuizDto> getQuizzesByCourseForManagement(Integer courseId) {
+        List<Quiz> quizzes = quizRepository.findByCourseId(courseId);
+        return quizzes.stream()
+                .map(this::mapToDto)
+                .toList();
+    }
+
+    /**
      * Get quiz with questions
      */
     public QuizDto getQuizWithQuestions(Integer quizId) {

@@ -1,5 +1,6 @@
 package com.itms.service;
 
+import com.itms.common.CourseStatus;
 import com.itms.dto.ModuleProgressDto;
 import com.itms.entity.CourseModule;
 import com.itms.entity.User;
@@ -80,6 +81,11 @@ public class ModuleProgressService {
         
         CourseModule module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new RuntimeException("Module not found"));
+
+        // Block progress update if course is INACTIVE
+        if (module.getCourse() != null && CourseStatus.INACTIVE.equals(module.getCourse().getStatus())) {
+            throw new IllegalArgumentException("Khóa học đang INACTIVE, không thể cập nhật tiến độ học");
+        }
         
         // Find existing progress or create new
         UserModuleProgress progress = progressRepository.findByUserIdAndModuleId(userId, moduleId)
@@ -108,6 +114,11 @@ public class ModuleProgressService {
         
         CourseModule module = moduleRepository.findById(moduleId)
                 .orElseThrow(() -> new RuntimeException("Module not found"));
+
+        // Block progress update if course is INACTIVE
+        if (module.getCourse() != null && CourseStatus.INACTIVE.equals(module.getCourse().getStatus())) {
+            throw new IllegalArgumentException("Khóa học đang INACTIVE, không thể cập nhật tiến độ học");
+        }
         
         UserModuleProgress progress = progressRepository.findByUserIdAndModuleId(userId, moduleId)
                 .orElse(UserModuleProgress.builder()

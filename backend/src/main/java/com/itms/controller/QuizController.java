@@ -217,6 +217,16 @@ public class QuizController {
     }
 
     /**
+     * Get all quizzes for a course (for trainer management - no userId needed)
+     */
+    @GetMapping("/course/{courseId}")
+    public ResponseEntity<ResponseDto<List<QuizDto>>> getQuizzesByCourseForManagement(
+            @PathVariable("courseId") Integer courseId) {
+        List<QuizDto> quizzes = quizService.getQuizzesByCourseForManagement(courseId);
+        return ResponseEntity.ok(ResponseDto.success(quizzes, "Quizzes retrieved successfully"));
+    }
+
+    /**
      * Get quiz details with questions
      */
     @GetMapping("/{quizId}/details")

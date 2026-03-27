@@ -139,6 +139,8 @@ export interface QuizDto {
   maxAttempts: number;
   totalQuestions: number;
   isFinalExam: boolean;
+  moduleId?: number;
+  moduleTitle?: string;
   questions: QuizQuestionDto[];
   locked: boolean;
   passed: boolean;

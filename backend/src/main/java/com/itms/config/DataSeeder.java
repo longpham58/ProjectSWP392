@@ -22,7 +22,7 @@ public class DataSeeder {
     private final PasswordEncoder passwordEncoder;
 
     // Set true to wipe and re-seed all data on next startup
-    private static final boolean RESET_DATA = true;
+    private static final boolean RESET_DATA = false;
 
     @Bean
     CommandLineRunner seedData(

@@ -7,6 +7,7 @@ import {
 import { ImportQuizModal } from './modals/ImportQuizModal';
 import { CreateQuizModal } from './modals/CreateQuizModal';
 import { QuizListModal } from './modals/QuizListModal';
+import { CourseQuizListModal } from './modals/CourseQuizListModal';
 
 const ViewCourseSection: React.FC = () => {
   const [courses, setCourses] = useState<CourseDto[]>([]);
@@ -17,6 +18,7 @@ const ViewCourseSection: React.FC = () => {
   const [showImportQuizModal, setShowImportQuizModal] = useState(false);
   const [showCreateQuizModal, setShowCreateQuizModal] = useState(false);
   const [showQuizListModal, setShowQuizListModal] = useState(false);
+  const [showCourseQuizListModal, setShowCourseQuizListModal] = useState(false);
   const [selectedModuleForActions, setSelectedModuleForActions] = useState<ModuleDto | null>(null);
   const [uploadingModuleId, setUploadingModuleId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -136,12 +138,20 @@ const ViewCourseSection: React.FC = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-gray-900">Module & Nội dung</h2>
-            <button
-              onClick={() => setShowAddModuleModal(true)}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm font-medium"
-            >
-              + Thêm Module
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowCourseQuizListModal(true)}
+                className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition text-sm font-medium"
+              >
+                📋 Xem tất cả Quiz
+              </button>
+              <button
+                onClick={() => setShowAddModuleModal(true)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm font-medium"
+              >
+                + Thêm Module
+              </button>
+            </div>
           </div>
 
           {modulesLoading ? (
@@ -336,7 +346,7 @@ const ViewCourseSection: React.FC = () => {
         />
       )}
 
-      {/* Quiz List Modal */}
+      {/* Quiz List Modal (by module) */}
       {showQuizListModal && selectedModuleForActions && (
         <QuizListModal
           isOpen={showQuizListModal}
@@ -346,6 +356,16 @@ const ViewCourseSection: React.FC = () => {
           }}
           moduleId={selectedModuleForActions.id}
           moduleTitle={selectedModuleForActions.title}
+        />
+      )}
+
+      {/* Course Quiz List Modal (all quizzes for course) */}
+      {showCourseQuizListModal && selectedCourse && (
+        <CourseQuizListModal
+          isOpen={showCourseQuizListModal}
+          onClose={() => setShowCourseQuizListModal(false)}
+          courseId={selectedCourse.id}
+          courseName={selectedCourse.name}
         />
       )}
     </div>
