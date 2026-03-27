@@ -492,57 +492,109 @@ export default function CourseDetailPage() {
                 <ClipboardList size={40} className="mx-auto mb-3 opacity-30" />
                 <p>Chưa có bài kiểm tra nào</p>
               </div>
-            ) : quizzes.map(quiz => {
-              const isFinal = quiz.isFinalExam;
-              const canTake = !quiz.locked && canAct;
-              return (
-                <div key={quiz.id} className={`bg-white rounded-xl shadow p-6 border-l-4 ${isFinal ? 'border-purple-500' : quiz.passed ? 'border-green-500' : 'border-blue-400'}`}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {isFinal ? <Trophy size={20} className="text-purple-600" />
-                        : quiz.passed ? <CheckCircle2 size={20} className="text-green-600" />
-                        : quiz.locked ? <Lock size={20} className="text-gray-400" />
-                        : <ClipboardList size={20} className="text-blue-500" />}
-                      <div>
-                        <div className="font-semibold">{quiz.title}</div>
-                        <div className="text-sm text-gray-500 flex items-center gap-3 mt-0.5">
-                          <span className="flex items-center gap-1"><Clock size={12} /> {quiz.timeLimitMinutes} phút</span>
-                          <span>Điểm đạt: {quiz.passingScore}%</span>
-                          {quiz.attemptCount > 0 && <span>Đã làm: {quiz.attemptCount} lần · Cao nhất: {quiz.bestScore}%</span>}
+            ) : (() => {
+              const courseQuizzes = quizzes.filter(q => !q.moduleId && !q.isFinalExam);
+              const moduleQuizzes = quizzes.filter(q => !!q.moduleId);
+              const finalExamQuiz = quizzes.find(q => q.isFinalExam);
+
+              const renderQuizCard = (quiz: QuizDto) => {
+                const isFinal = quiz.isFinalExam;
+                const canTake = !quiz.locked && canAct;
+                return (
+                  <div key={quiz.id} className={`bg-white rounded-xl shadow p-6 border-l-4 ${isFinal ? 'border-purple-500' : quiz.moduleId ? 'border-indigo-400' : quiz.passed ? 'border-green-500' : 'border-blue-400'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {isFinal ? <Trophy size={20} className="text-purple-600" />
+                          : quiz.passed ? <CheckCircle2 size={20} className="text-green-600" />
+                          : quiz.locked ? <Lock size={20} className="text-gray-400" />
+                          : <ClipboardList size={20} className={quiz.moduleId ? 'text-indigo-500' : 'text-blue-500'} />}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">{quiz.title}</span>
+                            {!isFinal && (
+                              quiz.moduleId
+                                ? <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">Quiz module{quiz.moduleTitle ? `: ${quiz.moduleTitle}` : ''}</span>
+                                : <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">Quiz tổng</span>
+                            )}
+                          </div>
+                          <div className="text-sm text-gray-500 flex items-center gap-3 mt-0.5">
+                            <span className="flex items-center gap-1"><Clock size={12} /> {quiz.timeLimitMinutes} phút</span>
+                            <span>Điểm đạt: {quiz.passingScore}%</span>
+                            {quiz.attemptCount > 0 && <span>Đã làm: {quiz.attemptCount} lần · Cao nhất: {quiz.bestScore}%</span>}
+                          </div>
                         </div>
                       </div>
+                      <div className="flex items-center gap-3">
+                        {quiz.passed && <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">Đã đạt</span>}
+                        {quiz.locked ? (
+                          <span className="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg text-sm cursor-not-allowed flex items-center gap-1"><Lock size={13} /> Chưa mở khóa</span>
+                        ) : quiz.exhausted ? (
+                          <span className="px-4 py-2 bg-red-50 text-red-500 rounded-lg text-sm border border-red-200 flex items-center gap-1"><Lock size={13} /> Hết lượt</span>
+                        ) : canTake ? (
+                          <button
+                            onClick={() => navigate(isFinal ? `/employee/course/${courseId}/final-exam/${quiz.id}` : `/employee/course/${courseId}/quiz/${quiz.id}`)}
+                            className={`px-5 py-2 text-white rounded-lg text-sm font-medium ${isFinal ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                            {quiz.attemptCount > 0 ? 'Làm lại' : isFinal ? 'Bắt đầu thi' : 'Làm bài'}
+                          </button>
+                        ) : (
+                          <span className="text-sm text-gray-400">Đăng ký khóa học để làm bài</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      {quiz.passed && <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">Đã đạt</span>}
-                      {quiz.locked ? (
-                        <span className="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg text-sm cursor-not-allowed flex items-center gap-1"><Lock size={13} /> Chưa mở khóa</span>
-                      ) : quiz.exhausted ? (
-                        <span className="px-4 py-2 bg-red-50 text-red-500 rounded-lg text-sm border border-red-200 flex items-center gap-1"><Lock size={13} /> Hết lượt</span>
-                      ) : canTake ? (
-                        <button
-                          onClick={() => navigate(isFinal ? `/employee/course/${courseId}/final-exam/${quiz.id}` : `/employee/course/${courseId}/quiz/${quiz.id}`)}
-                          className={`px-5 py-2 text-white rounded-lg text-sm font-medium ${isFinal ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' : 'bg-blue-600 hover:bg-blue-700'}`}>
-                          {quiz.attemptCount > 0 ? 'Làm lại' : isFinal ? 'Bắt đầu thi' : 'Làm bài'}
-                        </button>
-                      ) : (
-                        <span className="text-sm text-gray-400">Đăng ký khóa học để làm bài</span>
-                      )}
-                    </div>
+                    {isFinal && quiz.locked && (
+                      <div className="mt-3 text-sm text-orange-600 flex items-center gap-1">
+                        <Lightbulb size={13} /> Hoàn thành tất cả bài quiz với điểm ≥80% để mở khóa bài thi cuối kỳ
+                        {quiz.passedRegularCount != null && <span className="ml-1 text-gray-500">· {quiz.passedRegularCount}/{quiz.totalRegularCount} bài đã đạt</span>}
+                      </div>
+                    )}
+                    {quiz.exhausted && !isFinal && (
+                      <div className="mt-3 text-sm text-red-600 flex items-center gap-1">
+                        <Lock size={13} /> Bạn đã hết {quiz.maxAttempts} lần làm bài cho quiz này
+                      </div>
+                    )}
                   </div>
-                  {isFinal && quiz.locked && (
-                    <div className="mt-3 text-sm text-orange-600 flex items-center gap-1">
-                      <Lightbulb size={13} /> Hoàn thành tất cả bài quiz với điểm ≥80% để mở khóa bài thi cuối kỳ
-                      {quiz.passedRegularCount != null && <span className="ml-1 text-gray-500">· {quiz.passedRegularCount}/{quiz.totalRegularCount} bài đã đạt</span>}
+                );
+              };
+
+              return (
+                <>
+                  {/* Quiz tổng (course-level) */}
+                  {courseQuizzes.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>
+                        <h3 className="font-semibold text-gray-700">Quiz tổng khóa học</h3>
+                        <span className="text-xs text-gray-400">({courseQuizzes.length} bài)</span>
+                      </div>
+                      <div className="space-y-3">{courseQuizzes.map(renderQuizCard)}</div>
                     </div>
                   )}
-                  {quiz.exhausted && !isFinal && (
-                    <div className="mt-3 text-sm text-red-600 flex items-center gap-1">
-                      <Lock size={13} /> Bạn đã hết {quiz.maxAttempts} lần làm bài cho quiz này
+
+                  {/* Quiz module */}
+                  {moduleQuizzes.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3 mt-2">
+                        <span className="w-3 h-3 rounded-full bg-indigo-500 inline-block"></span>
+                        <h3 className="font-semibold text-gray-700">Quiz theo module</h3>
+                        <span className="text-xs text-gray-400">({moduleQuizzes.length} bài)</span>
+                      </div>
+                      <div className="space-y-3">{moduleQuizzes.map(renderQuizCard)}</div>
                     </div>
                   )}
-                </div>
+
+                  {/* Thi cuối kỳ */}
+                  {finalExamQuiz && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-3 mt-2">
+                        <span className="w-3 h-3 rounded-full bg-purple-500 inline-block"></span>
+                        <h3 className="font-semibold text-gray-700">Thi cuối kỳ</h3>
+                      </div>
+                      {renderQuizCard(finalExamQuiz)}
+                    </div>
+                  )}
+                </>
               );
-            })}
+            })()}
           </div>
         )}
 

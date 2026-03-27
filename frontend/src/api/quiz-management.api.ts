@@ -53,6 +53,12 @@ export const quizManagementApi = {
     return response.data.data;
   },
 
+  // Get all quizzes for a course (trainer management)
+  getQuizzesByCourse: async (courseId: number): Promise<QuizDto[]> => {
+    const response = await api.get(`/quizzes/course/${courseId}`);
+    return response.data.data;
+  },
+
   // Get quiz by ID with questions
   getQuizById: async (quizId: number): Promise<QuizDto> => {
     const response = await api.get(`/quizzes/${quizId}/details`);

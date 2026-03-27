@@ -1,5 +1,6 @@
 package com.itms.service;
 
+import com.itms.common.CourseStatus;
 import com.itms.dto.ClassMemberDto;
 import com.itms.entity.ClassMember;
 import com.itms.entity.ClassRoom;
@@ -56,6 +57,11 @@ public class HrClassMemberService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy người dùng với id: " + userId));
 
+        // Block adding members to classes of INACTIVE courses
+        if (CourseStatus.INACTIVE.equals(classRoom.getCourse().getStatus())) {
+            throw new IllegalArgumentException("Khóa học đang INACTIVE, không thể thêm học viên vào lớp");
+        }
+
         if (classMemberRepository.existsByClassRoomIdAndUserId(classId, userId)) {
             throw new IllegalArgumentException("Học viên đã có trong lớp này");
         }
@@ -97,6 +103,11 @@ public class HrClassMemberService {
     public ImportResult importFromExcel(Integer classId, MultipartFile file, Integer addedById) throws IOException {
         ClassRoom classRoom = classRoomRepository.findById(classId)
                 .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy lớp với id: " + classId));
+
+        // Block import for INACTIVE courses
+        if (CourseStatus.INACTIVE.equals(classRoom.getCourse().getStatus())) {
+            throw new IllegalArgumentException("Khóa học đang INACTIVE, không thể thêm học viên vào lớp");
+        }
 
         User addedBy = addedById != null ? userRepository.findById(addedById).orElse(null) : null;
 
