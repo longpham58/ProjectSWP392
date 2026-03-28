@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from "react";
 import { useAdminStore } from "../../stores/admin.store";
-import { Search, RefreshCw, Star, MessageSquare, AlertTriangle, User, Mail, Calendar, Loader2, FileText } from "lucide-react";
+import { Search, RefreshCw, Star, MessageSquare, AlertTriangle, User, Mail, Calendar, Loader2, FileText, Trash2 } from "lucide-react";
 
 type RatingFilter = "ALL" | "5" | "4" | "3" | "2" | "1";
 
 export default function AdminSystemFeedbackPage() {
-  const { feedbackList, fetchAllFeedback, loading, error } = useAdminStore();
+  const { feedbackList, fetchAllFeedback, deleteFeedback, loading, error } = useAdminStore();
   const [ratingFilter, setRatingFilter] = useState<RatingFilter>("ALL");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -190,6 +190,9 @@ export default function AdminSystemFeedbackPage() {
                   <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                     Ngày
                   </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Hành động
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
@@ -269,6 +272,18 @@ export default function AdminSystemFeedbackPage() {
                         {fb.submittedAt
                           ? new Date(fb.submittedAt).toLocaleDateString('vi-VN')
                           : "-"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm('Xóa phản hồi này?')) return;
+                            await deleteFeedback(fb.id);
+                          }}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
+                        >
+                          <Trash2 size={14} />
+                          Xóa
+                        </button>
                       </td>
                     </tr>
                   );

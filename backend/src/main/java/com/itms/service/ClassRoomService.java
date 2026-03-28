@@ -5,11 +5,11 @@ import com.itms.dto.EmployeeClassDto;
 import com.itms.entity.ClassMember;
 import com.itms.entity.ClassRoom;
 import com.itms.repository.ClassMemberRepository;
+import com.itms.repository.ClassRoomRepository;
 import com.itms.repository.CourseScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,28 +19,20 @@ public class ClassRoomService {
 
     private final CourseScheduleRepository courseScheduleRepository;
     private final ClassMemberRepository classMemberRepository;
+    private final ClassRoomRepository classRoomRepository;
 
     /**
-     * Get classes by trainer ID in simple format for notifications
+     * Get classes by trainer ID in simple format for notifications.
+     * Finds classes where trainer is assigned directly OR via course.
      */
     public List<TrainerController.SimpleCourseDto> getClassesByTrainerId(Integer trainerId) {
-        List<ClassRoom> classRooms = courseScheduleRepository.findByTrainerId(trainerId).stream()
-                .map(schedule -> schedule.getClassRoom())
-                .filter(classRoom -> classRoom != null && classRoom.getClassCode() != null)
-                .collect(Collectors.collectingAndThen(
-                        Collectors.toMap(
-                                ClassRoom::getClassCode,
-                                classRoom -> classRoom,
-                                (first, second) -> first,
-                                LinkedHashMap::new
-                        ),
-                        map -> List.copyOf(map.values())
-                ));
+        List<ClassRoom> classRooms = classRoomRepository.findByTrainerIdWithCourse(trainerId);
 
         return classRooms.stream()
-                .map(classRoom -> new TrainerController.SimpleCourseDto(
-                    classRoom.getClassCode(), 
-                    classRoom.getClassName()
+                .filter(cls -> cls.getClassCode() != null)
+                .map(cls -> new TrainerController.SimpleCourseDto(
+                        cls.getClassCode(),
+                        cls.getClassName() != null ? cls.getClassName() : cls.getClassCode()
                 ))
                 .collect(Collectors.toList());
     }

@@ -65,8 +65,6 @@ export const UserAccountManagePage: React.FC<UserAccountManagePageProps> = ({ re
           <div className="ua-subtitle">Quản lý người dùng và phân quyền trong hệ thống</div>
         </div>
         <div className="ua-topbar-actions">
-          <button type="button" className="ua-action-btn secondary">⬇ Xuất</button>
-          <button type="button" className="ua-action-btn primary">⬆ Nhập danh sách</button>
         </div>
       </div>
 

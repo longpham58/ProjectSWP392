@@ -159,7 +159,10 @@ function App() {
                 <TrainerDashboard />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<Navigate to="notifications" replace />} />
+            <Route path=":section" element={<TrainerDashboard />} />
+          </Route>
 
           {/* HR Routes */}
           <Route
@@ -169,7 +172,10 @@ function App() {
                 <HRLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path=":section" element={<HRLayout />} />
+          </Route>
 
           {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />

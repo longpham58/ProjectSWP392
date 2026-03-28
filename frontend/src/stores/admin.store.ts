@@ -13,6 +13,7 @@ interface AdminState {
   // Feedback
   feedbackList: FeedbackDto[];
   fetchAllFeedback: () => Promise<void>;
+  deleteFeedback: (id: number) => Promise<void>;
   
   // Dashboard
   fetchDashboardStats: () => Promise<void>;
@@ -189,6 +190,15 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       set({ feedbackList: res.data.data || [], loading: false });
     } catch (err: any) {
       set({ error: err.response?.data?.message || "Failed to fetch feedback", loading: false });
+    }
+  },
+
+  deleteFeedback: async (id: number) => {
+    try {
+      await adminApi.deleteFeedback(id);
+      set(state => ({ feedbackList: state.feedbackList.filter(fb => fb.id !== id) }));
+    } catch (err: any) {
+      set({ error: err.response?.data?.message || "Failed to delete feedback" });
     }
   },
 }));

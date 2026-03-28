@@ -1116,3 +1116,16 @@ ELSE
     PRINT 'Comment table already exists.';
 
 PRINT 'Done.';
+DELETE FROM Notification
+WHERE is_draft = 1
+  AND user_id IS NOT NULL
+  AND sender_id IS NOT NULL
+  AND user_id = sender_id;
+
+-- Kiểm tra kết quả
+SELECT COUNT(*) AS remaining_self_drafts
+FROM Notification
+WHERE is_draft = 1
+  AND user_id IS NOT NULL
+  AND sender_id IS NOT NULL
+  AND user_id = sender_id;

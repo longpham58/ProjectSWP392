@@ -14,7 +14,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
     List<Notification> findByUserIdOrderBySentDateDesc(Integer userId);
 
     // Get notifications for a user - only individual notifications, not broadcast (user IS NULL)
-    // Exclude notifications where sender equals user (self-notifications)
+    // Exclude notifications where sender equals user (self-notifications) and exclude drafts
     @Query("SELECT DISTINCT n FROM Notification n WHERE n.user.id = :userId AND n.isDraft = false AND (n.sender IS NULL OR n.sender.id <> n.user.id) ORDER BY n.sentDate DESC")
     List<Notification> findNotificationsForUser(@Param("userId") Integer userId);
 

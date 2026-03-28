@@ -6,6 +6,8 @@ import com.itms.dto.TrainerNotificationRequest;
 import com.itms.entity.Course;
 import com.itms.entity.Notification;
 import com.itms.entity.User;
+import com.itms.repository.ClassMemberRepository;
+import com.itms.repository.ClassRoomRepository;
 import com.itms.repository.CourseRepository;
 import com.itms.repository.NotificationRepository;
 import com.itms.repository.UserRepository;
@@ -26,6 +28,8 @@ public class TrainerNotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final CourseRepository courseRepository;
+    private final ClassMemberRepository classMemberRepository;
+    private final ClassRoomRepository classRoomRepository;
 
     // Get notifications by category
     public List<TrainerNotificationDto> getNotificationsByCategory(Integer trainerId, String category) {
@@ -40,8 +44,8 @@ public class TrainerNotificationService {
                 break;
             case "inbox":
             default:
-                // For inbox, we get notifications sent TO the trainer
-                notifications = notificationRepository.findByUserIdOrderBySentDateDesc(trainerId);
+                // Inbox: only non-draft notifications sent TO the trainer, excluding self-sent
+                notifications = notificationRepository.findNotificationsForUser(trainerId);
                 break;
         }
 
@@ -164,17 +168,17 @@ public class TrainerNotificationService {
         }
     }
 
-    // Helper: Send to students
+    // Helper: Send to students in specified classes
     private void sendToStudents(Notification sourceNotification, List<String> classCodes) {
-        // TODO: Implement logic to find students by class codes and create notifications
-        // This would require a relationship between users and classes/enrollments
-        // For now, this is a placeholder
-        
-        // Example implementation (when enrollment/class relationship is available):
-        // List<User> students = enrollmentRepository.findStudentsByClassCodes(classCodes);
-        // for (User student : students) {
-        //     createNotificationForUser(student, sourceNotification);
-        // }
+        for (String classCode : classCodes) {
+            List<com.itms.entity.ClassMember> members =
+                    classMemberRepository.findByClassRoomClassCode(classCode.trim());
+            members.forEach(member -> {
+                if (member.getUser() != null) {
+                    createNotificationForUser(member.getUser(), sourceNotification);
+                }
+            });
+        }
     }
 
     // Helper: Send to HR
@@ -239,25 +243,22 @@ public class TrainerNotificationService {
                 .build();
     }
 
-    // Get trainer's courses for class selection
+    // Get trainer's classes for class selection in notification form
     public List<Map<String, String>> getTrainerCourses(Integer trainerId) {
-        System.out.println("🔍 [TrainerNotificationService] Getting courses for trainer ID: " + trainerId);
-        
-        // Get courses taught by this trainer
-        List<Course> courses = courseRepository.findByTrainerId(trainerId);
-        
-        System.out.println("📚 [TrainerNotificationService] Found " + courses.size() + " courses");
-        courses.forEach(c -> System.out.println("   - " + c.getCode() + ": " + c.getName()));
-        
-        // Convert to Map format for frontend
-        List<Map<String, String>> result = courses.stream()
-                .map(course -> Map.of(
-                        "code", course.getCode() != null ? course.getCode() : "",
-                        "name", course.getName() != null ? course.getName() : ""
+        System.out.println("🔍 [TrainerNotificationService] Getting classes for trainer ID: " + trainerId);
+
+        List<com.itms.entity.ClassRoom> classes = classRoomRepository.findByTrainerIdWithCourse(trainerId);
+
+        System.out.println("📚 [TrainerNotificationService] Found " + classes.size() + " classes");
+
+        List<Map<String, String>> result = classes.stream()
+                .map(cls -> Map.of(
+                        "code", cls.getClassCode() != null ? cls.getClassCode() : "",
+                        "name", cls.getClassName() != null ? cls.getClassName() : cls.getClassCode()
                 ))
                 .collect(Collectors.toList());
-        
-        System.out.println("✅ [TrainerNotificationService] Returning " + result.size() + " courses to frontend");
+
+        System.out.println("✅ [TrainerNotificationService] Returning " + result.size() + " classes to frontend");
         return result;
     }
     

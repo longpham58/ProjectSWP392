@@ -229,6 +229,7 @@ public class CourseService {
                 .trainerName(trainerName)
                 .trainerId(trainer != null ? trainer.getId() : null)
                 .departmentName(departmentName)
+                .durationHours(c.getDurationHours())
                 .build();
     }
 
@@ -256,11 +257,13 @@ public class CourseService {
         if (dto.getTrainerUsername() != null && !dto.getTrainerUsername().isBlank()) {
             User trainer = userRepository.findByUsername(dto.getTrainerUsername())
                     .orElse(null);
-            // Do not fail the whole create/update if trainer username is not found.
-            // This prevents 400 when stale UI values are submitted.
             if (trainer != null) {
                 course.setTrainer(trainer);
             }
+        }
+        if (dto.getDurationHours() != null) {
+            course.setDurationHours(dto.getDurationHours());
+            System.out.println("✅ [CourseService] Setting durationHours: " + dto.getDurationHours());
         }
     }
 
