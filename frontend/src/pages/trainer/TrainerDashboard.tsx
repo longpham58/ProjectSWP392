@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import NotificationSection from './components/NotificationSectionNew';
 import ScheduleSection from './components/ScheduleSection';
@@ -9,11 +9,41 @@ import FeedbackSection from './components/FeedbackSection';
 
 type ActiveSection = 'notification' | 'schedule' | 'attendance' | 'viewCourse' | 'feedback';
 
+const TRAINER_ROUTE_MAP: Record<string, ActiveSection> = {
+  'notifications': 'notification',
+  'schedule':      'schedule',
+  'attendance':    'attendance',
+  'courses':       'viewCourse',
+  'feedback':      'feedback',
+};
+
+const TRAINER_PAGE_TO_ROUTE: Record<ActiveSection, string> = {
+  'notification': 'notifications',
+  'schedule':     'schedule',
+  'attendance':   'attendance',
+  'viewCourse':   'courses',
+  'feedback':     'feedback',
+};
+
 const TrainerDashboard: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<ActiveSection>('notification');
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
+  const { section } = useParams<{ section?: string }>();
+
+  const sectionFromUrl: ActiveSection = (section && TRAINER_ROUTE_MAP[section]) || 'notification';
+  const [activeSection, setActiveSection] = useState<ActiveSection>(sectionFromUrl);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { logout, user } = useAuthStore();
+
+  const handleSectionChange = (s: ActiveSection) => {
+    setActiveSection(s);
+    navigate(`/trainer/${TRAINER_PAGE_TO_ROUTE[s]}`, { replace: true });
+  };
+
+  // Sync state when URL changes (browser back/forward)
+  useEffect(() => {
+    const s = (section && TRAINER_ROUTE_MAP[section]) || 'notification';
+    setActiveSection(s);
+  }, [section]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -64,7 +94,7 @@ const TrainerDashboard: React.FC = () => {
 
         {/* Navigation Buttons */}
         <button
-          onClick={() => setActiveSection('notification')}
+          onClick={() => handleSectionChange('notification')}
           className={`w-24 py-3 rounded-lg text-sm font-medium transition ${
             activeSection === 'notification'
               ? 'bg-blue-500 text-white'
@@ -75,7 +105,7 @@ const TrainerDashboard: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveSection('schedule')}
+          onClick={() => handleSectionChange('schedule')}
           className={`w-24 py-3 rounded-lg text-sm font-medium transition ${
             activeSection === 'schedule'
               ? 'bg-blue-500 text-white'
@@ -86,7 +116,7 @@ const TrainerDashboard: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveSection('attendance')}
+          onClick={() => handleSectionChange('attendance')}
           className={`w-24 py-3 rounded-lg text-sm font-medium transition ${
             activeSection === 'attendance'
               ? 'bg-blue-500 text-white'
@@ -97,7 +127,7 @@ const TrainerDashboard: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveSection('viewCourse')}
+          onClick={() => handleSectionChange('viewCourse')}
           className={`w-24 py-3 rounded-lg text-sm font-medium transition ${
             activeSection === 'viewCourse'
               ? 'bg-blue-500 text-white'
@@ -108,7 +138,7 @@ const TrainerDashboard: React.FC = () => {
         </button>
 
         <button
-          onClick={() => setActiveSection('feedback')}
+          onClick={() => handleSectionChange('feedback')}
           className={`w-24 py-3 rounded-lg text-sm font-medium transition ${
             activeSection === 'feedback'
               ? 'bg-blue-500 text-white'

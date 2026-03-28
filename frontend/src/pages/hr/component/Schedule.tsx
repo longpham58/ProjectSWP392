@@ -239,7 +239,6 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onSchedulesChanged }
             <div className="schedule-subtitle">Tạo lịch dạy theo trainer và theo dõi lịch đã tạo</div>
           </div>
           <div className="schedule-topbar-actions">
-            <button type="button" className="schedule-btn secondary">⬇ Xuất</button>
           </div>
         </div>
 

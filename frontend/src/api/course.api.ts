@@ -18,6 +18,7 @@ export interface CourseDto {
   trainerName?: string;
   trainerUsername?: string;
   departmentName?: string;
+  durationHours?: number;
 }
 
 export interface GetMyCoursesResponse {
@@ -38,4 +39,5 @@ export interface AddCoursePayload {
   trainerName?: string;
   trainerUsername?: string;
   departmentName?: string;
+  durationHours?: number;
 }

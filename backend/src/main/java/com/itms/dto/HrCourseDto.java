@@ -20,5 +20,6 @@ public class HrCourseDto {
     private String trainerName;
     private Integer trainerId;
     private String departmentName;
+    private Double durationHours;
 }
 

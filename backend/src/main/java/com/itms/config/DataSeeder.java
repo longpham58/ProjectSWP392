@@ -22,7 +22,7 @@ public class DataSeeder {
     private final PasswordEncoder passwordEncoder;
 
     // Set true to wipe and re-seed all data on next startup
-    private static final boolean RESET_DATA = false;
+    private static final boolean RESET_DATA = true;
 
     @Bean
     CommandLineRunner seedData(
@@ -93,17 +93,17 @@ public class DataSeeder {
             String pw = passwordEncoder.encode("admin123");
 
             User admin    = saveUser(userRepository, "admin",      "admin@itms.com",       "System Administrator",  "0905123456", it,      pw);
-            User hrUser   = saveUser(userRepository, "hr001",      "hr@itms.com",          "Nguyễn Văn HR",         "0905123457", hrDept,  pw);
-            User t1       = saveUser(userRepository, "trainer001", "trainer@itms.com",     "Trần Thị Trainer",      "0905123458", it,      pw);
-            User t2       = saveUser(userRepository, "trainer002", "trainer002@itms.com",  "Nguyễn Văn Trainer",    "0905123464", it,      pw);
-            User t3       = saveUser(userRepository, "trainer003", "trainer003@itms.com",  "Phạm Thị Trainer",      "0905123465", sales,   pw);
-            User t4       = saveUser(userRepository, "trainer004", "trainer004@itms.com",  "Lê Văn Trainer",        "0905123466", finance, pw);
-            User t5       = saveUser(userRepository, "trainer005", "trainer005@itms.com",  "Trần Văn Trainer",      "0905123467", hrDept,  pw);
-            User emp1     = saveUser(userRepository, "emp001",     "employee@itms.com",    "Lê Văn Employee",       "0905123459", finance, pw);
-            User emp2     = saveUser(userRepository, "emp002",     "employee2@itms.com",   "Phạm Thị Mai",          "0905123460", sales,   pw);
-            User emp3     = saveUser(userRepository, "emp003",     "emp003@itms.com",      "Nguyễn Văn A",          "0905123461", it,      pw);
-            User emp4     = saveUser(userRepository, "emp004",     "emp004@itms.com",      "Trần Thị B",            "0905123462", hrDept,  pw);
-            User emp5     = saveUser(userRepository, "emp005",     "emp005@itms.com",      "Lê Văn C",              "0905123463", finance, pw);
+            User hrUser   = saveUser(userRepository, "hr001",      "hr@itms.com",          "Nguyễn Thị Hương",      "0905123457", hrDept,  pw);
+            User t1       = saveUser(userRepository, "trainer001", "trainer@itms.com",     "Trần Minh Khoa",        "0905123458", it,      pw);
+            User t2       = saveUser(userRepository, "trainer002", "trainer002@itms.com",  "Lê Quốc Bảo",          "0905123464", it,      pw);
+            User t3       = saveUser(userRepository, "trainer003", "trainer003@itms.com",  "Phạm Thị Lan Anh",     "0905123465", sales,   pw);
+            User t4       = saveUser(userRepository, "trainer004", "trainer004@itms.com",  "Võ Thanh Tùng",         "0905123466", finance, pw);
+            User t5       = saveUser(userRepository, "trainer005", "trainer005@itms.com",  "Đặng Hoàng Nam",        "0905123467", hrDept,  pw);
+            User emp1     = saveUser(userRepository, "emp001",     "employee@itms.com",    "Nguyễn Văn Đức",        "0905123459", finance, pw);
+            User emp2     = saveUser(userRepository, "emp002",     "employee2@itms.com",   "Trần Thị Thu Hà",       "0905123460", sales,   pw);
+            User emp3     = saveUser(userRepository, "emp003",     "emp003@itms.com",      "Lê Hoàng Phúc",         "0905123461", it,      pw);
+            User emp4     = saveUser(userRepository, "emp004",     "emp004@itms.com",      "Phạm Ngọc Linh",        "0905123462", hrDept,  pw);
+            User emp5     = saveUser(userRepository, "emp005",     "emp005@itms.com",      "Bùi Thị Thanh Mai",     "0905123463", finance, pw);
 
             // ── Roles assignment ─────────────────────────────────────────────
             assignRole(userRoleRepository, admin,  adminRole,    admin);

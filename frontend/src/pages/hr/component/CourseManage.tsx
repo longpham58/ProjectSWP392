@@ -24,6 +24,7 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
   const [formStatus, setFormStatus] = useState('DRAFT');
   const [formDepartment, setFormDepartment] = useState('IT Department');
   const [formTrainerUsername, setFormTrainerUsername] = useState('');
+  const [formDurationHours, setFormDurationHours] = useState<string>('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formError, setFormError] = useState<string>('');
 
@@ -79,6 +80,7 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
     setFormStatus('DRAFT');
     setFormDepartment('IT Department');
     setFormTrainerUsername(trainers[0]?.username || '');
+    setFormDurationHours('');
     setModalOpen(true);
   };
 
@@ -90,8 +92,6 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
           <div className="course-subtitle">Tạo, cập nhật và theo dõi khoá học trong hệ thống</div>
         </div>
         <div className="course-topbar-actions">
-          <button type="button" className="course-action-btn secondary">⬇ Xuất</button>
-          <button type="button" className="course-action-btn secondary">⬆ Nhập</button>
           <button type="button" className="course-action-btn primary" onClick={openCreateModal}>
             + Thêm khoá học
           </button>
@@ -196,6 +196,7 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
                       setFormStatus(c.status || 'DRAFT');
                       setFormDepartment(c.departmentName || 'IT Department');
                       setFormTrainerUsername(c.trainerUsername || 'trainer001');
+                      setFormDurationHours(c.durationHours != null ? String(c.durationHours) : '');
                     }}
                   >
                     ✎
@@ -258,6 +259,7 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
                       trainerName: trainer?.fullName || '',
                       trainerUsername: trainer?.username,
                       departmentName: formDepartment,
+                      durationHours: formDurationHours && !isNaN(parseFloat(formDurationHours)) ? parseFloat(formDurationHours) : undefined,
                     });
                     await fetchCourses();
                     onCoursesChanged?.();
@@ -272,6 +274,7 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
                     trainerName: trainer?.fullName || '',
                     trainerUsername: trainer?.username,
                     departmentName: formDepartment,
+                    durationHours: formDurationHours && !isNaN(parseFloat(formDurationHours)) ? parseFloat(formDurationHours) : undefined,
                     });
                     await fetchCourses();
                     onCoursesChanged?.(created?.id);
@@ -284,6 +287,7 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
                   setFormStatus('DRAFT');
                   setFormDepartment('IT Department');
                   setFormTrainerUsername(trainers[0]?.username || '');
+                  setFormDurationHours('');
                   setEditingId(null);
                 } catch (err: any) {
                   const message = err?.response?.data?.message || 'Không thể lưu khoá học.';
@@ -349,6 +353,17 @@ export const CourseManagePage: React.FC<CourseManagePageProps> = ({ onCoursesCha
                   <label>Phòng ban</label>
                   <input value={formDepartment} onChange={(e) => setFormDepartment(e.target.value)} />
                 </div>
+              </div>
+              <div className="course-form-field">
+                <label>Thời lượng (giờ)</label>
+                <input
+                  type="number"
+                  placeholder="VD: 40"
+                  min="0"
+                  step="0.5"
+                  value={formDurationHours}
+                  onChange={(e) => setFormDurationHours(e.target.value)}
+                />
               </div>
               <div className="course-form-field">
                 <label>Trạng thái</label>

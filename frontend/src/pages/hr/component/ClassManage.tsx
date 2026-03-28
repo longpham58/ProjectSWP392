@@ -76,11 +76,7 @@ export const ClassManagePage: React.FC<ClassManagePageProps> = ({ onClassesChang
   const handleCourseChange = (cid: string) => {
     sf('courseId', cid);
     const course = courses.find(c => String(c.id) === cid);
-    if (course?.trainerId) {
-      sf('trainerId', String(course.trainerId));
-    } else {
-      sf('trainerId', '');
-    }
+    sf('trainerId', course?.trainerId ? String(course.trainerId) : '');
   };
 
   const openCreate = () => {
@@ -223,12 +219,15 @@ export const ClassManagePage: React.FC<ClassManagePageProps> = ({ onClassesChang
             <input value={form.className} onChange={e => sf('className', e.target.value)} style={input} placeholder="VD: Lớp Java cơ bản" />
 
             <label style={label}>Giảng viên</label>
-            <select value={form.trainerId} onChange={e => sf('trainerId', e.target.value)} style={input}>
-              <option value="">-- Chọn giảng viên --</option>
-              {trainers.map(t => (
-                <option key={t.trainerId} value={String(t.trainerId)}>{t.trainerName}</option>
-              ))}
-            </select>
+            {form.courseId ? (
+              <div style={{ ...input, background: '#f9fafb', color: '#374151', cursor: 'default' }}>
+                {courses.find(c => String(c.id) === form.courseId)?.trainerName || '-- Chưa có giảng viên --'}
+              </div>
+            ) : (
+              <div style={{ ...input, background: '#f3f4f6', color: '#9ca3af', cursor: 'not-allowed' }}>
+                -- Chọn khóa học trước --
+              </div>
+            )}
 
             <label style={label}>Sĩ số tối đa</label>
             <input type="number" value={form.maxStudents} onChange={e => sf('maxStudents', e.target.value)} style={input} placeholder="VD: 30" min={1} />

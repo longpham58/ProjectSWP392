@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Header, HrBrand } from '../../components/Header';
 import { CourseManagePage } from './component/CourseManage';
 import { ClassManagePage } from './component/ClassManage';
@@ -14,6 +15,26 @@ import type { CourseDto } from '../../api/course.api';
 import '@/assets/styles/HRDashboardPage.css';
 
 type CurrentPageId = 'dashboard' | 'course' | 'classroom' | 'schedule' | 'notification' | 'useraccount' | 'certificate';
+
+const ROUTE_MAP: Record<string, CurrentPageId> = {
+  'dashboard':     'dashboard',
+  'courses':       'course',
+  'classes':       'classroom',
+  'schedule':      'schedule',
+  'certificate':   'certificate',
+  'notifications': 'notification',
+  'accounts':      'useraccount',
+};
+
+const PAGE_TO_ROUTE: Record<CurrentPageId, string> = {
+  'dashboard':   'dashboard',
+  'course':      'courses',
+  'classroom':   'classes',
+  'schedule':    'schedule',
+  'certificate': 'certificate',
+  'notification':'notifications',
+  'useraccount': 'accounts',
+};
 
 const SIDEBAR_ITEMS: ReadonlyArray<{ id: CurrentPageId; label: string }> = [
   { id: 'dashboard', label: 'Tổng quan' },
@@ -31,11 +52,27 @@ interface HRDashboardPageProps {
 }
 
 export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout }) => {
-  const [currentPage, setCurrentPage] = useState<CurrentPageId>('dashboard');
+  const navigate = useNavigate();
+  const { section } = useParams<{ section?: string }>();
+
+  const pageFromUrl: CurrentPageId = (section && ROUTE_MAP[section]) || 'dashboard';
+  const [currentPage, setCurrentPage] = useState<CurrentPageId>(pageFromUrl);
   const [recentCourses, setRecentCourses] = useState<CourseDto[]>([]);
   const [courseRefreshToken, setCourseRefreshToken] = useState(0);
   const [hrRefreshToken, setHrRefreshToken] = useState(0);
   const [lastCreatedCourseId, setLastCreatedCourseId] = useState<number | undefined>(undefined);
+
+  // Sync URL when page changes
+  const handlePageChange = (page: CurrentPageId) => {
+    setCurrentPage(page);
+    navigate(`/hr/${PAGE_TO_ROUTE[page]}`, { replace: true });
+  };
+
+  // Sync state when URL changes (browser back/forward)
+  useEffect(() => {
+    const page = (section && ROUTE_MAP[section]) || 'dashboard';
+    setCurrentPage(page);
+  }, [section]);
 
   const notifyHrDataChanged = () => {
     setHrRefreshToken((prev) => prev + 1);
@@ -68,7 +105,7 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
                 key={item.id}
                 type="button"
                 className={`hr-sidebar-btn ${currentPage === item.id ? 'active' : ''}`}
-                onClick={() => setCurrentPage(item.id)}
+                onClick={() => handlePageChange(item.id)}
                 aria-current={currentPage === item.id ? 'page' : undefined}
               >
                 {item.label}
@@ -99,7 +136,6 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
                   <table className="hr-table">
                     <thead>
                       <tr>
-                        <th>ID</th>
                         <th>Mã khóa học</th>
                         <th>Tên khóa học</th>
                         <th>Giảng viên</th>
@@ -109,7 +145,6 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
                     <tbody>
                       {recentCourses.map((row) => (
                         <tr key={row.id}>
-                          <td>{row.id}</td>
                           <td>{row.code || `ITMS-${String(row.id).padStart(3, '0')}`}</td>
                           <td>{(row.title || row.name || '').trim() || 'Chưa có tên khoá học'}</td>
                           <td>{row.trainerName || '-'}</td>
@@ -118,7 +153,7 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
                       ))}
                       {recentCourses.length === 0 && (
                         <tr>
-                          <td colSpan={5}>Không có dữ liệu.</td>
+                          <td colSpan={4}>Không có dữ liệu.</td>
                         </tr>
                       )}
                     </tbody>
@@ -134,7 +169,7 @@ export const HRDashboardPage: React.FC<HRDashboardPageProps> = ({ user, onLogout
                 notifyHrDataChanged();
                 if (newCourseId) {
                   setLastCreatedCourseId(newCourseId);
-                  setCurrentPage('classroom');
+                  handlePageChange('classroom');
                 }
               }}
             />

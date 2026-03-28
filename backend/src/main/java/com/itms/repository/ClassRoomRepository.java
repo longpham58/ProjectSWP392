@@ -30,9 +30,10 @@ public interface ClassRoomRepository extends JpaRepository<ClassRoom, Integer> {
     Optional<ClassRoom> findByClassCode(String classCode);
 
     /**
-     * Find all classrooms for a trainer
+     * Find all classrooms for a trainer (by classroom.trainer_id OR course.trainer_id)
      */
-    @Query("SELECT c FROM ClassRoom c LEFT JOIN FETCH c.course WHERE c.trainer.id = :trainerId")
+    @Query("SELECT c FROM ClassRoom c LEFT JOIN FETCH c.course co LEFT JOIN FETCH c.trainer " +
+           "WHERE c.trainer.id = :trainerId OR co.trainer.id = :trainerId")
     List<ClassRoom> findByTrainerIdWithCourse(@Param("trainerId") Integer trainerId);
     
     /**

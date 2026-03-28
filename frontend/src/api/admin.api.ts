@@ -238,4 +238,7 @@ export const adminApi = {
 
   createSystemFeedback: (data: Partial<FeedbackDto>) =>
     axios.post<ApiResponse<FeedbackDto>>("/admin/feedback/system", data),
+
+  deleteFeedback: (id: number) =>
+    axios.delete<ApiResponse<void>>(`/admin/feedback/${id}`),
 };

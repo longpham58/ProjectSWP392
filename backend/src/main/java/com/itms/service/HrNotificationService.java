@@ -36,7 +36,8 @@ public class HrNotificationService {
                 break;
             case "inbox":
             default:
-                notifications = notificationRepository.findByUserIdOrderBySentDateDesc(hrId);
+                // Inbox: only non-draft notifications sent TO the HR user, excluding self-sent
+                notifications = notificationRepository.findNotificationsForUser(hrId);
                 break;
         }
         return notifications.stream()
